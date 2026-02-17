@@ -863,10 +863,10 @@ function duration(start, end) {
 }
 function statusClass(s) {
   const sl = s.toLowerCase();
-  if(sl.includes('progress')||sl.includes('dev')) return 'status-progress';
-  if(sl.includes('review')||sl.includes('test')) return 'status-review';
-  if(sl==='to do'||sl==='open'||sl==='backlog')  return 'status-todo';
-  if(sl==='done'||sl==='closed')                 return 'status-done';
+  if(sl.includes('progress')||sl.includes('dev')||sl.includes('разработ')) return 'status-progress';
+  if(sl.includes('review')||sl.includes('test')||sl.includes('approval')||sl.includes('approving')) return 'status-review';
+  if(sl==='to do'||sl==='open'||sl==='backlog'||sl.includes('к выполнению')||sl.includes('not doing')||sl.includes('отмен')) return 'status-todo';
+  if(sl==='done'||sl==='closed'||sl==='готово'||sl.includes('complete')||sl.includes('resolved')) return 'status-done';
   return 'status-todo';
 }
 function priorityClass(p) {
@@ -875,8 +875,22 @@ function priorityClass(p) {
   return 'p-medium';
 }
 function statusLabel(s) {
-  const m={'In Progress':'В работе','Review':'На ревью','To Do':'К выполнению','Done':'Готово','Open':'Открыта','Backlog':'Бэклог'};
-  return m[s]||s;
+  const m={
+    'In Progress':'В работе','Review':'На ревью','To Do':'К выполнению','Done':'Готово',
+    'Open':'Открыта','Backlog':'Бэклог','Testing':'Тестирование',
+    'Needs Approval':'Ожидает апрув','Not Doing':'Не делаем','Closed':'Закрыта',
+    'In Review':'На ревью','Resolved':'Решено'
+  };
+  return m[s] || s;
+}
+
+// Groups for tab filtering — maps tab index to status matcher function
+function jiraStatusGroup(status) {
+  const sl = status.toLowerCase();
+  if(sl.includes('progress')||sl.includes('dev')||sl.includes('разработ')) return 'inprogress';
+  if(sl.includes('review')||sl.includes('test')||sl.includes('approval')||sl.includes('approving')) return 'review';
+  if(sl==='done'||sl==='closed'||sl==='готово'||sl.includes('complete')||sl.includes('resolved')) return 'done';
+  return 'todo'; // To Do, Not Doing, Open, Backlog etc
 }
 
 // ============================================================
@@ -1191,10 +1205,12 @@ function changeDate(d) {
 function filterJira(idx, el) {
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  const statuses = [null,'In Progress','Review','To Do','Done'];
-  const filter   = statuses[idx];
+  // idx: 0=все, 1=в работе, 2=ревью/тест, 3=к выполнению, 4=готово
+  const groupMap = [null,'inprogress','review','todo','done'];
+  const filter   = groupMap[idx];
   document.querySelectorAll('#jiraList .issue-row').forEach(row=>{
-    row.style.display = (!filter||row.dataset.status===filter) ? '' : 'none';
+    const group = jiraStatusGroup(row.dataset.status || '');
+    row.style.display = (!filter || group === filter) ? '' : 'none';
   });
 }
 
@@ -1581,7 +1597,7 @@ window.renderJiraFull = function() {
   }
 
   const rows = jiraIssues.map(issue => `
-    <div class="issue-row" data-status="${issue.status}" onclick="window.open('${issue.url}','_blank')">
+    <div class="issue-row" data-status="${issue.status}" onclick="window.open('${issue.url}','_blank')" style="cursor:pointer">
       <div class="priority-dot ${priorityClass(issue.priority)}"></div>
       <div class="issue-key">${issue.key}</div>
       <div style="flex:1;min-width:0">
@@ -1589,13 +1605,26 @@ window.renderJiraFull = function() {
         <div class="issue-project">${issue.project} · ${issue.updated}</div>
       </div>
       <span class="status-pill ${statusClass(issue.status)}">${statusLabel(issue.status)}</span>
-      <span style="font-size:10px;color:var(--muted);margin-left:4px">${issue.priority}</span>
     </div>`).join('');
+
+  // Count per group for tab badges
+  const counts = { all: jiraIssues.length, inprogress: 0, review: 0, todo: 0, done: 0 };
+  jiraIssues.forEach(j => { counts[jiraStatusGroup(j.status)]++; });
+
+  const tabs = [
+    { label: 'Все',           count: counts.all,        group: null },
+    { label: 'В работе',      count: counts.inprogress, group: 'inprogress' },
+    { label: 'Ревью / Тест',  count: counts.review,     group: 'review' },
+    { label: 'К выполнению',  count: counts.todo,        group: 'todo' },
+    { label: 'Готово',        count: counts.done,        group: 'done' }
+  ];
 
   return `
   <div class="tabs">
-    ${['Все','В работе','На ревью','К выполнению','Готово'].map((t,i)=>`
-      <div class="tab${i===0?' active':''}" onclick="filterJira(${i},this)">${t}</div>`).join('')}
+    ${tabs.map((t,i) => `
+      <div class="tab${i===0?' active':''}" onclick="filterJira(${i},this)">
+        ${t.label}${t.count > 0 ? ` <span style="font-size:9px;background:var(--bg4);padding:1px 5px;border-radius:8px;margin-left:3px">${t.count}</span>` : ''}
+      </div>`).join('')}
   </div>
   <div class="card" style="margin-top:16px" id="jiraList">
     ${rows}
@@ -1877,7 +1906,7 @@ window.renderJiraFull = function() {
   if (jiraCfgSet() && jiraIssues === null) {
     return `
     <div class="tabs">
-      ${['Все','В работе','На ревью','К выполнению','Готово'].map((t,i)=>
+      ${['Все','В работе','Ревью / Тест','К выполнению','Готово'].map((t,i)=>
         `<div class="tab${i===0?' active':''}">${t}</div>`).join('')}
     </div>
     <div class="card" style="margin-top:16px">
