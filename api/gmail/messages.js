@@ -74,13 +74,7 @@ export default async function handler(req, res) {
     const listData = await listRes.json();
 
     if (!listData.messages) {
-      return res.json({
-        messages: [],
-        debug: {
-          resultSizeEstimate: listData.resultSizeEstimate,
-          raw: listData
-        }
-      });
+      return res.json({ messages: [] });
     }
 
     // Fetch each message in parallel (metadata only — fast)
