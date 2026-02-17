@@ -3525,16 +3525,46 @@ function renderSlackFull() {
       <div class="loading-row"><span class="spin">⟳</span> Загружаем Slack...</div>
     </div>`;
   }
+  // Fallback error handling in base function too
+  if (slackData && !slackData.ok) return renderSlackError(slackData.error);
   return renderSlackMessages();
+}
+
+// Error card with diagnostic hints
+function renderSlackError(errMsg) {
+  const hints = {
+    'invalid_auth':              'Токен неверный или отозван. Скопируйте новый Bot Token с api.slack.com',
+    'missing_scope':             'Не хватает прав у Bot Token. Добавьте scopes: channels:history, im:history, im:read, users:read, chat:write',
+    'not_in_channel':            'Бот не добавлен в каналы. Откройте канал в Slack и напишите /invite @ваш_бот',
+    'token_revoked':             'Токен отозван. Создайте новый Bot Token на api.slack.com',
+    'account_inactive':          'Аккаунт неактивен или бот деактивирован',
+    'server_error':              'Внутренняя ошибка сервера. Попробуйте позже',
+    'conversations_list_failed': 'Не удалось получить список каналов. Проверьте scope: channels:read, im:read'
+  };
+  const hint = hints[errMsg] || 'Проверьте Bot Token и права Slack App в настройках';
+  return `<div class="card">
+    <div class="card-header">
+      <div class="card-title"><div class="dot" style="background:var(--red)"></div>Slack — ошибка подключения</div>
+      <button class="btn-secondary" onclick="loadSlackData()" style="font-size:10px;padding:3px 10px">↺ Повторить</button>
+    </div>
+    <div class="empty" style="padding:36px 20px">
+      <div style="font-size:28px;margin-bottom:10px">⚠️</div>
+      <div style="font-weight:600;margin-bottom:6px;color:var(--red);font-family:monospace;font-size:12px">${errMsg || 'unknown_error'}</div>
+      <div style="color:var(--muted2);font-size:11px;margin-bottom:20px;max-width:340px;line-height:1.6">${hint}</div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn-primary" onclick="openSettings()" style="font-size:11px;padding:8px 18px">⚙ Проверить токен</button>
+        <a href="https://api.slack.com/apps" target="_blank" class="btn-secondary" style="font-size:11px;padding:8px 18px;text-decoration:none;display:inline-flex;align-items:center">api.slack.com ↗</a>
+      </div>
+    </div>
+  </div>`;
 }
 
 // Override to show real data
 window.renderSlackFull = function() {
   const cfg = JSON.parse(localStorage.getItem('drCfg') || '{}');
-  if (!cfg.slackToken) return renderSlackFull();
-  if (slackData === null) return renderSlackFull(); // loading skeleton
-  if (!slackData.ok)     return renderSlackFull(); // no token or error
-
+  if (!cfg.slackToken)    return renderSlackFull();               // no token → setup screen
+  if (slackData === null) return renderSlackFull();               // null = still loading
+  if (!slackData.ok)      return renderSlackError(slackData.error); // error card ← FIXED
   return renderSlackMessages();
 };
 
@@ -3651,12 +3681,17 @@ async function loadSlackData() {
       headers: { 'x-slack-token': cfg.slackToken }
     });
     const data = await res.json();
-    slackData = data;
+    // Validate both HTTP status and Slack's own ok flag
+    if (!res.ok || !data.ok) {
+      slackData = { ok: false, error: data.error || `http_${res.status}` };
+    } else {
+      slackData = data;
+    }
     if (currentView === 'slack') render();
     updateNavBadges();
   } catch(err) {
     console.error('Slack load error:', err);
-    slackData = { ok: false, error: err.message };
+    slackData = { ok: false, error: 'server_error' };
     if (currentView === 'slack') render();
   }
 }
