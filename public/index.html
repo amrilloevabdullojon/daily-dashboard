@@ -276,6 +276,7 @@
   }
   .status-progress { background: rgba(59,130,246,.15); color: var(--accent2); border: 1px solid rgba(59,130,246,.3); }
   .status-review   { background: rgba(168,85,247,.15); color: var(--purple);  border: 1px solid rgba(168,85,247,.3); }
+  .status-approval { background: rgba(249,115,22,.15); color: var(--orange);  border: 1px solid rgba(249,115,22,.3); }
   .status-todo     { background: rgba(100,116,139,.12); color: var(--muted2); border: 1px solid rgba(100,116,139,.25); }
   .status-done     { background: rgba(34,197,94,.12);  color: var(--green);  border: 1px solid rgba(34,197,94,.25); }
 
@@ -335,10 +336,11 @@
     flex-shrink: 0;
     margin-top: 1px;
   }
-  .email-body { flex: 1; min-width: 0; }
-  .email-from    { font-size: 11px; color: var(--text); font-weight: 500; }
+  .email-body { flex: 1; min-width: 0; overflow: hidden; }
+  .email-from    { font-size: 11px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .email-from .email-addr { font-weight: 400; color: var(--muted); font-size: 10px; }
   .email-subject { font-size: 11px; color: var(--muted2); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .email-time    { font-size: 10px; color: var(--muted); }
+  .email-time    { font-size: 10px; color: var(--muted); white-space: nowrap; }
   .email-star { color: var(--yellow); font-size: 12px; }
 
   /* ── TASKS ── */
@@ -1024,7 +1026,8 @@ function duration(start, end) {
 function statusClass(s) {
   const sl = s.toLowerCase();
   if(sl.includes('progress')||sl.includes('dev')||sl.includes('разработ')) return 'status-progress';
-  if(sl.includes('review')||sl.includes('test')||sl.includes('approval')||sl.includes('approving')) return 'status-review';
+  if(sl.includes('approval')||sl.includes('approving')) return 'status-approval';
+  if(sl.includes('review')||sl.includes('test')) return 'status-review';
   if(sl==='to do'||sl==='open'||sl==='backlog'||sl.includes('к выполнению')||sl.includes('not doing')||sl.includes('отмен')) return 'status-todo';
   if(sl==='done'||sl==='closed'||sl==='готово'||sl.includes('complete')||sl.includes('resolved')) return 'status-done';
   return 'status-todo';
@@ -1048,7 +1051,8 @@ function statusLabel(s) {
 function jiraStatusGroup(status) {
   const sl = status.toLowerCase();
   if(sl.includes('progress')||sl.includes('dev')||sl.includes('разработ')) return 'inprogress';
-  if(sl.includes('review')||sl.includes('test')||sl.includes('approval')||sl.includes('approving')) return 'review';
+  if(sl.includes('approval')||sl.includes('approving')) return 'approval';
+  if(sl.includes('review')||sl.includes('test')) return 'review';
   if(sl==='done'||sl==='closed'||sl==='готово'||sl.includes('complete')||sl.includes('resolved')) return 'done';
   return 'todo'; // To Do, Not Doing, Open, Backlog etc
 }
@@ -1088,35 +1092,64 @@ function render() {
 
 // ── DASHBOARD ──────────────────────────────────────────────
 function renderDashboard() {
-  const inProgress = DATA.jira.filter(j=>j.status==='In Progress').length;
-  const onReview   = DATA.jira.filter(j=>j.status==='Review').length;
-  const totalMin   = DATA.events.reduce((s,e)=>{
-    const[sh,sm]=e.start.split(':').map(Number),[eh,em]=e.end.split(':').map(Number);
-    return s+(eh*60+em)-(sh*60+sm);
-  },0);
-  const pendingTasks = taskState.filter(t=>!t).length;
+  // Stat values: use real data when authed, fallback to mock when not authed
+  const jiraInProgress  = jiraIssues  ? jiraIssues.filter(j=>jiraStatusGroup(j.status)==='inprogress').length
+                                       : DATA.jira.filter(j=>j.status==='In Progress').length;
+  const jiraOnReview    = jiraIssues  ? jiraIssues.filter(j=>jiraStatusGroup(j.status)==='review'||jiraStatusGroup(j.status)==='approval').length
+                                       : DATA.jira.filter(j=>j.status==='Review').length;
+  const calCount        = calEvents   ? calEvents.length           : DATA.events.length;
+  const calMeet         = calEvents   ? calEvents.filter(e=>e.meetLink).length+' с Meet-ссылкой' : DATA.events.length+' встреч';
+  const gmailCount      = gmailMessages ? gmailMessages.length     : DATA.emails.length;
+  const gmailUnread     = gmailMessages ? gmailMessages.filter(m=>m.unread).length+' непрочитанных' : DATA.emails.filter(e=>e.starred).length+' важных';
+  const taskPending     = realTasks   ? realTasks.filter(t=>!t.done).length   : DATA.tasks.filter(t=>!t.done).length;
+  const taskSub         = realTasks   ? realTasks.filter(t=>t.overdue&&!t.done).length+' просрочено'
+                                       : DATA.tasks.filter(t=>t.done).length+' завершено';
+
+  // Stat loading spinners — only when authenticated but data still loading
+  const jiraVal  = (jiraIssues === null)    ? '<span class="spin" style="font-size:20px">⟳</span>' : jiraInProgress;
+  const calVal   = (currentUser && calEvents === null)   ? '<span class="spin" style="font-size:20px">⟳</span>' : calCount;
+  const mailVal  = (currentUser && gmailMessages === null)? '<span class="spin" style="font-size:20px">⟳</span>' : gmailCount;
+  const taskVal  = (currentUser && realTasks === null)   ? '<span class="spin" style="font-size:20px">⟳</span>' : taskPending;
+
+  // Jira active count for card header
+  const jiraActiveCount = jiraIssues
+    ? jiraIssues.filter(j=>jiraStatusGroup(j.status)!=='done').length
+    : DATA.jira.filter(j=>j.status!=='Done').length;
+
+  // Calendar card body
+  let calCardBody;
+  if (currentUser && calEvents === null) {
+    calCardBody = `<div class="card-body">${skeletonRows(3)}</div>`;
+  } else if (currentUser && calEvents && calEvents.length === 0) {
+    calCardBody = '<div class="empty">Сегодня встреч нет 🎉</div>';
+  } else if (currentUser && calEvents) {
+    calCardBody = `<div class="card-body">${calEvents.slice(0,5).map(renderEventRow).join('')}</div>`;
+  } else {
+    // not authenticated — show mock placeholder
+    calCardBody = `<div class="card-body">${DATA.events.map(renderEventRow).join('')}</div>`;
+  }
 
   return `
   <div class="stats-row">
     <div class="stat-card blue">
       <div class="stat-label">Jira В работе</div>
-      <div class="stat-value blue">${jiraIssues ? jiraIssues.filter(j=>j.status.toLowerCase().includes('progress')||j.status.toLowerCase().includes('dev')).length : inProgress}</div>
-      <div class="stat-sub">+${jiraIssues ? jiraIssues.filter(j=>j.status.toLowerCase().includes('review')||j.status.toLowerCase().includes('test')).length : onReview} на ревью</div>
+      <div class="stat-value blue">${jiraVal}</div>
+      <div class="stat-sub">+${jiraOnReview} ревью / апрув</div>
     </div>
     <div class="stat-card green">
       <div class="stat-label">Встречи сегодня</div>
-      <div class="stat-value green">${calEvents ? calEvents.length : DATA.events.length}</div>
-      <div class="stat-sub">${calEvents ? calEvents.filter(e=>e.meetLink).length+' с Meet-ссылкой' : Math.floor(totalMin/60)+'ч '+totalMin%60+'м всего'}</div>
+      <div class="stat-value green">${calVal}</div>
+      <div class="stat-sub">${calMeet}</div>
     </div>
     <div class="stat-card yellow">
       <div class="stat-label">Новых писем</div>
-      <div class="stat-value yellow">${gmailMessages ? gmailMessages.length : DATA.emails.length}</div>
-      <div class="stat-sub">${gmailMessages ? gmailMessages.filter(m=>m.unread).length+' непрочитанных' : DATA.emails.filter(e=>e.starred).length+' требуют ответа'}</div>
+      <div class="stat-value yellow">${mailVal}</div>
+      <div class="stat-sub">${gmailUnread}</div>
     </div>
     <div class="stat-card purple">
       <div class="stat-label">Задачи</div>
-      <div class="stat-value purple">${realTasks ? realTasks.filter(t=>!t.done).length : pendingTasks}</div>
-      <div class="stat-sub">${realTasks ? realTasks.filter(t=>t.overdue&&!t.done).length+' просрочено' : taskState.filter(Boolean).length+' завершено'}</div>
+      <div class="stat-value purple">${taskVal}</div>
+      <div class="stat-sub">${taskSub}</div>
     </div>
   </div>
 
@@ -1124,16 +1157,14 @@ function renderDashboard() {
     <div class="card">
       <div class="card-header">
         <div class="card-title"><div class="dot" style="background:var(--accent)"></div>Активные Jira задачи</div>
-        <div class="card-count">${jiraIssues ? jiraIssues.filter(j=>j.status!=='Done'&&j.status!=='Closed').length : DATA.jira.filter(j=>j.status!=='Done').length}</div>
+        <div class="card-count">${jiraActiveCount}</div>
       </div>
       <div class="card-body">
         ${jiraIssues === null
-          ? '<div class="loading-row"><span class="spin">⟳</span> Загружаем...</div>'
-          : jiraIssues.length === 0 && jiraCfgSet()
-            ? '<div class="empty">Задач нет</div>'
-            : !jiraCfgSet()
-              ? '<div class="empty" style="padding:20px">Настройте Jira в <span style="color:var(--accent2);cursor:pointer" onclick="openSettings()">настройках ⚙</span></div>'
-              : jiraIssues.filter(j=>j.status!=='Done'&&j.status!=='Closed').slice(0,5).map(renderIssueRow).join('')
+          ? skeletonRows(4)
+          : !jiraCfgSet()
+            ? '<div class="empty" style="padding:20px">Настройте Jira в <span style="color:var(--accent2);cursor:pointer" onclick="openSettings()">настройках ⚙</span></div>'
+            : jiraIssues.filter(j=>jiraStatusGroup(j.status)!=='done').slice(0,5).map(renderIssueRow).join('') || '<div class="empty">Активных задач нет</div>'
         }
       </div>
     </div>
@@ -1149,9 +1180,9 @@ function renderDashboard() {
     <div class="card">
       <div class="card-header">
         <div class="card-title"><div class="dot" style="background:var(--green)"></div>Встречи сегодня</div>
-        <div class="card-count">${DATA.events.length}</div>
+        <div class="card-count">${currentUser && calEvents ? calEvents.length : DATA.events.length}</div>
       </div>
-      <div class="card-body">${DATA.events.map(renderEventRow).join('')}</div>
+      ${calCardBody}
     </div>
     <div class="card">
       <div class="card-header">
@@ -1290,11 +1321,12 @@ function renderTaskRow(t,i) {
 }
 
 function renderDonut() {
+  const src = jiraIssues || DATA.jira;
   const groups = {
-    'В работе':   DATA.jira.filter(j=>j.status==='In Progress').length,
-    'На ревью':   DATA.jira.filter(j=>j.status==='Review').length,
-    'К выполнению':DATA.jira.filter(j=>j.status==='To Do').length,
-    'Готово':     DATA.jira.filter(j=>j.status==='Done').length
+    'В работе':    src.filter(j=>jiraStatusGroup(j.status)==='inprogress').length,
+    'Ревью/Апрув': src.filter(j=>jiraStatusGroup(j.status)==='review'||jiraStatusGroup(j.status)==='approval').length,
+    'К выполнению':src.filter(j=>jiraStatusGroup(j.status)==='todo').length,
+    'Готово':      src.filter(j=>jiraStatusGroup(j.status)==='done').length
   };
   const colors = ['#3b82f6','#a855f7','#64748b','#22c55e'];
   const total  = Object.values(groups).reduce((a,b)=>a+b,0);
@@ -1368,8 +1400,8 @@ function changeDate(d) {
 function filterJira(idx, el) {
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  // idx: 0=все, 1=в работе, 2=ревью/тест, 3=к выполнению, 4=готово
-  const groupMap = [null,'inprogress','review','todo','done'];
+  // idx: 0=все, 1=в работе, 2=ревью/тест, 3=на апрув, 4=к выполнению, 5=готово
+  const groupMap = [null,'inprogress','review','approval','todo','done'];
   const filter   = groupMap[idx];
   document.querySelectorAll('#jiraList .issue-row').forEach(row=>{
     const group = jiraStatusGroup(row.dataset.status || '');
@@ -1771,22 +1803,23 @@ window.renderJiraFull = function() {
     </div>`).join('');
 
   // Count per group for tab badges
-  const counts = { all: jiraIssues.length, inprogress: 0, review: 0, todo: 0, done: 0 };
+  const counts = { all: jiraIssues.length, inprogress: 0, review: 0, approval: 0, todo: 0, done: 0 };
   jiraIssues.forEach(j => { counts[jiraStatusGroup(j.status)]++; });
 
   const tabs = [
-    { label: 'Все',           count: counts.all,        group: null },
-    { label: 'В работе',      count: counts.inprogress, group: 'inprogress' },
-    { label: 'Ревью / Тест',  count: counts.review,     group: 'review' },
-    { label: 'К выполнению',  count: counts.todo,        group: 'todo' },
-    { label: 'Готово',        count: counts.done,        group: 'done' }
+    { label: 'Все',           count: counts.all,        group: null,         color: '' },
+    { label: 'В работе',      count: counts.inprogress, group: 'inprogress', color: '' },
+    { label: 'Ревью / Тест',  count: counts.review,     group: 'review',     color: '' },
+    { label: 'На апрув',      count: counts.approval,   group: 'approval',   color: 'color:var(--orange)' },
+    { label: 'К выполнению',  count: counts.todo,        group: 'todo',      color: '' },
+    { label: 'Готово',        count: counts.done,        group: 'done',      color: '' }
   ];
 
   return `
   <div class="tabs">
     ${tabs.map((t,i) => `
-      <div class="tab${i===0?' active':''}" onclick="filterJira(${i},this)">
-        ${t.label}${t.count > 0 ? ` <span style="font-size:9px;background:var(--bg4);padding:1px 5px;border-radius:8px;margin-left:3px">${t.count}</span>` : ''}
+      <div class="tab${i===0?' active':''}${t.color?' style="'+t.color+'"':''}" onclick="filterJira(${i},this)">
+        ${t.label}${t.count > 0 ? ` <span style="font-size:9px;background:var(--bg4);padding:1px 5px;border-radius:8px;margin-left:3px${t.color?';'+t.color:''}">${t.count}</span>` : ''}
       </div>`).join('')}
   </div>
   <div class="card" style="margin-top:16px" id="jiraList">
@@ -2089,15 +2122,14 @@ window.renderEmailFull = function(emailFilter) {
     return `<div class="email-row${m.unread?' email-row-unread':''}" onclick="window.open('${gmailUrl}','_blank')" title="Открыть в Gmail">
       <div class="email-avatar" style="background:${color}20;color:${color}">${initials}</div>
       <div class="email-body">
-        <div class="email-from" style="${m.unread?'font-weight:600':''}">${m.from}
-          <span style="color:var(--muted);font-weight:400">&lt;${m.email}&gt;</span>
+        <div class="email-from${m.unread?' font-weight-600':''}">
+          <span style="${m.unread?'font-weight:600':''}">${m.from}</span>
+          <span class="email-addr">&lt;${m.email}&gt;</span>
         </div>
-        <div class="email-subject" style="${m.unread?'color:var(--text);font-weight:500':''}">
-          ${m.subject}
-        </div>
+        <div class="email-subject" style="${m.unread?'color:var(--text);font-weight:500':''}">${m.subject}</div>
         ${m.snippet ? `<div class="email-snippet-2">${m.snippet}</div>` : ''}
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;padding-left:8px">
         <div class="email-time" style="${m.unread?'color:var(--accent2)':''}">${timeStr}</div>
         ${m.starred ? '<div class="email-star">★</div>' : ''}
         ${m.unread  ? '<div class="email-unread-dot"></div>' : ''}
@@ -2273,8 +2305,8 @@ window.renderJiraFull = function() {
   if (jiraCfgSet() && jiraIssues === null) {
     return `
     <div class="tabs">
-      ${['Все','В работе','Ревью / Тест','К выполнению','Готово'].map((t,i)=>
-        `<div class="tab${i===0?' active':''}">${t}</div>`).join('')}
+      ${['Все','В работе','Ревью / Тест','На апрув','К выполнению','Готово'].map((t,i)=>
+        `<div class="tab${i===0?' active':''}${t==='На апрув'?' style="color:var(--orange)"':''}">${t}</div>`).join('')}
     </div>
     <div class="card" style="margin-top:16px">
       <div class="card-body">${skeletonRows(5)}</div>
