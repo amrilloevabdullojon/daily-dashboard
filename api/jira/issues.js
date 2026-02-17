@@ -19,8 +19,8 @@ export default async function handler(req, res) {
   const basicAuth = Buffer.from(`${email}:${token}`).toString('base64');
 
   try {
-    // JQL: issues assigned to current user, ordered by updated
-    const jql = 'assignee = currentUser() ORDER BY updated DESC';
+    // JQL: issues where user is assignee OR reporter, ordered by updated
+    const jql = '(assignee = currentUser() OR reporter = currentUser()) ORDER BY updated DESC';
     const url  = `https://${domain}/rest/api/3/search?` + new URLSearchParams({
       jql,
       maxResults: '25',
