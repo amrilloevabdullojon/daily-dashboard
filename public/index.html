@@ -782,6 +782,102 @@
   }
   .timeline-allday-bar { width: 3px; height: 20px; border-radius: 2px; flex-shrink: 0; }
 
+  /* ── CREATE TASK BAR ── */
+  .create-task-bar {
+    display: flex; gap: 8px; align-items: center;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .create-task-input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .create-task-input:focus { border-color: var(--accent); }
+  .create-task-input::placeholder { color: var(--muted); }
+  .create-task-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background .15s;
+    flex-shrink: 0;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .create-task-btn:hover { background: var(--accent2); }
+  .create-task-btn:disabled { opacity: .5; cursor: default; }
+
+  /* ── JIRA CREATE MODAL ── */
+  .jira-create-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.6);
+    z-index: 500;
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+  }
+  .jira-create-overlay.open { display: flex; }
+  .jira-create-modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    width: 500px;
+    max-width: 90vw;
+    padding: 28px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    animation: qsIn .18s cubic-bezier(.4,0,.2,1);
+  }
+  .jira-create-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ── EXPORT BUTTON ── */
+  .export-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--muted2);
+    width: auto;
+    padding: 0 12px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 11px;
+    display: flex; align-items: center; gap: 6px;
+    transition: all .15s;
+    font-family: inherit;
+    letter-spacing: .3px;
+  }
+  .export-btn:hover { border-color: var(--accent); color: var(--accent2); }
+
+  /* ── PRINT STYLES ── */
+  @media print {
+    .sidebar, .topbar, .meeting-alert, .toast, .qs-overlay, .jira-create-overlay,
+    .hotkey-badge, .settings-overlay, .export-btn, .sync-btn, .theme-btn,
+    .btn-secondary, .create-task-bar, .email-filter-tabs, .email-actions,
+    .cal-day-tabs, .tabs { display: none !important; }
+    .main { margin-left: 0 !important; }
+    .content { padding: 0 !important; }
+    .card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+    body { background: white; color: black; font-size: 11px; }
+  }
+
   /* ── QUICK SEARCH (Ctrl+K) ── */
   .qs-overlay {
     display: none;
@@ -1090,6 +1186,7 @@
           <span style="letter-spacing:.3px">Ctrl+K</span>
         </button>
         <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Переключить тему">🌙</button>
+        <button class="export-btn" onclick="exportMarkdown()" title="Экспорт дня в Markdown">⬇ MD</button>
         <div class="badge"><div class="badge-dot"></div>LIVE</div>
         <button class="btn-secondary" onclick="openSettings()" style="font-size:11px;padding:6px 14px;">⚙ Настройки</button>
       </div>
@@ -1128,6 +1225,44 @@
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeSettings()">Отмена</button>
       <button class="btn-primary" onclick="saveSettings()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Jira Create Modal -->
+<div class="jira-create-overlay" id="jiraCreateOverlay" onclick="if(event.target===this)closeJiraCreate()">
+  <div class="jira-create-modal">
+    <div class="jira-create-title">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v3.5l2 2"/></svg>
+      Новая Jira задача
+    </div>
+    <div class="field-group">
+      <div class="field-label">Краткое описание *</div>
+      <input class="field-input" id="jiraCreateSummary" placeholder="Что нужно сделать?">
+    </div>
+    <div class="field-group">
+      <div class="field-label">Описание</div>
+      <textarea class="field-input" id="jiraCreateDesc" rows="3" style="resize:vertical" placeholder="Подробности..."></textarea>
+    </div>
+    <div style="display:flex;gap:12px">
+      <div class="field-group" style="flex:1">
+        <div class="field-label">Ключ проекта *</div>
+        <input class="field-input" id="jiraCreateProject" placeholder="MAIL, DEV, ...">
+      </div>
+      <div class="field-group" style="flex:1">
+        <div class="field-label">Приоритет</div>
+        <select class="field-input" id="jiraCreatePriority">
+          <option value="Highest">🔴 Highest</option>
+          <option value="High">🟠 High</option>
+          <option value="Medium" selected>🟡 Medium</option>
+          <option value="Low">🟢 Low</option>
+          <option value="Lowest">⚪ Lowest</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeJiraCreate()">Отмена</button>
+      <button class="btn-primary" id="jiraCreateBtn" onclick="submitJiraCreate()">＋ Создать</button>
     </div>
   </div>
 </div>
@@ -2024,11 +2159,14 @@ window.renderJiraFull = function() {
   ];
 
   return `
-  <div class="tabs">
-    ${tabs.map((t,i) => `
-      <div class="tab${i===0?' active':''}${t.color?' style="'+t.color+'"':''}" onclick="filterJira(${i},this)">
-        ${t.label}${t.count > 0 ? ` <span style="font-size:9px;background:var(--bg4);padding:1px 5px;border-radius:8px;margin-left:3px${t.color?';'+t.color:''}">${t.count}</span>` : ''}
-      </div>`).join('')}
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0">
+    <div class="tabs" style="flex:1;margin-bottom:0;border-bottom:none">
+      ${tabs.map((t,i) => `
+        <div class="tab${i===0?' active':''}${t.color?' style="'+t.color+'"':''}" onclick="filterJira(${i},this)">
+          ${t.label}${t.count > 0 ? ` <span style="font-size:9px;background:var(--bg4);padding:1px 5px;border-radius:8px;margin-left:3px${t.color?';'+t.color:''}">${t.count}</span>` : ''}
+        </div>`).join('')}
+    </div>
+    ${jiraCfgSet() ? `<button class="btn-primary" onclick="openJiraCreate()" style="font-size:11px;padding:5px 14px;white-space:nowrap;flex-shrink:0;margin-left:12px">＋ Задача</button>` : ''}
   </div>
   <div class="card" style="margin-top:16px" id="jiraList">
     ${rows}
@@ -2850,6 +2988,7 @@ window.renderEmailFull = function(emailFilter) {
         </div>
         <div class="email-actions">
           ${m.unread ? `<button class="email-action-btn" onclick="event.stopPropagation();markEmailRead('${m.id}')">✓ Прочитано</button>` : ''}
+          <button class="email-action-btn" onclick="event.stopPropagation();archiveEmail('${m.id}')">📥 Архив</button>
           <button class="email-action-btn" onclick="event.stopPropagation();window.open('${gmailUrl}','_blank')">↗ Открыть</button>
         </div>
       </div>
@@ -2954,6 +3093,10 @@ window.renderTasksFull = function() {
     <div class="card-header">
       <div class="card-title"><div class="dot" style="background:var(--purple)"></div>Google Tasks</div>
       <div class="card-count">${done}/${realTasks.length} выполнено</div>
+    </div>
+    <div class="create-task-bar">
+      <input class="create-task-input" id="createTaskInput" placeholder="Новая задача..." onkeydown="if(event.key==='Enter')createTask()">
+      <button class="create-task-btn" onclick="createTask()" title="Добавить задачу">＋</button>
     </div>
     <div style="padding:8px 20px 0">
       <div style="background:var(--bg4);border-radius:4px;height:4px;overflow:hidden">
@@ -3133,6 +3276,300 @@ if (new URLSearchParams(location.search).get('auth') === 'success') {
 }
 
 // ============================================================
+//  PHASE 1: CREATE TASK (Google Tasks API)
+// ============================================================
+
+async function createTask() {
+  const input = document.getElementById('createTaskInput');
+  if (!input) return;
+  const text = (input.value || '').trim();
+  if (!text) { input.focus(); return; }
+  if (!currentUser) { showToast('⚠ Войдите через Google'); return; }
+
+  input.disabled = true;
+  const btn = input.nextElementSibling;
+  if (btn) btn.disabled = true;
+
+  // Optimistic update
+  const tempId = 'temp_' + Date.now();
+  const newTask = { id: tempId, text, done: false, listId: '', list: '', due: '' };
+  if (realTasks) { realTasks.unshift(newTask); taskState = realTasks.map(t => t.done); }
+  input.value = '';
+  render();
+
+  try {
+    const res = await fetch('/api/tasks/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    const data = await res.json();
+    if (data.ok && data.task) {
+      // Replace temp with real task
+      if (realTasks) {
+        const idx = realTasks.findIndex(t => t.id === tempId);
+        if (idx !== -1) realTasks[idx] = { ...data.task };
+        taskState = realTasks.map(t => t.done);
+      }
+      render();
+      showToast('✅ Задача добавлена!');
+    } else {
+      // Rollback optimistic update
+      if (realTasks) {
+        realTasks = realTasks.filter(t => t.id !== tempId);
+        taskState = realTasks.map(t => t.done);
+      }
+      render();
+      showToast('❌ ' + (data.error || 'Не удалось создать задачу'));
+    }
+  } catch(err) {
+    if (realTasks) {
+      realTasks = realTasks.filter(t => t.id !== tempId);
+      taskState = realTasks.map(t => t.done);
+    }
+    render();
+    showToast('❌ Ошибка сети');
+  }
+}
+
+// ============================================================
+//  PHASE 1: JIRA CREATE ISSUE
+// ============================================================
+
+function openJiraCreate() {
+  const overlay = document.getElementById('jiraCreateOverlay');
+  if (!overlay) return;
+  // Pre-fill project key from existing issues
+  const projInput = document.getElementById('jiraCreateProject');
+  if (projInput && jiraIssues && jiraIssues.length > 0 && !projInput.value) {
+    projInput.value = jiraIssues[0].project || '';
+  }
+  overlay.classList.add('open');
+  setTimeout(() => { const s = document.getElementById('jiraCreateSummary'); if (s) s.focus(); }, 100);
+}
+
+function closeJiraCreate() {
+  const overlay = document.getElementById('jiraCreateOverlay');
+  if (overlay) overlay.classList.remove('open');
+  // Clear form
+  ['jiraCreateSummary','jiraCreateDesc','jiraCreateProject'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const sel = document.getElementById('jiraCreatePriority');
+  if (sel) sel.value = 'Medium';
+  const btn = document.getElementById('jiraCreateBtn');
+  if (btn) { btn.disabled = false; btn.textContent = '＋ Создать'; }
+}
+
+async function submitJiraCreate() {
+  const summary   = (document.getElementById('jiraCreateSummary')?.value  || '').trim();
+  const desc      = (document.getElementById('jiraCreateDesc')?.value      || '').trim();
+  const projectKey= (document.getElementById('jiraCreateProject')?.value   || '').trim().toUpperCase();
+  const priority  = document.getElementById('jiraCreatePriority')?.value || 'Medium';
+
+  if (!summary)     { showToast('⚠ Введите краткое описание'); return; }
+  if (!projectKey)  { showToast('⚠ Введите ключ проекта'); return; }
+
+  const cfg = JSON.parse(localStorage.getItem('drCfg') || '{}');
+  if (!cfg.jiraDomain || !cfg.jiraEmail || !cfg.jiraToken) {
+    showToast('⚠ Jira credentials не настроены'); openSettings(); return;
+  }
+
+  const btn = document.getElementById('jiraCreateBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '⟳ Создаём...'; }
+
+  try {
+    const res = await fetch('/api/jira/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-jira-domain': cfg.jiraDomain,
+        'x-jira-email':  cfg.jiraEmail,
+        'x-jira-token':  cfg.jiraToken
+      },
+      body: JSON.stringify({ summary, description: desc, priority, projectKey })
+    });
+    const data = await res.json();
+    if (data.ok && data.issue) {
+      // Prepend new issue to local state
+      if (jiraIssues) {
+        jiraIssues.unshift(data.issue);
+      }
+      closeJiraCreate();
+      render();
+      showToast(`✅ ${data.issue.key} создана!`);
+    } else {
+      if (btn) { btn.disabled = false; btn.textContent = '＋ Создать'; }
+      showToast('❌ ' + (data.error || 'Ошибка создания задачи'));
+    }
+  } catch(err) {
+    if (btn) { btn.disabled = false; btn.textContent = '＋ Создать'; }
+    showToast('❌ Ошибка сети');
+  }
+}
+
+// ============================================================
+//  PHASE 2: GMAIL WRITE OPS (real API)
+// ============================================================
+
+// Override markEmailRead to use real API
+const _origMarkEmailRead = typeof markEmailRead === 'function' ? markEmailRead : null;
+async function markEmailRead(msgId) {
+  if (!currentUser) return;
+  // Optimistic update
+  const msg = gmailMessages ? gmailMessages.find(m => m.id === msgId) : null;
+  if (msg) msg.unread = false;
+  render();
+  updateNavBadges();
+  try {
+    const res = await fetch('/api/gmail/markread', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messageId: msgId })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showToast('✓ Письмо отмечено прочитанным');
+    } else if (data.reason === 'insufficient_scope') {
+      showToast('⚠ Нужно переавторизоваться (gmail.modify scope)');
+    } else {
+      showToast('⚠ ' + (data.error || 'Не удалось отметить'));
+    }
+  } catch(err) {
+    showToast('❌ Ошибка сети');
+  }
+}
+
+async function archiveEmail(msgId) {
+  if (!currentUser) return;
+  // Optimistic update — remove from list
+  if (gmailMessages) {
+    const idx = gmailMessages.findIndex(m => m.id === msgId);
+    if (idx !== -1) gmailMessages.splice(idx, 1);
+  }
+  render();
+  updateNavBadges();
+  try {
+    const res = await fetch('/api/gmail/archive', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messageId: msgId })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showToast('📥 Письмо архивировано');
+    } else if (data.reason === 'insufficient_scope') {
+      showToast('⚠ Нужно переавторизоваться (gmail.modify scope)');
+    } else {
+      showToast('⚠ ' + (data.error || 'Не удалось архивировать'));
+    }
+  } catch(err) {
+    showToast('❌ Ошибка сети');
+  }
+}
+
+// ============================================================
+//  PHASE 3: DASHBOARD INSIGHTS (meeting time, Jira velocity)
+// ============================================================
+
+// Patch renderDashboard to add insights to stat cards
+const _origRenderDashboard = renderDashboard;
+renderDashboard = function() {
+  const html = _origRenderDashboard();
+
+  // Insert email stats sub-text into the Gmail stat card
+  if (gmailMessages && gmailMessages.length > 0) {
+    const unread    = gmailMessages.filter(m => m.unread).length;
+    const important = gmailMessages.filter(m => m.starred).length;
+    const subText   = `${unread} непрочитанных · ${important} важных`;
+    return html.replace(
+      /(<div class="stat-label"[^>]*>Gmail<\/div>)\s*(<\/div>)/,
+      `$1<div class="stat-sub" style="font-size:10px;color:var(--muted);margin-top:2px">${subText}</div>$2`
+    );
+  }
+  return html;
+};
+
+// ============================================================
+//  PHASE 4: MARKDOWN EXPORT
+// ============================================================
+
+function exportMarkdown() {
+  const today = fmt(currentDate);
+  const lines = [`# Daily Report — ${today}`, ''];
+
+  // Calendar
+  const evs = (currentUser && calEvents) ? calEvents : DATA.events;
+  if (evs && evs.length > 0) {
+    lines.push('## 📅 Встречи');
+    evs.forEach(e => {
+      const time = (e.start && e.end) ? `${e.start} – ${e.end}` : (e.start || '');
+      const att  = e.attendees > 1 ? ` (${e.attendees} уч.)` : '';
+      lines.push(`- **${e.title}** ${time}${att}`);
+    });
+    lines.push('');
+  }
+
+  // Tasks
+  const tasks = (currentUser && realTasks) ? realTasks : DATA.tasks;
+  if (tasks && tasks.length > 0) {
+    lines.push('## ✅ Google Tasks');
+    tasks.forEach(t => {
+      lines.push(`- [${t.done ? 'x' : ' '}] ${t.text}${t.due ? ' · ' + t.due : ''}`);
+    });
+    lines.push('');
+  }
+
+  // Jira
+  const issues = (currentUser && jiraIssues) ? jiraIssues : DATA.jira;
+  if (issues && issues.length > 0) {
+    lines.push('## 🔵 Jira');
+    // Group by status
+    const groups = {};
+    issues.forEach(j => {
+      const g = jiraStatusGroup(j.status);
+      if (!groups[g]) groups[g] = [];
+      groups[g].push(j);
+    });
+    const gOrder = ['inprogress','review','approval','todo','done'];
+    const gLabels = { inprogress:'В работе', review:'Ревью/Тест', approval:'На апрув', todo:'К выполнению', done:'Готово' };
+    gOrder.forEach(g => {
+      if (!groups[g] || groups[g].length === 0) return;
+      lines.push(`### ${gLabels[g]}`);
+      groups[g].forEach(j => {
+        lines.push(`- [${j.key}](${j.url}) ${j.summary} — ${j.status}`);
+      });
+    });
+    lines.push('');
+  }
+
+  // Gmail summary
+  const emails = (currentUser && gmailMessages) ? gmailMessages : DATA.emails;
+  if (emails && emails.length > 0) {
+    const unread = emails.filter(m => m.unread).length;
+    lines.push('## 📧 Gmail');
+    lines.push(`Входящих: ${emails.length} · Непрочитанных: ${unread}`);
+    emails.slice(0, 5).forEach(m => {
+      lines.push(`- **${m.from}**: ${m.subject}`);
+    });
+    lines.push('');
+  }
+
+  lines.push(`---`);
+  lines.push(`*Экспортировано из Daily Dashboard · ${new Date().toLocaleString('ru-RU')}*`);
+
+  const md      = lines.join('\n');
+  const blob    = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const url     = URL.createObjectURL(blob);
+  const a       = document.createElement('a');
+  a.href        = url;
+  a.download    = `daily-report-${today.replace(/[^\d]/g,'-')}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('⬇ Markdown экспортирован!');
+}
+
+// ============================================================
 //  INIT
 // ============================================================
 initTheme();
@@ -3145,4 +3582,3 @@ setTimeout(updateNavBadges, 4000);
 </script>
 </body>
 </html>
-```
