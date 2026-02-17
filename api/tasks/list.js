@@ -40,6 +40,7 @@ export default async function handler(req, res) {
         const tasksData = await tasksRes.json();
         return (tasksData.items || []).map(t => ({
           id:       t.id,
+          listId:   list.id,
           text:     t.title || '(без названия)',
           done:     t.status === 'completed',
           due:      t.due ? formatDue(t.due) : '',

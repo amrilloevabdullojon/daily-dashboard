@@ -782,6 +782,187 @@
   }
   .timeline-allday-bar { width: 3px; height: 20px; border-radius: 2px; flex-shrink: 0; }
 
+  /* ── QUICK SEARCH (Ctrl+K) ── */
+  .qs-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.65);
+    z-index: 500;
+    backdrop-filter: blur(6px);
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 15vh;
+  }
+  .qs-overlay.open { display: flex; }
+  .qs-modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    width: 560px;
+    max-width: 90vw;
+    box-shadow: 0 24px 80px rgba(0,0,0,.6);
+    overflow: hidden;
+    animation: qsIn .18s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes qsIn { from{opacity:0;transform:scale(.96) translateY(-8px)} to{opacity:1;transform:none} }
+  .qs-input-wrap {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .qs-icon { color: var(--muted); flex-shrink: 0; font-size: 16px; }
+  .qs-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
+  }
+  .qs-input::placeholder { color: var(--muted); }
+  .qs-hint { font-size: 10px; color: var(--muted); white-space: nowrap; }
+  .qs-results { max-height: 380px; overflow-y: auto; }
+  .qs-group-label {
+    padding: 10px 20px 6px;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .qs-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background .1s;
+    border-radius: 0;
+  }
+  .qs-item:hover, .qs-item.selected { background: var(--bg3); }
+  .qs-item-icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; }
+  .qs-item-body { flex: 1; min-width: 0; }
+  .qs-item-title { font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .qs-item-sub { font-size: 10px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .qs-item-badge { font-size: 9px; color: var(--muted); background: var(--bg4); padding: 2px 6px; border-radius: 6px; flex-shrink: 0; }
+  .qs-empty { padding: 32px 20px; text-align: center; color: var(--muted); font-size: 12px; }
+  .qs-footer {
+    padding: 10px 20px;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 16px;
+    font-size: 10px; color: var(--muted);
+  }
+  .qs-footer kbd {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-family: inherit;
+    font-size: 9px;
+    color: var(--muted2);
+  }
+
+  /* ── HOTKEYS TOOLTIP ── */
+  .hotkey-badge {
+    position: fixed;
+    bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(60px);
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 11px;
+    color: var(--muted2);
+    z-index: 300;
+    opacity: 0;
+    transition: all .3s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .hotkey-badge.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  /* ── FOCUS TIME CARD ── */
+  .focus-slots { padding: 12px 20px; display: flex; flex-direction: column; gap: 8px; }
+  .focus-slot {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    background: rgba(34,197,94,.06);
+    border: 1px solid rgba(34,197,94,.15);
+    border-radius: 8px;
+  }
+  .focus-slot-icon { font-size: 14px; }
+  .focus-slot-time { font-size: 11px; color: var(--green); font-feature-settings: "tnum"; }
+  .focus-slot-dur { font-size: 10px; color: var(--muted2); margin-left: auto; }
+
+  /* ── NOTIFICATION PERMISSION BTN ── */
+  .notif-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--muted2);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 10px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: all .15s;
+    width: 100%;
+    margin-top: 6px;
+    justify-content: center;
+  }
+  .notif-btn:hover { border-color: var(--accent); color: var(--accent2); }
+  .notif-btn.granted { border-color: rgba(34,197,94,.3); color: var(--green); cursor: default; }
+
+  /* ── GMAIL SEARCH ── */
+  .gmail-search-wrap {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .gmail-search-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 7px 12px 7px 32px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12px;
+    outline: none;
+    transition: border-color .15s;
+    position: relative;
+  }
+  .gmail-search-input:focus { border-color: var(--accent); }
+  .gmail-search-input::placeholder { color: var(--muted); }
+  .gmail-search-box { position: relative; }
+  .gmail-search-icon {
+    position: absolute;
+    left: 10px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 12px;
+    pointer-events: none;
+  }
+
+  /* ── EMAIL HOVER ACTIONS ── */
+  .email-actions {
+    display: none;
+    gap: 4px;
+    align-items: center;
+  }
+  .email-row:hover .email-actions { display: flex; }
+  .email-row:hover .email-time-wrap { display: none; }
+  .email-action-btn {
+    background: var(--bg4);
+    border: 1px solid var(--border2);
+    color: var(--muted2);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .12s;
+    white-space: nowrap;
+  }
+  .email-action-btn:hover { background: var(--bg3); color: var(--text); border-color: var(--accent); }
+
   @media (max-width: 900px) {
     .sidebar { width: 60px; }
     .sidebar .logo-mark, .sidebar .logo-sub, .sidebar .nav-item span, .sidebar-footer { display: none; }
@@ -869,6 +1050,9 @@
           </svg>
           <span>Отчёт в Telegram</span>
         </button>
+        <button class="notif-btn" id="notifBtn" onclick="requestNotifications()">
+          🔔 <span id="notifBtnLabel">Уведомления</span>
+        </button>
         <button class="logout-btn" onclick="logout()" style="margin-top:8px;width:100%;text-align:center">Выйти</button>
       </div>
 
@@ -901,6 +1085,10 @@
           <div class="date-label" id="dateLabel"></div>
           <button onclick="changeDate(1)">›</button>
         </div>
+        <button class="theme-btn" onclick="openQS()" title="Поиск (Ctrl+K)" style="width:auto;padding:0 10px;gap:6px;font-size:11px">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6.5" cy="6.5" r="5"/><path d="M10.5 10.5L14 14"/></svg>
+          <span style="letter-spacing:.3px">Ctrl+K</span>
+        </button>
         <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Переключить тему">🌙</button>
         <div class="badge"><div class="badge-dot"></div>LIVE</div>
         <button class="btn-secondary" onclick="openSettings()" style="font-size:11px;padding:6px 14px;">⚙ Настройки</button>
@@ -943,6 +1131,26 @@
     </div>
   </div>
 </div>
+
+<!-- Quick Search Modal -->
+<div class="qs-overlay" id="qsOverlay" onclick="if(event.target===this)closeQS()">
+  <div class="qs-modal">
+    <div class="qs-input-wrap">
+      <span class="qs-icon">⌕</span>
+      <input class="qs-input" id="qsInput" placeholder="Поиск по Jira, Gmail, Календарю..." autocomplete="off">
+      <span class="qs-hint"><kbd style="background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;font-size:9px">Esc</kbd> закрыть</span>
+    </div>
+    <div class="qs-results" id="qsResults"></div>
+    <div class="qs-footer">
+      <span><kbd>↑</kbd><kbd>↓</kbd> навигация</span>
+      <span><kbd>Enter</kbd> открыть</span>
+      <span><kbd>Ctrl+K</kbd> поиск</span>
+    </div>
+  </div>
+</div>
+
+<!-- Hotkey badge -->
+<div class="hotkey-badge" id="hotkeyBadge"></div>
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
@@ -2353,6 +2561,572 @@ async function sendTelegramReport() {
   }
 }
 
+// ============================================================
+//  PHASE 1: QUICK SEARCH (Ctrl+K)
+// ============================================================
+
+let qsSelectedIdx = -1;
+
+function openQS() {
+  document.getElementById('qsOverlay').classList.add('open');
+  document.getElementById('qsInput').value = '';
+  document.getElementById('qsInput').focus();
+  qsSelectedIdx = -1;
+  renderQS('');
+}
+
+function closeQS() {
+  document.getElementById('qsOverlay').classList.remove('open');
+}
+
+function renderQS(query) {
+  const q    = query.trim().toLowerCase();
+  const el   = document.getElementById('qsResults');
+  const items = [];
+
+  // Navigation items
+  const navItems = [
+    { icon:'📊', title:'Dashboard',    action:()=>{ setView('dashboard'); closeQS(); } },
+    { icon:'🔧', title:'Jira задачи',  action:()=>{ setView('jira'); closeQS(); } },
+    { icon:'📅', title:'Календарь',    action:()=>{ setView('calendar'); closeQS(); } },
+    { icon:'📬', title:'Gmail',        action:()=>{ setView('email'); closeQS(); } },
+    { icon:'✅', title:'Google Tasks', action:()=>{ setView('tasks'); closeQS(); } }
+  ];
+
+  // Jira issues
+  const jiraItems = (jiraIssues || [])
+    .filter(j => !q || j.key.toLowerCase().includes(q) || j.summary.toLowerCase().includes(q) || j.status.toLowerCase().includes(q))
+    .slice(0,5)
+    .map(j => ({
+      icon: '🔧', title: `${j.key} — ${j.summary}`, sub: `${j.project} · ${j.status}`,
+      badge: j.priority,
+      action: () => { window.open(j.url,'_blank'); closeQS(); }
+    }));
+
+  // Gmail messages
+  const mailItems = (gmailMessages || [])
+    .filter(m => !q || m.from.toLowerCase().includes(q) || m.subject.toLowerCase().includes(q) || (m.snippet||'').toLowerCase().includes(q))
+    .slice(0,5)
+    .map(m => {
+      const pad = n => String(n).padStart(2,'0');
+      const d   = m.date ? new Date(m.date) : null;
+      const t   = d ? pad(d.getHours())+':'+pad(d.getMinutes()) : '';
+      return {
+        icon: m.unread ? '📨' : '📩',
+        title: m.subject || '(без темы)',
+        sub: `От: ${m.from}`,
+        badge: t,
+        action: () => { window.open(`https://mail.google.com/mail/u/0/#inbox/${m.id}`,'_blank'); closeQS(); }
+      };
+    });
+
+  // Calendar events
+  const calItems = (calEvents || [])
+    .filter(e => !q || e.title.toLowerCase().includes(q))
+    .slice(0,5)
+    .map(e => ({
+      icon: '📅', title: e.title, sub: e.allDay ? 'Весь день' : `${e.start}–${e.end}`,
+      badge: e.attendees > 1 ? e.attendees+' участн.' : '',
+      action: () => { if(e.meetLink) window.open(e.meetLink,'_blank'); setView('calendar'); closeQS(); }
+    }));
+
+  // Nav always shown when no query
+  const filteredNav = q
+    ? navItems.filter(n => n.title.toLowerCase().includes(q))
+    : navItems;
+
+  // Build groups
+  const groups = [];
+  if (filteredNav.length) groups.push({ label:'Переход', items: filteredNav, type:'nav' });
+  if (jiraItems.length)   groups.push({ label:'Jira', items: jiraItems });
+  if (mailItems.length)   groups.push({ label:'Gmail', items: mailItems });
+  if (calItems.length)    groups.push({ label:'Календарь', items: calItems });
+
+  // Flatten for keyboard nav
+  window._qsActions = [];
+  groups.forEach(g => g.items.forEach(i => window._qsActions.push(i.action)));
+
+  if (!groups.length) {
+    el.innerHTML = `<div class="qs-empty">Ничего не найдено по «${query}»</div>`;
+    return;
+  }
+
+  let idx = 0;
+  el.innerHTML = groups.map(g => `
+    <div class="qs-group-label">${g.label}</div>
+    ${g.items.map(item => {
+      const i = idx++;
+      return `<div class="qs-item" data-idx="${i}" onclick="window._qsActions[${i}]()">
+        <div class="qs-item-icon">${item.icon}</div>
+        <div class="qs-item-body">
+          <div class="qs-item-title">${item.title}</div>
+          ${item.sub ? `<div class="qs-item-sub">${item.sub}</div>` : ''}
+        </div>
+        ${item.badge ? `<div class="qs-item-badge">${item.badge}</div>` : ''}
+      </div>`;
+    }).join('')}`
+  ).join('');
+
+  qsSelectedIdx = -1;
+}
+
+// Input handler
+document.getElementById('qsInput').addEventListener('input', e => {
+  renderQS(e.target.value);
+  qsSelectedIdx = -1;
+});
+
+// Keyboard navigation in QS
+document.getElementById('qsInput').addEventListener('keydown', e => {
+  const items = document.querySelectorAll('.qs-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    qsSelectedIdx = Math.min(qsSelectedIdx + 1, items.length - 1);
+    items.forEach((el,i) => el.classList.toggle('selected', i === qsSelectedIdx));
+    if (items[qsSelectedIdx]) items[qsSelectedIdx].scrollIntoView({block:'nearest'});
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    qsSelectedIdx = Math.max(qsSelectedIdx - 1, 0);
+    items.forEach((el,i) => el.classList.toggle('selected', i === qsSelectedIdx));
+    if (items[qsSelectedIdx]) items[qsSelectedIdx].scrollIntoView({block:'nearest'});
+  } else if (e.key === 'Enter') {
+    if (qsSelectedIdx >= 0 && window._qsActions[qsSelectedIdx]) {
+      window._qsActions[qsSelectedIdx]();
+    } else if (window._qsActions && window._qsActions[0]) {
+      window._qsActions[0]();
+    }
+  } else if (e.key === 'Escape') {
+    closeQS();
+  }
+});
+
+// ============================================================
+//  PHASE 1: HOTKEYS
+// ============================================================
+
+let hotkeyTimer = null;
+function showHotkeyHint(msg) {
+  const el = document.getElementById('hotkeyBadge');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(hotkeyTimer);
+  hotkeyTimer = setTimeout(() => el.classList.remove('show'), 1500);
+}
+
+document.addEventListener('keydown', e => {
+  // Ctrl+K — Quick Search
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    const qs = document.getElementById('qsOverlay');
+    if (qs.classList.contains('open')) closeQS(); else openQS();
+    return;
+  }
+
+  // Skip if typing in input
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+  // G + letter combos
+  if (e.key === 'g') {
+    window._gPressed = true;
+    setTimeout(() => { window._gPressed = false; }, 1000);
+    return;
+  }
+
+  if (window._gPressed) {
+    const map = { 'd':'dashboard','j':'jira','c':'calendar','m':'email','t':'tasks' };
+    const labels = { 'd':'Dashboard','j':'Jira','c':'Календарь','m':'Gmail','t':'Tasks' };
+    if (map[e.key]) {
+      setView(map[e.key]);
+      showHotkeyHint('→ ' + labels[e.key]);
+      window._gPressed = false;
+      return;
+    }
+  }
+
+  // R — refresh
+  if (e.key === 'r' && !e.ctrlKey && !e.metaKey) {
+    syncData();
+    showHotkeyHint('⟳ Синхронизация...');
+    return;
+  }
+
+  // ? — show hotkeys
+  if (e.key === '?') {
+    showHotkeyHint('Ctrl+K поиск · G+D/J/C/M/T навигация · R синк');
+  }
+});
+
+// ============================================================
+//  PHASE 2: GMAIL SEARCH + MARK AS READ
+// ============================================================
+
+// Gmail search state
+window._gmailSearch = '';
+
+// Override renderEmailFull again to add search + mark-as-read
+const _prevRenderEmailFull = window.renderEmailFull;
+window.renderEmailFull = function(emailFilter) {
+  emailFilter = emailFilter || window._emailFilter || 'all';
+
+  if (!currentUser || gmailMessages === null || gmailMessages.length === 0) {
+    return _prevRenderEmailFull(emailFilter);
+  }
+
+  const q = (window._gmailSearch || '').toLowerCase();
+
+  const allMsgs   = gmailMessages;
+  const unread    = allMsgs.filter(m=>m.unread);
+  const starred   = allMsgs.filter(m=>m.starred);
+  let displayed   = emailFilter==='unread' ? unread : emailFilter==='starred' ? starred : allMsgs;
+
+  // Apply search filter
+  if (q) {
+    displayed = displayed.filter(m =>
+      m.from.toLowerCase().includes(q) ||
+      m.subject.toLowerCase().includes(q) ||
+      (m.snippet||'').toLowerCase().includes(q)
+    );
+  }
+
+  const tabs = [
+    { key:'all',     label:'Все',           count: allMsgs.length },
+    { key:'unread',  label:'Непрочитанные', count: unread.length },
+    { key:'starred', label:'Важные',        count: starred.length }
+  ];
+  const tabsHtml = `<div class="email-filter-tabs">
+    ${tabs.map(t=>`
+      <div class="email-filter-tab${emailFilter===t.key?' active':''}"
+           onclick="window._emailFilter='${t.key}';window._gmailSearch='';render()">
+        ${t.label}
+        ${t.count > 0 ? `<span class="email-filter-count">${t.count}</span>` : ''}
+      </div>`).join('')}
+  </div>`;
+
+  const searchHtml = `<div class="gmail-search-wrap">
+    <div class="gmail-search-box">
+      <span class="gmail-search-icon">⌕</span>
+      <input class="gmail-search-input" id="gmailSearchInput"
+             placeholder="Поиск по письмам..."
+             value="${window._gmailSearch || ''}"
+             oninput="window._gmailSearch=this.value;render()"
+             onclick="event.stopPropagation()">
+    </div>
+  </div>`;
+
+  function smartTime2(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    if (d.toDateString() === now.toDateString()) return pad(d.getHours())+':'+pad(d.getMinutes());
+    const yest = new Date(now); yest.setDate(now.getDate()-1);
+    if (d.toDateString() === yest.toDateString()) return 'вчера';
+    const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+    return d.getDate()+' '+months[d.getMonth()];
+  }
+
+  const avatarColors = ['#3b82f6','#a855f7','#22c55e','#f97316','#06b6d4','#ef4444','#ec4899'];
+
+  const rows = displayed.map(m => {
+    const initials = (m.from||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const color    = avatarColors[(m.from||'').charCodeAt(0) % avatarColors.length];
+    const timeStr  = smartTime2(m.date);
+    const gmailUrl = `https://mail.google.com/mail/u/0/#inbox/${m.id}`;
+    return `<div class="email-row${m.unread?' email-row-unread':''}" onclick="window.open('${gmailUrl}','_blank')" title="Открыть в Gmail">
+      <div class="email-avatar" style="background:${color}20;color:${color}">${initials}</div>
+      <div class="email-body">
+        <div class="email-from">
+          <span style="${m.unread?'font-weight:600':''}">${m.from}</span>
+          <span class="email-addr">&lt;${m.email}&gt;</span>
+        </div>
+        <div class="email-subject" style="${m.unread?'color:var(--text);font-weight:500':''}">${m.subject}</div>
+        ${m.snippet ? `<div class="email-snippet-2">${m.snippet}</div>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;padding-left:8px">
+        <div class="email-time-wrap" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <div class="email-time" style="${m.unread?'color:var(--accent2)':''}">${timeStr}</div>
+          ${m.starred ? '<div class="email-star">★</div>' : ''}
+          ${m.unread  ? '<div class="email-unread-dot"></div>' : ''}
+        </div>
+        <div class="email-actions">
+          ${m.unread ? `<button class="email-action-btn" onclick="event.stopPropagation();markEmailRead('${m.id}')">✓ Прочитано</button>` : ''}
+          <button class="email-action-btn" onclick="event.stopPropagation();window.open('${gmailUrl}','_blank')">↗ Открыть</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const emptyHtml = displayed.length === 0
+    ? `<div class="empty">${q ? `Ничего не найдено по «${q}»` : 'Нет писем'}</div>`
+    : '';
+
+  return `<div class="card">
+    ${tabsHtml}
+    ${searchHtml}
+    <div class="card-body">${rows || emptyHtml}</div>
+  </div>`;
+};
+
+// Mark email as read via API
+async function markEmailRead(msgId) {
+  if (!currentUser) return;
+  try {
+    // Update local state immediately
+    const msg = gmailMessages.find(m => m.id === msgId);
+    if (msg) msg.unread = false;
+    render();
+    updateNavBadges();
+    // Call Gmail API via our proxy — we don't have this endpoint yet, open Gmail directly
+    showToast('✓ Открываю в Gmail чтобы отметить прочитанным');
+    window.open(`https://mail.google.com/mail/u/0/#inbox/${msgId}`, '_blank');
+  } catch(e) {
+    showToast('❌ Не удалось отметить как прочитанное');
+  }
+}
+
+// ============================================================
+//  PHASE 2: TASKS — Toggle via Google Tasks API
+// ============================================================
+
+async function toggleTask(taskId, listId, currentDone) {
+  if (!currentUser) return;
+  const newStatus = currentDone ? 'needsAction' : 'completed';
+  showToast('⟳ Обновляем задачу...');
+  try {
+    const res = await fetch('/api/tasks/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId, listId, status: newStatus })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      // Update local state
+      if (realTasks) {
+        const t = realTasks.find(t => t.id === taskId);
+        if (t) { t.done = !currentDone; }
+        taskState = realTasks.map(t => t.done);
+      }
+      render();
+      showToast(newStatus === 'completed' ? '✅ Задача выполнена!' : '↩ Задача возобновлена');
+    } else {
+      // Fallback — toggle locally anyway for UX
+      if (realTasks) {
+        const t = realTasks.find(t => t.id === taskId);
+        if (t) { t.done = !currentDone; }
+        taskState = realTasks.map(t => t.done);
+      }
+      render();
+      showToast('✓ Обновлено локально');
+    }
+  } catch(err) {
+    // Toggle locally as fallback
+    if (realTasks) {
+      const t = realTasks.find(t => t.id === taskId);
+      if (t) { t.done = !currentDone; }
+      taskState = realTasks.map(t => t.done);
+    }
+    render();
+  }
+}
+
+// Override renderTasksFull to use real toggle
+const _prevRenderTasksFull = window.renderTasksFull;
+window.renderTasksFull = function() {
+  if (!currentUser || realTasks === null) return _prevRenderTasksFull();
+  if (realTasks.length === 0) {
+    return `<div class="card"><div class="card-header"><div class="card-title"><div class="dot" style="background:var(--purple)"></div>Google Tasks</div></div>
+      <div class="empty">Задач нет 🎉</div></div>`;
+  }
+  const done  = realTasks.filter(t=>t.done).length;
+  const rows  = realTasks.map(t => {
+    return `<div class="task-row">
+      <div class="task-check${t.done?' done':''}" onclick="toggleTask('${t.id}','${t.listId||''}',${t.done})" style="cursor:pointer"></div>
+      <div style="flex:1;min-width:0">
+        <div class="task-text${t.done?' done':''}">${t.text}</div>
+        ${t.list ? `<div style="font-size:10px;color:var(--muted)">${t.list}</div>` : ''}
+      </div>
+      <div class="task-due${t.overdue&&!t.done?' overdue':''}">${t.due}</div>
+    </div>`;
+  }).join('');
+  // Progress bar
+  const pct = realTasks.length ? Math.round((done/realTasks.length)*100) : 0;
+  return `<div class="card">
+    <div class="card-header">
+      <div class="card-title"><div class="dot" style="background:var(--purple)"></div>Google Tasks</div>
+      <div class="card-count">${done}/${realTasks.length} выполнено</div>
+    </div>
+    <div style="padding:8px 20px 0">
+      <div style="background:var(--bg4);border-radius:4px;height:4px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:var(--purple);border-radius:4px;transition:width .4s"></div>
+      </div>
+    </div>
+    <div class="card-body">${rows}</div>
+  </div>`;
+};
+
+// ============================================================
+//  PHASE 3: FOCUS TIME (свободное время между встречами)
+// ============================================================
+
+function calcFocusSlots(events) {
+  if (!events || events.length === 0) return [];
+  const timed = events
+    .filter(e => !e.allDay && e.start && e.end && e.start.includes(':'))
+    .map(e => ({
+      s: e.start.split(':').map(Number).reduce((h,m,i)=>i===0?h*60+m:h+m, 0), // wrong
+      start: e.start.split(':').map(Number),
+      end:   e.end.split(':').map(Number)
+    }))
+    .map(e => ({
+      startMin: e.start[0]*60 + e.start[1],
+      endMin:   e.end[0]*60   + e.end[1]
+    }))
+    .sort((a,b) => a.startMin - b.startMin);
+
+  const slots = [];
+  const dayStart = 9*60; // 09:00
+  const dayEnd   = 19*60; // 19:00
+
+  let cursor = dayStart;
+  timed.forEach(ev => {
+    if (ev.startMin > cursor + 15) { // gap > 15 min
+      slots.push({ from: cursor, to: ev.startMin, dur: ev.startMin - cursor });
+    }
+    cursor = Math.max(cursor, ev.endMin);
+  });
+  if (cursor < dayEnd - 15) {
+    slots.push({ from: cursor, to: dayEnd, dur: dayEnd - cursor });
+  }
+  return slots;
+}
+
+function fmtTime(mins) {
+  const h = Math.floor(mins/60);
+  const m = mins%60;
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+}
+
+function fmtDur(mins) {
+  if (mins >= 60) return Math.floor(mins/60) + 'ч ' + (mins%60 ? mins%60+'м' : '');
+  return mins + 'м';
+}
+
+// Patch renderCalFull to add focus time section
+const _prevRenderCalFull = window.renderCalFull;
+window.renderCalFull = function(dayOffset) {
+  const html = _prevRenderCalFull(dayOffset || window._calDayOffset || 0);
+
+  // Only add focus slots for today's real events
+  if (!currentUser || !calEvents || calEvents.length === 0) return html;
+  if ((window._calDayOffset || 0) !== 0) return html;
+
+  const slots = calcFocusSlots(calEvents);
+  if (slots.length === 0) return html;
+
+  const totalFocus = slots.reduce((s,sl) => s + sl.dur, 0);
+  const slotsHtml = slots.map(sl => `
+    <div class="focus-slot">
+      <span class="focus-slot-icon">🎯</span>
+      <span class="focus-slot-time">${fmtTime(sl.from)} – ${fmtTime(sl.to)}</span>
+      <span class="focus-slot-dur">${fmtDur(sl.dur)} свободно</span>
+    </div>`).join('');
+
+  const focusCard = `<div class="card" style="margin-top:16px">
+    <div class="card-header">
+      <div class="card-title"><div class="dot" style="background:var(--green)"></div>Фокус-время сегодня</div>
+      <div class="card-count">${fmtDur(totalFocus)} итого</div>
+    </div>
+    <div class="focus-slots">${slotsHtml}</div>
+  </div>`;
+
+  return html + focusCard;
+};
+
+// ============================================================
+//  PHASE 3: BROWSER NOTIFICATIONS
+// ============================================================
+
+function requestNotifications() {
+  if (!('Notification' in window)) {
+    showToast('⚠ Браузер не поддерживает уведомления');
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    showToast('✓ Уведомления уже включены');
+    updateNotifBtn();
+    return;
+  }
+  Notification.requestPermission().then(perm => {
+    updateNotifBtn();
+    if (perm === 'granted') {
+      showToast('🔔 Уведомления включены!');
+      new Notification('Daily Dashboard', {
+        body: 'Уведомления о встречах включены ✓',
+        icon: '/favicon.ico'
+      });
+    } else {
+      showToast('⚠ Уведомления заблокированы');
+    }
+  });
+}
+
+function updateNotifBtn() {
+  const btn   = document.getElementById('notifBtn');
+  const label = document.getElementById('notifBtnLabel');
+  if (!btn) return;
+  if (!('Notification' in window)) {
+    btn.style.display = 'none';
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    btn.classList.add('granted');
+    if (label) label.textContent = 'Уведомления вкл.';
+  } else {
+    btn.classList.remove('granted');
+    if (label) label.textContent = 'Включить уведомления';
+  }
+}
+
+// Override meeting alert to also send browser notification
+const _origShowMeetingAlert = showMeetingAlert;
+window.showMeetingAlert = function(ev, minsLeft) {
+  _origShowMeetingAlert(ev, minsLeft);
+  if (Notification.permission === 'granted' && document.hidden) {
+    const notif = new Notification(`📅 ${ev.title}`, {
+      body: `Через ${minsLeft} мин · ${ev.start}${ev.attendees > 1 ? ' · '+ev.attendees+' участн.' : ''}`,
+      icon: '/favicon.ico',
+      tag:  ev.id
+    });
+    if (ev.meetLink) {
+      notif.onclick = () => { window.open(ev.meetLink,'_blank'); notif.close(); };
+    }
+    setTimeout(() => notif.close(), 12000);
+  }
+};
+
+// ============================================================
+//  PHASE 3: DASHBOARD — Calendar "JOIN" button in event row
+// ============================================================
+
+// Override renderEventRow to show Meet button for real events
+const _origRenderEventRow = renderEventRow;
+window.renderEventRow = function(e) {
+  if (!e.meetLink) return _origRenderEventRow(e);
+  const dur = (e.start && e.end) ? calcDur(e.start, e.end) : (typeof duration === 'function' ? duration(e.start, e.end) : '');
+  return `<div class="event-row" style="cursor:pointer" onclick="window.open('${e.meetLink}','_blank')">
+    <div class="event-time">${e.start}${e.end?' – '+e.end:''}</div>
+    <div class="event-bar" style="background:${e.color||'#3b82f6'}"></div>
+    <div class="event-info">
+      <div class="event-title">${e.title}</div>
+      <div class="event-meta">${e.attendees} участников</div>
+    </div>
+    <a href="${e.meetLink}" target="_blank" onclick="event.stopPropagation()"
+       style="font-size:10px;color:var(--accent2);text-decoration:none;background:rgba(59,130,246,.1);padding:3px 10px;border-radius:10px;border:1px solid rgba(59,130,246,.2);white-space:nowrap;flex-shrink:0">
+      ▶ Join
+    </a>
+  </div>`;
+};
+
 // Handle ?auth=success redirect
 if (new URLSearchParams(location.search).get('auth') === 'success') {
   history.replaceState({}, '', '/');
@@ -2362,6 +3136,7 @@ if (new URLSearchParams(location.search).get('auth') === 'success') {
 //  INIT
 // ============================================================
 initTheme();
+updateNotifBtn();
 document.getElementById('pageDate').textContent = fmt(currentDate);
 render();
 checkAuth();

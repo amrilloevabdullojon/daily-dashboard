@@ -22,7 +22,7 @@ export default function handler(req, res) {
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile',
       'https://www.googleapis.com/auth/calendar.readonly',
-      'https://www.googleapis.com/auth/tasks.readonly'
+      'https://www.googleapis.com/auth/tasks'
     ].join(' '),
     access_type: 'offline',
     prompt:      'consent'
