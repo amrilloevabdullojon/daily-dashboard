@@ -1217,6 +1217,7 @@
         </svg>
         <span>Tasks</span>
       </div>
+      <!-- Slack nav hidden temporarily — uncomment when ready
       <div class="nav-item" onclick="setView('slack')">
         <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M5.5 1.5a2 2 0 0 1 0 4H1.5a2 2 0 0 1 0-4h4z"/>
@@ -1227,6 +1228,7 @@
         <span>Slack</span>
         <span class="nav-badge" id="slackBadge" style="display:none"></span>
       </div>
+      -->
     </nav>
 
     <div class="sidebar-footer">
@@ -1324,6 +1326,7 @@
       <div class="field-label">Telegram Chat ID</div>
       <input class="field-input" id="cfgTgChatId" placeholder="-100xxxxxxxxxx">
     </div>
+    <!-- Slack token field hidden temporarily
     <div class="field-group" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
       <div class="field-label" style="display:flex;align-items:center;gap:6px">
         <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 1.5a2 2 0 0 1 0 4H1.5a2 2 0 0 1 0-4h4z"/><path d="M14.5 5.5a2 2 0 0 1-4 0v-4a2 2 0 0 1 4 0v4z"/><path d="M10.5 14.5a2 2 0 0 1 0-4h4a2 2 0 0 1 0 4h-4z"/><path d="M1.5 10.5a2 2 0 0 1 4 0v4a2 2 0 0 1-4 0v-4z"/></svg>
@@ -1333,6 +1336,8 @@
       <input class="field-input" id="cfgSlackToken" type="password" placeholder="xoxb-...">
       <div style="font-size:10px;color:var(--muted);margin-top:4px">Создайте Slack App → OAuth Scopes: channels:history, im:history, im:read, users:read, chat:write</div>
     </div>
+    -->
+    <input type="hidden" id="cfgSlackToken">
 
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeSettings()">Отмена</button>
