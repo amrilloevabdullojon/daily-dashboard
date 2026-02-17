@@ -21,17 +21,20 @@ export default async function handler(req, res) {
   try {
     // JQL: issues where user is assignee OR reporter, ordered by updated
     const jql = '(assignee = currentUser() OR reporter = currentUser()) ORDER BY updated DESC';
-    const url  = `https://${domain}/rest/api/3/search?` + new URLSearchParams({
-      jql,
-      maxResults: '25',
-      fields:     'summary,status,priority,project,updated,assignee'
-    });
+    const url  = `https://${domain}/rest/api/3/search/jql`;
 
     const jiraRes  = await fetch(url, {
+      method: 'POST',
       headers: {
         'Authorization': `Basic ${basicAuth}`,
-        'Accept':        'application/json'
-      }
+        'Accept':        'application/json',
+        'Content-Type':  'application/json'
+      },
+      body: JSON.stringify({
+        jql,
+        maxResults: 25,
+        fields:     ['summary','status','priority','project','updated','assignee']
+      })
     });
 
     const jiraData = await jiraRes.json();
