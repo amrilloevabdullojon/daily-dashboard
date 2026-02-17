@@ -779,9 +779,9 @@ function render() {
   switch(currentView) {
     case 'dashboard': el.innerHTML = renderDashboard(); break;
     case 'jira':      el.innerHTML = renderJiraFull();  break;
-    case 'calendar':  el.innerHTML = renderCalFull();   break;
+    case 'calendar':  el.innerHTML = (window.renderCalFull   || renderCalFull)();   break;
     case 'email':     el.innerHTML = (window.renderEmailFull || renderEmailFull)(); break;
-    case 'tasks':     el.innerHTML = renderTasksFull(); break;
+    case 'tasks':     el.innerHTML = (window.renderTasksFull || renderTasksFull)(); break;
   }
 
   // sidebar active
@@ -815,8 +815,8 @@ function renderDashboard() {
     </div>
     <div class="stat-card green">
       <div class="stat-label">Встречи сегодня</div>
-      <div class="stat-value green">${DATA.events.length}</div>
-      <div class="stat-sub">${Math.floor(totalMin/60)}ч ${totalMin%60}м всего</div>
+      <div class="stat-value green">${calEvents ? calEvents.length : DATA.events.length}</div>
+      <div class="stat-sub">${calEvents ? calEvents.filter(e=>e.meetLink).length+' с Meet-ссылкой' : Math.floor(totalMin/60)+'ч '+totalMin%60+'м всего'}</div>
     </div>
     <div class="stat-card yellow">
       <div class="stat-label">Новых писем</div>
@@ -825,8 +825,8 @@ function renderDashboard() {
     </div>
     <div class="stat-card purple">
       <div class="stat-label">Задачи</div>
-      <div class="stat-value purple">${pendingTasks}</div>
-      <div class="stat-sub">${taskState.filter(Boolean).length} завершено</div>
+      <div class="stat-value purple">${realTasks ? realTasks.filter(t=>!t.done).length : pendingTasks}</div>
+      <div class="stat-sub">${realTasks ? realTasks.filter(t=>t.overdue&&!t.done).length+' просрочено' : taskState.filter(Boolean).length+' завершено'}</div>
     </div>
   </div>
 
@@ -1120,10 +1120,12 @@ function showToast(msg) {
 }
 
 // ============================================================
-//  AUTH & REAL GMAIL
+//  AUTH & REAL DATA
 // ============================================================
-let currentUser = null;
-let gmailMessages = null; // null = not loaded yet, [] = empty
+let currentUser    = null;
+let gmailMessages  = null; // null = loading, [] = empty
+let calEvents      = null;
+let realTasks      = null;
 
 async function checkAuth() {
   try {
@@ -1132,12 +1134,42 @@ async function checkAuth() {
     if (data.authenticated) {
       currentUser = data;
       showUserBlock(data);
+      // Load all data in parallel
       loadGmailMessages();
+      loadCalendarEvents();
+      loadTasks();
     } else {
       showLoginBlock();
     }
   } catch {
     showLoginBlock();
+  }
+}
+
+async function loadCalendarEvents() {
+  try {
+    const res  = await fetch('/api/calendar/events');
+    const data = await res.json();
+    if (data.events) {
+      calEvents = data.events;
+      render();
+    }
+  } catch (err) {
+    console.error('Failed to load Calendar:', err);
+  }
+}
+
+async function loadTasks() {
+  try {
+    const res  = await fetch('/api/tasks/list');
+    const data = await res.json();
+    if (data.tasks) {
+      realTasks  = data.tasks;
+      taskState  = data.tasks.map(t => t.done);
+      render();
+    }
+  } catch (err) {
+    console.error('Failed to load Tasks:', err);
   }
 }
 
@@ -1173,8 +1205,10 @@ async function loadGmailMessages() {
 
 function logout() {
   document.cookie = 'gauth=; Max-Age=0; Path=/';
-  currentUser    = null;
-  gmailMessages  = null;
+  currentUser   = null;
+  gmailMessages = null;
+  calEvents     = null;
+  realTasks     = null;
   showLoginBlock();
   render();
 }
@@ -1252,11 +1286,89 @@ window.renderEmailFull = function() {
   </div>`;
 };
 
-// Also patch renderEmailFull in the switch
-const _origRender = render;
-window.render = function() {
-  _origRender();
-  // replace email section in dashboard with real data count
+// ── OVERRIDE renderCalFull ─────────────────────────────────
+window.renderCalFull = function() {
+  if (!currentUser) {
+    return `<div class="card"><div class="card-header"><div class="card-title"><div class="dot" style="background:var(--green)"></div>Календарь</div></div>
+      <div class="empty" style="padding:32px 20px">Войдите через Google чтобы видеть события</div></div>`;
+  }
+  if (calEvents === null) {
+    return `<div class="card"><div class="card-header"><div class="card-title"><div class="dot" style="background:var(--green)"></div>Календарь</div></div>
+      <div class="loading-row"><span class="spin">⟳</span> Загружаем события...</div></div>`;
+  }
+  if (calEvents.length === 0) {
+    return `<div class="card"><div class="card-header"><div class="card-title"><div class="dot" style="background:var(--green)"></div>Календарь</div></div>
+      <div class="empty">Сегодня встреч нет 🎉</div></div>`;
+  }
+  const rows = calEvents.map(e => {
+    const timeStr = e.allDay ? 'Весь день' : `${e.start} – ${e.end}`;
+    const dur = (!e.allDay && e.start && e.end) ? calcDur(e.start, e.end) : '';
+    const meetBtn = e.meetLink
+      ? `<a href="${e.meetLink}" target="_blank" style="font-size:10px;color:var(--accent2);text-decoration:none;background:rgba(59,130,246,.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(59,130,246,.2)">▶ Meet</a>`
+      : '';
+    return `<div class="event-row">
+      <div class="event-time">${timeStr}</div>
+      <div class="event-bar" style="background:${e.color}"></div>
+      <div class="event-info">
+        <div class="event-title">${e.title}</div>
+        <div class="event-meta">${e.attendees} участн.${e.location ? ' · ' + e.location : ''}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        ${meetBtn}
+        ${dur ? `<div class="event-duration">${dur}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="card">
+    <div class="card-header">
+      <div class="card-title"><div class="dot" style="background:var(--green)"></div>Расписание дня</div>
+      <div class="card-count">${calEvents.length} встреч</div>
+    </div>
+    <div class="card-body">${rows}</div>
+  </div>`;
+};
+
+function calcDur(start, end) {
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  const mins = (eh * 60 + em) - (sh * 60 + sm);
+  if (mins <= 0) return '';
+  return mins >= 60 ? Math.floor(mins/60) + 'ч' + (mins%60 ? ' ' + mins%60 + 'м' : '') : mins + 'м';
+}
+
+// ── OVERRIDE renderTasksFull ───────────────────────────────
+window.renderTasksFull = function() {
+  if (!currentUser) {
+    return `<div class="card"><div class="card-header"><div class="card-title"><div class="dot" style="background:var(--purple)"></div>Google Tasks</div></div>
+      <div class="empty" style="padding:32px 20px">Войдите через Google чтобы видеть задачи</div></div>`;
+  }
+  if (realTasks === null) {
+    return `<div class="card"><div class="card-header"><div class="card-title"><div class="dot" style="background:var(--purple)"></div>Google Tasks</div></div>
+      <div class="loading-row"><span class="spin">⟳</span> Загружаем задачи...</div></div>`;
+  }
+  if (realTasks.length === 0) {
+    return `<div class="card"><div class="card-header"><div class="card-title"><div class="dot" style="background:var(--purple)"></div>Google Tasks</div></div>
+      <div class="empty">Задач нет 🎉</div></div>`;
+  }
+  const done  = taskState.filter(Boolean).length;
+  const rows  = realTasks.map((t, i) => {
+    const isDone = taskState[i];
+    return `<div class="task-row">
+      <div class="task-check ${isDone ? 'done' : ''}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="task-text ${isDone ? 'done' : ''}">${t.text}</div>
+        ${t.list ? `<div style="font-size:10px;color:var(--muted)">${t.list}</div>` : ''}
+      </div>
+      <div class="task-due ${t.overdue && !isDone ? 'overdue' : ''}">${t.due}</div>
+    </div>`;
+  }).join('');
+  return `<div class="card">
+    <div class="card-header">
+      <div class="card-title"><div class="dot" style="background:var(--purple)"></div>Google Tasks</div>
+      <div class="card-count">${done}/${realTasks.length} выполнено</div>
+    </div>
+    <div class="card-body">${rows}</div>
+  </div>`;
 };
 
 // Handle ?auth=success redirect
