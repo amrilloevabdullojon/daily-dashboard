@@ -778,7 +778,7 @@ function render() {
 
   switch(currentView) {
     case 'dashboard': el.innerHTML = renderDashboard(); break;
-    case 'jira':      el.innerHTML = renderJiraFull();  break;
+    case 'jira':      el.innerHTML = (window.renderJiraFull  || renderJiraFull)();  break;
     case 'calendar':  el.innerHTML = (window.renderCalFull   || renderCalFull)();   break;
     case 'email':     el.innerHTML = (window.renderEmailFull || renderEmailFull)(); break;
     case 'tasks':     el.innerHTML = (window.renderTasksFull || renderTasksFull)(); break;
@@ -810,8 +810,8 @@ function renderDashboard() {
   <div class="stats-row">
     <div class="stat-card blue">
       <div class="stat-label">Jira В работе</div>
-      <div class="stat-value blue">${inProgress}</div>
-      <div class="stat-sub">+${onReview} на ревью</div>
+      <div class="stat-value blue">${jiraIssues ? jiraIssues.filter(j=>j.status.toLowerCase().includes('progress')||j.status.toLowerCase().includes('dev')).length : inProgress}</div>
+      <div class="stat-sub">+${jiraIssues ? jiraIssues.filter(j=>j.status.toLowerCase().includes('review')||j.status.toLowerCase().includes('test')).length : onReview} на ревью</div>
     </div>
     <div class="stat-card green">
       <div class="stat-label">Встречи сегодня</div>
@@ -834,9 +834,18 @@ function renderDashboard() {
     <div class="card">
       <div class="card-header">
         <div class="card-title"><div class="dot" style="background:var(--accent)"></div>Активные Jira задачи</div>
-        <div class="card-count">${DATA.jira.filter(j=>j.status!=='Done').length}</div>
+        <div class="card-count">${jiraIssues ? jiraIssues.filter(j=>j.status!=='Done'&&j.status!=='Closed').length : DATA.jira.filter(j=>j.status!=='Done').length}</div>
       </div>
-      <div class="card-body">${DATA.jira.filter(j=>j.status!=='Done').slice(0,5).map(renderIssueRow).join('')}</div>
+      <div class="card-body">
+        ${jiraIssues === null
+          ? '<div class="loading-row"><span class="spin">⟳</span> Загружаем...</div>'
+          : jiraIssues.length === 0 && jiraCfgSet()
+            ? '<div class="empty">Задач нет</div>'
+            : !jiraCfgSet()
+              ? '<div class="empty" style="padding:20px">Настройте Jira в <span style="color:var(--accent2);cursor:pointer" onclick="openSettings()">настройках ⚙</span></div>'
+              : jiraIssues.filter(j=>j.status!=='Done'&&j.status!=='Closed').slice(0,5).map(renderIssueRow).join('')
+        }
+      </div>
     </div>
     <div class="card">
       <div class="card-header">
@@ -1073,18 +1082,29 @@ function filterJira(idx, el) {
   });
 }
 
-function syncData() {
+async function syncData() {
   const btn  = document.getElementById('syncBtn');
   const sync = document.getElementById('lastSync');
   btn.classList.add('syncing');
   showToast('⟳ Синхронизация данных...');
-  setTimeout(()=>{
-    btn.classList.remove('syncing');
-    const now = new Date();
-    sync.textContent = 'последний: ' + now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
-    showToast('✓ Данные обновлены');
-    render();
-  }, 1800);
+
+  gmailMessages = null;
+  calEvents     = null;
+  realTasks     = null;
+  jiraIssues    = null;
+  render();
+
+  await Promise.all([
+    loadGmailMessages(),
+    loadCalendarEvents(),
+    loadTasks(),
+    loadJiraIssues()
+  ]);
+
+  btn.classList.remove('syncing');
+  const now = new Date();
+  sync.textContent = 'последний: ' + now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+  showToast('✓ Данные обновлены');
 }
 
 function openSettings() {
@@ -1101,15 +1121,17 @@ function closeSettings() {
 }
 function saveSettings() {
   const cfg = {
-    jiraDomain: document.getElementById('cfgJiraDomain').value,
-    jiraEmail:  document.getElementById('cfgJiraEmail').value,
-    jiraToken:  document.getElementById('cfgJiraToken').value,
-    tgToken:    document.getElementById('cfgTgToken').value,
-    tgChatId:   document.getElementById('cfgTgChatId').value
+    jiraDomain: document.getElementById('cfgJiraDomain').value.trim(),
+    jiraEmail:  document.getElementById('cfgJiraEmail').value.trim(),
+    jiraToken:  document.getElementById('cfgJiraToken').value.trim(),
+    tgToken:    document.getElementById('cfgTgToken').value.trim(),
+    tgChatId:   document.getElementById('cfgTgChatId').value.trim()
   };
   localStorage.setItem('drCfg', JSON.stringify(cfg));
   closeSettings();
   showToast('✓ Настройки сохранены');
+  // Reload Jira with new credentials
+  loadJiraIssues();
 }
 
 function showToast(msg) {
@@ -1126,6 +1148,7 @@ let currentUser    = null;
 let gmailMessages  = null; // null = loading, [] = empty
 let calEvents      = null;
 let realTasks      = null;
+let jiraIssues     = null; // null = loading, [] = empty
 
 async function checkAuth() {
   try {
@@ -1134,7 +1157,7 @@ async function checkAuth() {
     if (data.authenticated) {
       currentUser = data;
       showUserBlock(data);
-      // Load all data in parallel
+      // Load all Google data in parallel
       loadGmailMessages();
       loadCalendarEvents();
       loadTasks();
@@ -1143,6 +1166,40 @@ async function checkAuth() {
     }
   } catch {
     showLoginBlock();
+  }
+  // Jira uses its own credentials — load independently of Google auth
+  loadJiraIssues();
+}
+
+async function loadJiraIssues() {
+  const cfg = JSON.parse(localStorage.getItem('drCfg') || '{}');
+  if (!cfg.jiraDomain || !cfg.jiraEmail || !cfg.jiraToken) {
+    jiraIssues = []; // no credentials — show setup prompt
+    render();
+    return;
+  }
+  jiraIssues = null; // loading
+  render();
+  try {
+    const res  = await fetch('/api/jira/issues', {
+      headers: {
+        'x-jira-domain': cfg.jiraDomain,
+        'x-jira-email':  cfg.jiraEmail,
+        'x-jira-token':  cfg.jiraToken
+      }
+    });
+    const data = await res.json();
+    if (data.issues) {
+      jiraIssues = data.issues;
+    } else {
+      jiraIssues = [];
+      console.error('Jira error:', data.error);
+    }
+    render();
+  } catch (err) {
+    console.error('Failed to load Jira:', err);
+    jiraIssues = [];
+    render();
   }
 }
 
@@ -1211,6 +1268,11 @@ function logout() {
   realTasks     = null;
   showLoginBlock();
   render();
+}
+
+function jiraCfgSet() {
+  const cfg = JSON.parse(localStorage.getItem('drCfg') || '{}');
+  return !!(cfg.jiraDomain && cfg.jiraEmail && cfg.jiraToken);
 }
 
 // ── OVERRIDE renderEmailFull to use real data ──────────────
@@ -1368,6 +1430,59 @@ window.renderTasksFull = function() {
       <div class="card-count">${done}/${realTasks.length} выполнено</div>
     </div>
     <div class="card-body">${rows}</div>
+  </div>`;
+};
+
+// ── OVERRIDE renderJiraFull ────────────────────────────────
+window.renderJiraFull = function() {
+  if (!jiraCfgSet()) {
+    return `<div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot" style="background:var(--accent)"></div>Jira задачи</div>
+      </div>
+      <div class="empty" style="padding:40px 20px">
+        <div style="margin-bottom:12px;font-size:24px">🔧</div>
+        <div style="margin-bottom:16px">Введите Jira credentials в настройках</div>
+        <button class="btn-primary" onclick="openSettings()" style="font-size:11px;padding:9px 20px">⚙ Открыть настройки</button>
+      </div>
+    </div>`;
+  }
+  if (jiraIssues === null) {
+    return `<div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot" style="background:var(--accent)"></div>Jira задачи</div>
+      </div>
+      <div class="loading-row"><span class="spin">⟳</span> Загружаем задачи из Jira...</div>
+    </div>`;
+  }
+  if (jiraIssues.length === 0) {
+    return `<div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot" style="background:var(--accent)"></div>Jira задачи</div>
+      </div>
+      <div class="empty">Назначенных задач нет 🎉</div>
+    </div>`;
+  }
+
+  const rows = jiraIssues.map(issue => `
+    <div class="issue-row" data-status="${issue.status}" onclick="window.open('${issue.url}','_blank')">
+      <div class="priority-dot ${priorityClass(issue.priority)}"></div>
+      <div class="issue-key">${issue.key}</div>
+      <div style="flex:1;min-width:0">
+        <div class="issue-summary">${issue.summary}</div>
+        <div class="issue-project">${issue.project} · ${issue.updated}</div>
+      </div>
+      <span class="status-pill ${statusClass(issue.status)}">${statusLabel(issue.status)}</span>
+      <span style="font-size:10px;color:var(--muted);margin-left:4px">${issue.priority}</span>
+    </div>`).join('');
+
+  return `
+  <div class="tabs">
+    ${['Все','В работе','На ревью','К выполнению','Готово'].map((t,i)=>`
+      <div class="tab${i===0?' active':''}" onclick="filterJira(${i},this)">${t}</div>`).join('')}
+  </div>
+  <div class="card" style="margin-top:16px" id="jiraList">
+    ${rows}
   </div>`;
 };
 
