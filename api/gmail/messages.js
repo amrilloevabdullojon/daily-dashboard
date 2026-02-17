@@ -66,15 +66,21 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Fetch list of message IDs (inbox, max 10)
+    // Fetch list of message IDs (all mail, max 15)
     const listRes = await fetch(
-      'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=10&labelIds=INBOX',
+      'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=15',
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
     const listData = await listRes.json();
 
     if (!listData.messages) {
-      return res.json({ messages: [] });
+      return res.json({
+        messages: [],
+        debug: {
+          resultSizeEstimate: listData.resultSizeEstimate,
+          raw: listData
+        }
+      });
     }
 
     // Fetch each message in parallel (metadata only — fast)
