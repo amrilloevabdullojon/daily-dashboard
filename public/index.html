@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Report Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0a0c0f;
+    --bg2:       #0f1318;
+    --bg3:       #151a22;
+    --bg4:       #1c2330;
+    --border:    #1f2a38;
+    --border2:   #263344;
+    --text:      #e2e8f0;
+    --muted:     #64748b;
+    --muted2:    #94a3b8;
+    --accent:    #3b82f6;
+    --accent2:   #60a5fa;
+    --green:     #22c55e;
+    --yellow:    #eab308;
+    --red:       #ef4444;
+    --purple:    #a855f7;
+    --cyan:      #06b6d4;
+    --orange:    #f97316;
+    --card-glow: 0 0 0 1px var(--border), 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── LAYOUT ── */
+  .app { display: flex; min-height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 220px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+  }
+  .logo {
+    padding: 0 24px 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .logo-mark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .logo-mark span { color: var(--accent); }
+  .logo-sub { font-size: 10px; color: var(--muted); margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 24px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .15s;
+    font-size: 12px;
+    letter-spacing: .3px;
+    border-left: 2px solid transparent;
+  }
+  .nav-item:hover { color: var(--text); background: var(--bg3); }
+  .nav-item.active { color: var(--accent2); border-left-color: var(--accent); background: rgba(59,130,246,.06); }
+  .nav-icon { width: 16px; height: 16px; opacity: .7; }
+  .nav-item.active .nav-icon { opacity: 1; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+  }
+  .sync-btn {
+    width: 100%;
+    background: rgba(59,130,246,.1);
+    border: 1px solid rgba(59,130,246,.25);
+    color: var(--accent2);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    letter-spacing: .5px;
+    transition: all .2s;
+    display: flex; align-items: center; gap: 8px; justify-content: center;
+  }
+  .sync-btn:hover { background: rgba(59,130,246,.18); }
+  .sync-btn.syncing .sync-icon { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .last-sync { font-size: 10px; color: var(--muted); text-align: center; margin-top: 8px; }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: 220px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .topbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .page-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px; letter-spacing: -.3px; }
+  .page-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .date-nav { display: flex; align-items: center; gap: 8px; }
+  .date-nav button {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--muted2);
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .date-nav button:hover { border-color: var(--accent); color: var(--accent2); }
+  .date-label { font-size: 12px; color: var(--text); min-width: 100px; text-align: center; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(34,197,94,.1);
+    border: 1px solid rgba(34,197,94,.2);
+    color: var(--green);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    letter-spacing: .5px;
+  }
+  .badge-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* ── CONTENT ── */
+  .content { padding: 28px 32px; flex: 1; }
+
+  /* ── STAT ROW ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .stat-card.blue::before  { background: var(--accent); }
+  .stat-card.green::before { background: var(--green); }
+  .stat-card.yellow::before{ background: var(--yellow); }
+  .stat-card.purple::before{ background: var(--purple); }
+  .stat-card:hover { border-color: var(--border2); }
+
+  .stat-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+  .stat-value { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: -1px; }
+  .stat-value.blue   { color: var(--accent2); }
+  .stat-value.green  { color: var(--green); }
+  .stat-value.yellow { color: var(--yellow); }
+  .stat-value.purple { color: var(--purple); }
+  .stat-sub { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+  /* ── GRID ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .card-count {
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+  .card-body { padding: 0; }
+
+  /* ── JIRA ISSUES ── */
+  .issue-row {
+    display: flex; align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    cursor: pointer;
+    transition: background .12s;
+  }
+  .issue-row:last-child { border-bottom: none; }
+  .issue-row:hover { background: var(--bg3); }
+
+  .issue-key {
+    font-size: 11px;
+    color: var(--accent2);
+    font-weight: 500;
+    min-width: 70px;
+    letter-spacing: .3px;
+  }
+  .issue-summary { flex: 1; color: var(--text); font-size: 12px; }
+  .issue-project { font-size: 10px; color: var(--muted); }
+
+  .status-pill {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    letter-spacing: .3px;
+  }
+  .status-progress { background: rgba(59,130,246,.15); color: var(--accent2); border: 1px solid rgba(59,130,246,.3); }
+  .status-review   { background: rgba(168,85,247,.15); color: var(--purple);  border: 1px solid rgba(168,85,247,.3); }
+  .status-todo     { background: rgba(100,116,139,.12); color: var(--muted2); border: 1px solid rgba(100,116,139,.25); }
+  .status-done     { background: rgba(34,197,94,.12);  color: var(--green);  border: 1px solid rgba(34,197,94,.25); }
+
+  .priority-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .p-high    { background: var(--red); }
+  .p-medium  { background: var(--yellow); }
+  .p-low     { background: var(--green); }
+
+  /* ── CALENDAR ── */
+  .event-row {
+    display: flex; align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    gap: 14px;
+  }
+  .event-row:last-child { border-bottom: none; }
+  .event-time {
+    font-size: 11px;
+    color: var(--muted2);
+    min-width: 90px;
+    font-feature-settings: "tnum";
+  }
+  .event-bar {
+    width: 3px;
+    border-radius: 2px;
+    align-self: stretch;
+    min-height: 20px;
+    flex-shrink: 0;
+  }
+  .event-info { flex: 1; }
+  .event-title { font-size: 12px; color: var(--text); }
+  .event-meta  { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .event-duration {
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--bg3);
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  /* ── EMAILS ── */
+  .email-row {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background .12s;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .email-row:last-child { border-bottom: none; }
+  .email-row:hover { background: var(--bg3); }
+  .email-avatar {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .email-body { flex: 1; min-width: 0; }
+  .email-from    { font-size: 11px; color: var(--text); font-weight: 500; }
+  .email-subject { font-size: 11px; color: var(--muted2); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .email-time    { font-size: 10px; color: var(--muted); }
+  .email-star { color: var(--yellow); font-size: 12px; }
+
+  /* ── TASKS ── */
+  .task-row {
+    display: flex; align-items: center;
+    padding: 11px 20px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  .task-row:last-child { border-bottom: none; }
+  .task-check {
+    width: 16px; height: 16px;
+    border-radius: 4px;
+    border: 1.5px solid var(--border2);
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .task-check.done { background: var(--green); border-color: var(--green); }
+  .task-check.done::after { content: '✓'; color: #fff; font-size: 9px; }
+  .task-text { flex: 1; font-size: 12px; color: var(--text); }
+  .task-text.done { text-decoration: line-through; color: var(--muted); }
+  .task-due { font-size: 10px; color: var(--muted); }
+  .task-due.overdue { color: var(--red); }
+
+  /* ── CHART ── */
+  .chart-wrap { padding: 20px; }
+  .mini-bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bar {
+    width: 100%;
+    border-radius: 3px 3px 0 0;
+    transition: height .4s cubic-bezier(.4,0,.2,1), opacity .2s;
+    cursor: pointer;
+    min-height: 4px;
+  }
+  .bar:hover { opacity: .8; }
+  .bar-label { font-size: 9px; color: var(--muted); letter-spacing: .3px; }
+
+  /* Donut */
+  .donut-wrap { display: flex; align-items: center; gap: 20px; padding: 20px; }
+  svg.donut { flex-shrink: 0; }
+  .donut-legend { display: flex; flex-direction: column; gap: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .legend-count { color: var(--muted2); margin-left: auto; }
+
+  /* ── TABS ── */
+  .tabs { display: flex; border-bottom: 1px solid var(--border); }
+  .tab {
+    padding: 10px 20px;
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all .15s;
+    letter-spacing: .3px;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+
+  /* ── EMPTY ── */
+  .empty { padding: 32px 20px; text-align: center; color: var(--muted); font-size: 12px; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* ── FADE IN ── */
+  .fade-in { animation: fadeIn .3s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+  /* ── SETTINGS PANEL ── */
+  .settings-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.6);
+    z-index: 200;
+    backdrop-filter: blur(4px);
+  }
+  .settings-overlay.open { display: flex; align-items: center; justify-content: center; }
+  .settings-modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    width: 420px;
+    padding: 28px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  }
+  .settings-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; margin-bottom: 20px; }
+  .field-group { margin-bottom: 16px; }
+  .field-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .field-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 9px 12px;
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: 12px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .field-input:focus { border-color: var(--accent); }
+  .field-input::placeholder { color: var(--muted); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: flex-end; }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 9px 20px;
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--muted2);
+    border: 1px solid var(--border2);
+    padding: 9px 20px;
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-secondary:hover { color: var(--text); border-color: var(--border); }
+
+  /* ── NOTIFICATION ── */
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 12px;
+    color: var(--text);
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    transform: translateY(60px);
+    opacity: 0;
+    transition: all .3s cubic-bezier(.4,0,.2,1);
+    z-index: 300;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .toast.show { transform: none; opacity: 1; }
+
+  @media (max-width: 900px) {
+    .sidebar { width: 60px; }
+    .sidebar .logo-mark, .sidebar .logo-sub, .sidebar .nav-item span, .sidebar-footer { display: none; }
+    .nav-item { justify-content: center; padding: 14px; }
+    .main { margin-left: 60px; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .content { padding: 20px 16px; }
+    .topbar { padding: 14px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">daily<span>.</span>report</div>
+      <div class="logo-sub">workspace hub</div>
+    </div>
+
+    <nav>
+      <div class="nav-item active" onclick="setView('dashboard')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="1" y="1" width="6" height="6" rx="1.5"/>
+          <rect x="9" y="1" width="6" height="6" rx="1.5"/>
+          <rect x="1" y="9" width="6" height="6" rx="1.5"/>
+          <rect x="9" y="9" width="6" height="6" rx="1.5"/>
+        </svg>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item" onclick="setView('jira')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="8" r="6.5"/>
+          <path d="M8 5v3.5l2 2"/>
+        </svg>
+        <span>Jira задачи</span>
+      </div>
+      <div class="nav-item" onclick="setView('calendar')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="1.5" y="2.5" width="13" height="12" rx="2"/>
+          <path d="M1.5 6.5h13M5 1v3M11 1v3"/>
+        </svg>
+        <span>Календарь</span>
+      </div>
+      <div class="nav-item" onclick="setView('email')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="1" y="3" width="14" height="10" rx="2"/>
+          <path d="M1 5l7 5 7-5"/>
+        </svg>
+        <span>Gmail</span>
+      </div>
+      <div class="nav-item" onclick="setView('tasks')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M2 4h12M2 8h8M2 12h5"/>
+          <circle cx="13" cy="11" r="2.5"/>
+          <path d="M13 9.5v1.5l1 1"/>
+        </svg>
+        <span>Tasks</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="sync-btn" id="syncBtn" onclick="syncData()">
+        <svg class="sync-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M10 6A4 4 0 1 1 6 2M6 2l2-2M6 2l2 2"/>
+        </svg>
+        <span>Sync</span>
+      </button>
+      <div class="last-sync" id="lastSync">последний: только что</div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="pageTitle">Dashboard</div>
+        <div class="page-date" id="pageDate"></div>
+      </div>
+      <div class="topbar-right">
+        <div class="date-nav">
+          <button onclick="changeDate(-1)">‹</button>
+          <div class="date-label" id="dateLabel"></div>
+          <button onclick="changeDate(1)">›</button>
+        </div>
+        <div class="badge"><div class="badge-dot"></div>LIVE</div>
+        <button class="btn-secondary" onclick="openSettings()" style="font-size:11px;padding:6px 14px;">⚙ Настройки</button>
+      </div>
+    </div>
+
+    <div class="content" id="mainContent"></div>
+  </main>
+</div>
+
+<!-- Settings Modal -->
+<div class="settings-overlay" id="settingsOverlay" onclick="if(event.target===this)closeSettings()">
+  <div class="settings-modal">
+    <div class="settings-title">⚙ Настройки подключения</div>
+
+    <div class="field-group">
+      <div class="field-label">Jira Domain</div>
+      <input class="field-input" id="cfgJiraDomain" placeholder="your-company.atlassian.net">
+    </div>
+    <div class="field-group">
+      <div class="field-label">Jira Email</div>
+      <input class="field-input" id="cfgJiraEmail" type="email" placeholder="your@email.com">
+    </div>
+    <div class="field-group">
+      <div class="field-label">Jira API Token</div>
+      <input class="field-input" id="cfgJiraToken" type="password" placeholder="••••••••••••••••">
+    </div>
+    <div class="field-group">
+      <div class="field-label">Telegram Bot Token</div>
+      <input class="field-input" id="cfgTgToken" type="password" placeholder="123456789:ABC...">
+    </div>
+    <div class="field-group">
+      <div class="field-label">Telegram Chat ID</div>
+      <input class="field-input" id="cfgTgChatId" placeholder="-100xxxxxxxxxx">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeSettings()">Отмена</button>
+      <button class="btn-primary" onclick="saveSettings()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+//  DATA (demo — замените на реальные API вызовы)
+// ============================================================
+const DATA = {
+  jira: [
+    { key:'PROJ-142', summary:'Интеграция OAuth 2.0 с внешним провайдером', status:'In Progress', priority:'High',    project:'Backend API',  updated:'10 мин назад' },
+    { key:'PROJ-138', summary:'Рефакторинг сервиса уведомлений',            status:'In Progress', priority:'Medium',  project:'Backend API',  updated:'2 ч назад'    },
+    { key:'PROJ-151', summary:'Дизайн-ревью экрана настроек',               status:'Review',      priority:'Medium',  project:'Mobile App',   updated:'3 ч назад'    },
+    { key:'PROJ-129', summary:'Написать unit-тесты для модуля оплаты',      status:'Review',      priority:'High',    project:'Backend API',  updated:'вчера'        },
+    { key:'PROJ-155', summary:'Анализ метрик за Q4',                        status:'To Do',       priority:'Low',     project:'Analytics',    updated:'вчера'        },
+    { key:'PROJ-147', summary:'Обновить документацию API v3',               status:'To Do',       priority:'Low',     project:'Backend API',  updated:'2 дня назад'  },
+    { key:'PROJ-160', summary:'Баг: некорректный расчёт дат в отчётах',     status:'To Do',       priority:'High',    project:'Analytics',    updated:'1 ч назад'    },
+    { key:'PROJ-135', summary:'Настроить CI/CD pipeline для staging',       status:'Done',        priority:'Medium',  project:'DevOps',       updated:'сегодня'      }
+  ],
+  events: [
+    { title:'Daily Standup',         start:'09:00', end:'09:30', color:'#3b82f6', attendees:6,  type:'recurring'  },
+    { title:'Jira Sprint Review',    start:'11:00', end:'12:00', color:'#a855f7', attendees:12, type:'team'       },
+    { title:'1:1 с руководителем',   start:'14:00', end:'14:30', color:'#06b6d4', attendees:2,  type:'personal'   },
+    { title:'Код-ревью сессия',      start:'15:30', end:'16:30', color:'#22c55e', attendees:4,  type:'technical'  },
+    { title:'Retrospective Q4',      start:'17:00', end:'18:00', color:'#f97316', attendees:8,  type:'planning'   }
+  ],
+  emails: [
+    { from:'Алексей Иванов',   addr:'a.ivanov@corp.com',   subject:'Re: Обновление дедлайна PROJ-142',          time:'10:24', starred:true,  color:'#3b82f6', init:'АИ' },
+    { from:'Мария Петрова',    addr:'m.petrova@corp.com',  subject:'Приглашение: Sprint Planning пятница 11:00', time:'09:47', starred:true,  color:'#a855f7', init:'МП' },
+    { from:'Jira',             addr:'noreply@atlassian.com',subject:'PROJ-155 назначено на вас',                 time:'09:15', starred:false, color:'#1c2330', init:'J'  },
+    { from:'DevOps Bot',       addr:'devops@corp.com',     subject:'✅ Deployment to staging успешно',           time:'08:53', starred:false, color:'#22c55e', init:'D'  },
+    { from:'Дмитрий Соколов', addr:'d.sokolov@corp.com',  subject:'Вопрос по архитектуре сервиса',             time:'вчера', starred:false, color:'#f97316', init:'ДС' }
+  ],
+  tasks: [
+    { text:'Завершить OAuth интеграцию',          due:'сегодня',   done:false, overdue:false },
+    { text:'Провести код-ревью PR #847',           due:'сегодня',   done:false, overdue:false },
+    { text:'Написать тесты для payment service',  due:'завтра',    done:false, overdue:false },
+    { text:'Обновить Confluence страницу',        due:'пт, 19 фев',done:false, overdue:false },
+    { text:'Созвониться с командой мобайл',       due:'вчера',     done:false, overdue:true  },
+    { text:'Review дизайн-макета v2',             due:'среда',     done:true,  overdue:false },
+    { text:'Подготовить отчёт за неделю',         due:'пятница',   done:true,  overdue:false }
+  ],
+  weekActivity: [12,8,15,6,18,10,14]
+};
+
+// ============================================================
+//  STATE
+// ============================================================
+let currentView = 'dashboard';
+let currentDate = new Date();
+let taskState   = DATA.tasks.map(t => t.done);
+
+// ============================================================
+//  UTILS
+// ============================================================
+function fmt(d) {
+  const days  = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  const months= ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  return days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+function fmtShort(d) {
+  const months=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  return d.getDate() + ' ' + months[d.getMonth()];
+}
+function duration(start, end) {
+  const [sh,sm]=start.split(':').map(Number);
+  const [eh,em]=end.split(':').map(Number);
+  const mins=(eh*60+em)-(sh*60+sm);
+  return mins>=60 ? Math.floor(mins/60)+'ч '+(mins%60?mins%60+'м':'') : mins+'м';
+}
+function statusClass(s) {
+  const sl = s.toLowerCase();
+  if(sl.includes('progress')||sl.includes('dev')) return 'status-progress';
+  if(sl.includes('review')||sl.includes('test')) return 'status-review';
+  if(sl==='to do'||sl==='open'||sl==='backlog')  return 'status-todo';
+  if(sl==='done'||sl==='closed')                 return 'status-done';
+  return 'status-todo';
+}
+function priorityClass(p) {
+  if(p==='High'||p==='Highest') return 'p-high';
+  if(p==='Low'||p==='Lowest')   return 'p-low';
+  return 'p-medium';
+}
+function statusLabel(s) {
+  const m={'In Progress':'В работе','Review':'На ревью','To Do':'К выполнению','Done':'Готово','Open':'Открыта','Backlog':'Бэклог'};
+  return m[s]||s;
+}
+
+// ============================================================
+//  RENDER
+// ============================================================
+function render() {
+  const el = document.getElementById('mainContent');
+  el.className = 'content fade-in';
+  void el.offsetWidth;
+
+  const titles = {dashboard:'Dashboard', jira:'Jira задачи', calendar:'Календарь', email:'Gmail', tasks:'Google Tasks'};
+  document.getElementById('pageTitle').textContent = titles[currentView];
+  document.getElementById('pageDate').textContent  = fmt(currentDate);
+  document.getElementById('dateLabel').textContent = fmtShort(currentDate);
+
+  switch(currentView) {
+    case 'dashboard': el.innerHTML = renderDashboard(); break;
+    case 'jira':      el.innerHTML = renderJiraFull();  break;
+    case 'calendar':  el.innerHTML = renderCalFull();   break;
+    case 'email':     el.innerHTML = renderEmailFull(); break;
+    case 'tasks':     el.innerHTML = renderTasksFull(); break;
+  }
+
+  // sidebar active
+  document.querySelectorAll('.nav-item').forEach((n,i)=>{
+    n.classList.remove('active');
+    if(['dashboard','jira','calendar','email','tasks'][i]===currentView) n.classList.add('active');
+  });
+
+  // bind task toggles
+  document.querySelectorAll('.task-check').forEach((el,i)=>{
+    el.addEventListener('click', ()=>{ taskState[i]=!taskState[i]; render(); });
+  });
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────
+function renderDashboard() {
+  const inProgress = DATA.jira.filter(j=>j.status==='In Progress').length;
+  const onReview   = DATA.jira.filter(j=>j.status==='Review').length;
+  const totalMin   = DATA.events.reduce((s,e)=>{
+    const[sh,sm]=e.start.split(':').map(Number),[eh,em]=e.end.split(':').map(Number);
+    return s+(eh*60+em)-(sh*60+sm);
+  },0);
+  const pendingTasks = taskState.filter(t=>!t).length;
+
+  return `
+  <div class="stats-row">
+    <div class="stat-card blue">
+      <div class="stat-label">Jira В работе</div>
+      <div class="stat-value blue">${inProgress}</div>
+      <div class="stat-sub">+${onReview} на ревью</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Встречи сегодня</div>
+      <div class="stat-value green">${DATA.events.length}</div>
+      <div class="stat-sub">${Math.floor(totalMin/60)}ч ${totalMin%60}м всего</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="stat-label">Новых писем</div>
+      <div class="stat-value yellow">${DATA.emails.length}</div>
+      <div class="stat-sub">${DATA.emails.filter(e=>e.starred).length} требуют ответа</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">Задачи</div>
+      <div class="stat-value purple">${pendingTasks}</div>
+      <div class="stat-sub">${taskState.filter(Boolean).length} завершено</div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot" style="background:var(--accent)"></div>Активные Jira задачи</div>
+        <div class="card-count">${DATA.jira.filter(j=>j.status!=='Done').length}</div>
+      </div>
+      <div class="card-body">${DATA.jira.filter(j=>j.status!=='Done').slice(0,5).map(renderIssueRow).join('')}</div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot" style="background:var(--purple)"></div>Статусы</div>
+      </div>
+      ${renderDonut()}
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot" style="background:var(--green)"></div>Встречи сегодня</div>
+        <div class="card-count">${DATA.events.length}</div>
+      </div>
+      <div class="card-body">${DATA.events.map(renderEventRow).join('')}</div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot" style="background:var(--yellow)"></div>Активность за неделю</div>
+      </div>
+      ${renderBarChart()}
+    </div>
+  </div>`;
+}
+
+// ── JIRA FULL ──────────────────────────────────────────────
+function renderJiraFull() {
+  const statuses = ['In Progress','Review','To Do','Done'];
+  const labels   = {  'In Progress':'В работе','Review':'На ревью','To Do':'К выполнению','Done':'Готово'};
+  const colors   = {  'In Progress':var_accent,'Review':var_purple,'To Do':var_muted,'Done':var_green};
+
+  return `
+  <div class="tabs">
+    ${['Все','В работе','На ревью','К выполнению','Готово'].map((t,i)=>`
+      <div class="tab${i===0?' active':''}" onclick="filterJira(${i},this)">${t}</div>`).join('')}
+  </div>
+  <div class="card" style="margin-top:16px" id="jiraList">
+    ${DATA.jira.map(renderIssueRowFull).join('')}
+  </div>`;
+}
+
+// ── CAL FULL ───────────────────────────────────────────────
+function renderCalFull() {
+  return `
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><div class="dot" style="background:var(--green)"></div>Расписание дня</div>
+      <div class="card-count">${DATA.events.length} встреч</div>
+    </div>
+    <div class="card-body">${DATA.events.map(renderEventRowFull).join('')}</div>
+  </div>`;
+}
+
+// ── EMAIL FULL ─────────────────────────────────────────────
+function renderEmailFull() {
+  return `
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><div class="dot" style="background:var(--yellow)"></div>Входящие письма</div>
+      <div class="card-count">${DATA.emails.length}</div>
+    </div>
+    <div class="card-body">${DATA.emails.map(renderEmailRow).join('')}</div>
+  </div>`;
+}
+
+// ── TASKS FULL ─────────────────────────────────────────────
+function renderTasksFull() {
+  return `
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><div class="dot" style="background:var(--purple)"></div>Google Tasks</div>
+      <div class="card-count">${taskState.filter(Boolean).length}/${taskState.length} выполнено</div>
+    </div>
+    <div class="card-body">${DATA.tasks.map((t,i)=>renderTaskRow(t,i)).join('')}</div>
+  </div>`;
+}
+
+// ── COMPONENTS ─────────────────────────────────────────────
+function renderIssueRow(issue) {
+  return `<div class="issue-row">
+    <div class="priority-dot ${priorityClass(issue.priority)}"></div>
+    <div class="issue-key">${issue.key}</div>
+    <div style="flex:1;min-width:0">
+      <div class="issue-summary" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${issue.summary}</div>
+      <div class="issue-project">${issue.project}</div>
+    </div>
+    <span class="status-pill ${statusClass(issue.status)}">${statusLabel(issue.status)}</span>
+  </div>`;
+}
+
+function renderIssueRowFull(issue) {
+  return `<div class="issue-row" data-status="${issue.status}">
+    <div class="priority-dot ${priorityClass(issue.priority)}"></div>
+    <div class="issue-key">${issue.key}</div>
+    <div style="flex:1;min-width:0">
+      <div class="issue-summary">${issue.summary}</div>
+      <div class="issue-project">${issue.project} · ${issue.updated}</div>
+    </div>
+    <span class="status-pill ${statusClass(issue.status)}">${statusLabel(issue.status)}</span>
+    <span style="font-size:10px;color:var(--muted);margin-left:4px">${issue.priority}</span>
+  </div>`;
+}
+
+function renderEventRow(e) {
+  const dur = duration(e.start,e.end);
+  return `<div class="event-row">
+    <div class="event-time">${e.start} – ${e.end}</div>
+    <div class="event-bar" style="background:${e.color}"></div>
+    <div class="event-info">
+      <div class="event-title">${e.title}</div>
+      <div class="event-meta">${e.attendees} участников</div>
+    </div>
+    <div class="event-duration">${dur}</div>
+  </div>`;
+}
+
+function renderEventRowFull(e) {
+  const dur = duration(e.start,e.end);
+  return `<div class="event-row">
+    <div class="event-time">${e.start} – ${e.end}</div>
+    <div class="event-bar" style="background:${e.color}"></div>
+    <div class="event-info">
+      <div class="event-title">${e.title}</div>
+      <div class="event-meta">${e.attendees} участников · ${e.type}</div>
+    </div>
+    <div class="event-duration">${dur}</div>
+  </div>`;
+}
+
+function renderEmailRow(e) {
+  return `<div class="email-row">
+    <div class="email-avatar" style="background:${e.color}20;color:${e.color}">${e.init}</div>
+    <div class="email-body">
+      <div class="email-from">${e.from} <span style="color:var(--muted);font-weight:400">&lt;${e.addr}&gt;</span></div>
+      <div class="email-subject">${e.subject}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+      <div class="email-time">${e.time}</div>
+      ${e.starred ? '<div class="email-star">★</div>' : ''}
+    </div>
+  </div>`;
+}
+
+function renderTaskRow(t,i) {
+  const done = taskState[i];
+  return `<div class="task-row">
+    <div class="task-check ${done?'done':''}"></div>
+    <div class="task-text ${done?'done':''}">${t.text}</div>
+    <div class="task-due ${t.overdue&&!done?'overdue':''}">${t.due}</div>
+  </div>`;
+}
+
+function renderDonut() {
+  const groups = {
+    'В работе':   DATA.jira.filter(j=>j.status==='In Progress').length,
+    'На ревью':   DATA.jira.filter(j=>j.status==='Review').length,
+    'К выполнению':DATA.jira.filter(j=>j.status==='To Do').length,
+    'Готово':     DATA.jira.filter(j=>j.status==='Done').length
+  };
+  const colors = ['#3b82f6','#a855f7','#64748b','#22c55e'];
+  const total  = Object.values(groups).reduce((a,b)=>a+b,0);
+
+  let offset=0, paths='';
+  const R=30,cx=40,cy=40,stroke=10;
+  const circ=2*Math.PI*R;
+
+  Object.values(groups).forEach((v,i)=>{
+    const dash = (v/total)*circ;
+    const rot  = offset*(360/total);
+    paths += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${colors[i]}"
+      stroke-width="${stroke}" stroke-dasharray="${dash} ${circ-dash}"
+      stroke-dashoffset="${circ/4-offset/total*circ}"
+      transform="rotate(${rot-90} ${cx} ${cy})" style="transition:all .5s"/>`;
+    offset+=v;
+  });
+
+  const legend = Object.entries(groups).map(([label,count],i)=>`
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${colors[i]}"></div>
+      <span>${label}</span>
+      <span class="legend-count">${count}</span>
+    </div>`).join('');
+
+  return `<div class="donut-wrap">
+    <svg class="donut" width="80" height="80" viewBox="0 0 80 80">${paths}
+      <text x="40" y="44" text-anchor="middle" fill="#e2e8f0" font-family="Syne,sans-serif" font-size="14" font-weight="700">${total}</text>
+    </svg>
+    <div class="donut-legend">${legend}</div>
+  </div>`;
+}
+
+function renderBarChart() {
+  const days = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const max  = Math.max(...DATA.weekActivity);
+  const today= new Date().getDay();
+  const bars = DATA.weekActivity.map((v,i)=>{
+    const h    = Math.round((v/max)*70);
+    const isT  = i===(today===0?6:today-1);
+    const color= isT ? '#3b82f6' : '#1c2330';
+    const bord = isT ? '1px solid rgba(59,130,246,.4)' : '1px solid var(--border)';
+    return `<div class="bar-col">
+      <div class="bar" style="height:${h}px;background:${color};border:${bord};" title="${v} задач"></div>
+      <div class="bar-label">${days[i]}</div>
+    </div>`;
+  }).join('');
+  return `<div class="chart-wrap"><div class="mini-bar-chart">${bars}</div></div>`;
+}
+
+// ── CSS VARS for JS ────────────────────────────────────────
+const var_accent='#3b82f6',var_purple='#a855f7',var_green='#22c55e',var_muted='#64748b';
+
+// ============================================================
+//  ACTIONS
+// ============================================================
+function setView(v) {
+  currentView = v;
+  render();
+}
+
+function changeDate(d) {
+  currentDate = new Date(currentDate);
+  currentDate.setDate(currentDate.getDate()+d);
+  render();
+}
+
+function filterJira(idx, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const statuses = [null,'In Progress','Review','To Do','Done'];
+  const filter   = statuses[idx];
+  document.querySelectorAll('#jiraList .issue-row').forEach(row=>{
+    row.style.display = (!filter||row.dataset.status===filter) ? '' : 'none';
+  });
+}
+
+function syncData() {
+  const btn  = document.getElementById('syncBtn');
+  const sync = document.getElementById('lastSync');
+  btn.classList.add('syncing');
+  showToast('⟳ Синхронизация данных...');
+  setTimeout(()=>{
+    btn.classList.remove('syncing');
+    const now = new Date();
+    sync.textContent = 'последний: ' + now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+    showToast('✓ Данные обновлены');
+    render();
+  }, 1800);
+}
+
+function openSettings() {
+  const cfg = JSON.parse(localStorage.getItem('drCfg')||'{}');
+  document.getElementById('cfgJiraDomain').value = cfg.jiraDomain||'';
+  document.getElementById('cfgJiraEmail').value  = cfg.jiraEmail||'';
+  document.getElementById('cfgJiraToken').value  = cfg.jiraToken||'';
+  document.getElementById('cfgTgToken').value    = cfg.tgToken||'';
+  document.getElementById('cfgTgChatId').value   = cfg.tgChatId||'';
+  document.getElementById('settingsOverlay').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settingsOverlay').classList.remove('open');
+}
+function saveSettings() {
+  const cfg = {
+    jiraDomain: document.getElementById('cfgJiraDomain').value,
+    jiraEmail:  document.getElementById('cfgJiraEmail').value,
+    jiraToken:  document.getElementById('cfgJiraToken').value,
+    tgToken:    document.getElementById('cfgTgToken').value,
+    tgChatId:   document.getElementById('cfgTgChatId').value
+  };
+  localStorage.setItem('drCfg', JSON.stringify(cfg));
+  closeSettings();
+  showToast('✓ Настройки сохранены');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+document.getElementById('pageDate').textContent = fmt(currentDate);
+render();
+</script>
+</body>
+</html>
+```
