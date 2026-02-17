@@ -30,6 +30,20 @@
     --card-glow: 0 0 0 1px var(--border), 0 4px 24px rgba(0,0,0,0.4);
   }
 
+  /* ── LIGHT THEME ── */
+  body.light {
+    --bg:      #f1f5f9;
+    --bg2:     #ffffff;
+    --bg3:     #f8fafc;
+    --bg4:     #e2e8f0;
+    --border:  #e2e8f0;
+    --border2: #cbd5e1;
+    --text:    #0f172a;
+    --muted:   #94a3b8;
+    --muted2:  #64748b;
+    --accent2: #2563eb;
+  }
+
   html, body {
     background: var(--bg);
     color: var(--text);
@@ -479,6 +493,88 @@
   }
   .toast.show { transform: none; opacity: 1; }
 
+  /* ── NAV BADGE ── */
+  .nav-badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    line-height: 1;
+  }
+  .nav-badge.red { background: var(--red); }
+
+  /* ── MEETING ALERT ── */
+  .meeting-alert {
+    position: fixed;
+    top: 20px; right: 20px;
+    background: var(--bg3);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 12px;
+    color: var(--text);
+    box-shadow: 0 8px 32px rgba(59,130,246,.25);
+    z-index: 400;
+    display: flex; align-items: center; gap: 12px;
+    max-width: 300px;
+    transform: translateX(340px);
+    opacity: 0;
+    transition: all .4s cubic-bezier(.4,0,.2,1);
+  }
+  .meeting-alert.show { transform: none; opacity: 1; }
+  .meeting-alert-icon { font-size: 20px; flex-shrink: 0; }
+  .meeting-alert-title { font-weight: 600; color: var(--accent2); font-size: 11px; }
+  .meeting-alert-sub { font-size: 10px; color: var(--muted2); margin-top: 2px; }
+  .meeting-alert-close {
+    position: absolute; top: 8px; right: 10px;
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 14px; line-height: 1;
+  }
+
+  /* ── SKELETON ── */
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg3) 25%, var(--bg4) 50%, var(--bg3) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 4px;
+  }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  .skeleton-row { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+  .skeleton-avatar { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; }
+  .skeleton-line { height: 10px; border-radius: 4px; }
+  .skeleton-body { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+
+  /* ── THEME TOGGLE ── */
+  .theme-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--muted2);
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .theme-btn:hover { border-color: var(--accent); color: var(--accent2); }
+
+  /* ── AUTO-REFRESH INDICATOR ── */
+  .auto-refresh-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    display: inline-block;
+    margin-left: 4px;
+    animation: pulse 2s infinite;
+  }
+
   /* ── GOOGLE AUTH ── */
   .google-btn {
     width: 100%;
@@ -563,6 +659,7 @@
           <path d="M8 5v3.5l2 2"/>
         </svg>
         <span>Jira задачи</span>
+        <span class="nav-badge" id="jiraBadge" style="display:none"></span>
       </div>
       <div class="nav-item" onclick="setView('calendar')">
         <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -570,6 +667,7 @@
           <path d="M1.5 6.5h13M5 1v3M11 1v3"/>
         </svg>
         <span>Календарь</span>
+        <span class="nav-badge" id="calBadge" style="display:none"></span>
       </div>
       <div class="nav-item" onclick="setView('email')">
         <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -577,6 +675,7 @@
           <path d="M1 5l7 5 7-5"/>
         </svg>
         <span>Gmail</span>
+        <span class="nav-badge red" id="gmailBadge" style="display:none"></span>
       </div>
       <div class="nav-item" onclick="setView('tasks')">
         <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -602,6 +701,12 @@
           <span>Sync</span>
         </button>
         <div class="last-sync" id="lastSync">последний: только что</div>
+        <button class="sync-btn" onclick="sendTelegramReport()" id="tgBtn" style="margin-top:8px;background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.25);color:var(--green)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.88 13.67l-2.967-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.953l-.524-.064z"/>
+          </svg>
+          <span>Отчёт в Telegram</span>
+        </button>
         <button class="logout-btn" onclick="logout()" style="margin-top:8px;width:100%;text-align:center">Выйти</button>
       </div>
 
@@ -634,6 +739,7 @@
           <div class="date-label" id="dateLabel"></div>
           <button onclick="changeDate(1)">›</button>
         </div>
+        <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Переключить тему">🌙</button>
         <div class="badge"><div class="badge-dot"></div>LIVE</div>
         <button class="btn-secondary" onclick="openSettings()" style="font-size:11px;padding:6px 14px;">⚙ Настройки</button>
       </div>
@@ -678,6 +784,16 @@
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
+
+<!-- Meeting Alert -->
+<div class="meeting-alert" id="meetingAlert">
+  <div class="meeting-alert-icon">📅</div>
+  <div>
+    <div class="meeting-alert-title" id="meetingAlertTitle"></div>
+    <div class="meeting-alert-sub" id="meetingAlertSub"></div>
+  </div>
+  <button class="meeting-alert-close" onclick="closeMeetingAlert()">✕</button>
+</div>
 
 <script>
 // ============================================================
@@ -1486,6 +1602,329 @@ window.renderJiraFull = function() {
   </div>`;
 };
 
+// ============================================================
+//  PHASE 1: AUTO-REFRESH + NAV BADGES + MEETING ALERTS
+// ============================================================
+
+// ── 1. Auto-refresh every 5 minutes ───────────────────────
+const AUTO_REFRESH_MS = 5 * 60 * 1000;
+let autoRefreshTimer  = null;
+
+function startAutoRefresh() {
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  autoRefreshTimer = setInterval(async () => {
+    // Silent refresh — don't show loading spinners, just update data
+    const [gmailRes, calRes, tasksRes, jiraRes] = await Promise.allSettled([
+      currentUser ? fetch('/api/gmail/messages').then(r=>r.json()) : Promise.resolve(null),
+      currentUser ? fetch('/api/calendar/events').then(r=>r.json()) : Promise.resolve(null),
+      currentUser ? fetch('/api/tasks/list').then(r=>r.json())     : Promise.resolve(null),
+      jiraCfgSet() ? (() => {
+        const cfg = JSON.parse(localStorage.getItem('drCfg')||'{}');
+        return fetch('/api/jira/issues', {
+          headers: { 'x-jira-domain': cfg.jiraDomain, 'x-jira-email': cfg.jiraEmail, 'x-jira-token': cfg.jiraToken }
+        }).then(r=>r.json());
+      })() : Promise.resolve(null)
+    ]);
+
+    if (gmailRes.value?.messages)  gmailMessages = gmailRes.value.messages;
+    if (calRes.value?.events)      { calEvents = calRes.value.events; checkUpcomingMeetings(); }
+    if (tasksRes.value?.tasks)     { realTasks = tasksRes.value.tasks; taskState = realTasks.map(t=>t.done); }
+    if (jiraRes.value?.issues)     jiraIssues = jiraRes.value.issues;
+
+    updateNavBadges();
+    render();
+    // Update last sync time quietly
+    const now = new Date();
+    const sync = document.getElementById('lastSync');
+    if (sync) sync.textContent = 'обновлено: ' + now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+  }, AUTO_REFRESH_MS);
+}
+
+// ── 2. Nav Badges ──────────────────────────────────────────
+function updateNavBadges() {
+  // Gmail — unread count
+  const gmailBadge = document.getElementById('gmailBadge');
+  if (gmailBadge && gmailMessages) {
+    const unread = gmailMessages.filter(m=>m.unread).length;
+    if (unread > 0) {
+      gmailBadge.textContent = unread > 99 ? '99+' : unread;
+      gmailBadge.style.display = 'inline-flex';
+    } else {
+      gmailBadge.style.display = 'none';
+    }
+  }
+
+  // Jira — in-progress count
+  const jiraBadge = document.getElementById('jiraBadge');
+  if (jiraBadge && jiraIssues) {
+    const active = jiraIssues.filter(j =>
+      j.status.toLowerCase().includes('progress') ||
+      j.status.toLowerCase().includes('review') ||
+      j.status.toLowerCase().includes('dev')
+    ).length;
+    if (active > 0) {
+      jiraBadge.textContent = active;
+      jiraBadge.style.display = 'inline-flex';
+    } else {
+      jiraBadge.style.display = 'none';
+    }
+  }
+
+  // Calendar — today's events count
+  const calBadge = document.getElementById('calBadge');
+  if (calBadge && calEvents) {
+    const count = calEvents.length;
+    if (count > 0) {
+      calBadge.textContent = count;
+      calBadge.style.display = 'inline-flex';
+    } else {
+      calBadge.style.display = 'none';
+    }
+  }
+}
+
+// ── 3. Meeting Alerts (notify 10 min before) ──────────────
+const notifiedMeetings = new Set();
+
+function checkUpcomingMeetings() {
+  if (!calEvents) return;
+  const now  = new Date();
+  const soon = new Date(now.getTime() + 10 * 60 * 1000); // 10 min ahead
+
+  calEvents.forEach(ev => {
+    if (ev.allDay || !ev.start) return;
+
+    const [h, m]  = ev.start.split(':').map(Number);
+    const evTime  = new Date();
+    evTime.setHours(h, m, 0, 0);
+
+    const diffMs  = evTime - now;
+    const diffMin = Math.round(diffMs / 60000);
+
+    // Alert if meeting is 1–12 minutes away and not yet notified
+    if (diffMin >= 1 && diffMin <= 12 && !notifiedMeetings.has(ev.id)) {
+      notifiedMeetings.add(ev.id);
+      showMeetingAlert(ev, diffMin);
+    }
+  });
+}
+
+let meetingAlertTimer = null;
+function showMeetingAlert(ev, minsLeft) {
+  const alert = document.getElementById('meetingAlert');
+  document.getElementById('meetingAlertTitle').textContent = ev.title;
+  document.getElementById('meetingAlertSub').textContent =
+    `через ${minsLeft} мин · ${ev.start}${ev.attendees > 1 ? ` · ${ev.attendees} участн.` : ''}`;
+
+  if (ev.meetLink) {
+    document.getElementById('meetingAlertTitle').style.cursor = 'pointer';
+    document.getElementById('meetingAlertTitle').onclick = () => window.open(ev.meetLink, '_blank');
+  }
+
+  alert.classList.add('show');
+  if (meetingAlertTimer) clearTimeout(meetingAlertTimer);
+  meetingAlertTimer = setTimeout(() => alert.classList.remove('show'), 15000);
+}
+
+function closeMeetingAlert() {
+  document.getElementById('meetingAlert').classList.remove('show');
+  if (meetingAlertTimer) clearTimeout(meetingAlertTimer);
+}
+
+// Check for meetings every 60 seconds
+setInterval(() => { if (calEvents) checkUpcomingMeetings(); }, 60 * 1000);
+
+// ── 4. Make renderIssueRow Jira-clickable on dashboard ─────
+const _origRenderIssueRow = renderIssueRow;
+window.renderIssueRow = function(issue) {
+  if (issue.url) {
+    return `<div class="issue-row" onclick="window.open('${issue.url}','_blank')" style="cursor:pointer">
+      <div class="priority-dot ${priorityClass(issue.priority)}"></div>
+      <div class="issue-key">${issue.key}</div>
+      <div style="flex:1;min-width:0">
+        <div class="issue-summary" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${issue.summary}</div>
+        <div class="issue-project">${issue.project}</div>
+      </div>
+      <span class="status-pill ${statusClass(issue.status)}">${statusLabel(issue.status)}</span>
+    </div>`;
+  }
+  return _origRenderIssueRow(issue);
+};
+
+// Patch loadGmailMessages / loadCalendarEvents / loadTasks / loadJiraIssues
+// to update badges after loading
+const _origLoadGmail = loadGmailMessages;
+window.loadGmailMessages = async function() {
+  await _origLoadGmail();
+  updateNavBadges();
+};
+const _origLoadCal = loadCalendarEvents;
+window.loadCalendarEvents = async function() {
+  await _origLoadCal();
+  updateNavBadges();
+  checkUpcomingMeetings();
+};
+const _origLoadTasks = loadTasks;
+window.loadTasks = async function() {
+  await _origLoadTasks();
+};
+const _origLoadJira = loadJiraIssues;
+window.loadJiraIssues = async function() {
+  await _origLoadJira();
+  updateNavBadges();
+};
+
+// ── 5. Override syncData to use patched loaders ────────────
+window.syncData = async function() {
+  const btn  = document.getElementById('syncBtn');
+  const sync = document.getElementById('lastSync');
+  btn.classList.add('syncing');
+  showToast('⟳ Синхронизация данных...');
+
+  gmailMessages = null;
+  calEvents     = null;
+  realTasks     = null;
+  jiraIssues    = null;
+  render();
+
+  await Promise.all([
+    window.loadGmailMessages(),
+    window.loadCalendarEvents(),
+    window.loadTasks(),
+    window.loadJiraIssues()
+  ]);
+
+  btn.classList.remove('syncing');
+  const now = new Date();
+  sync.textContent = 'обновлено: ' + now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+  showToast('✓ Данные обновлены');
+  startAutoRefresh(); // reset timer after manual sync
+};
+
+// ============================================================
+//  PHASE 3: LIGHT THEME + SKELETON LOADING
+// ============================================================
+
+// ── Theme toggle ───────────────────────────────────────────
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = isLight ? '☀️' : '🌙';
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light') {
+    document.body.classList.add('light');
+    document.getElementById('themeBtn').textContent = '☀️';
+  }
+}
+
+// ── Skeleton rows helper ───────────────────────────────────
+function skeletonRows(n = 4) {
+  return Array(n).fill(0).map((_, i) => `
+    <div class="skeleton-row">
+      <div class="skeleton skeleton-avatar"></div>
+      <div class="skeleton-body">
+        <div class="skeleton skeleton-line" style="width:${60 + (i % 3) * 15}%"></div>
+        <div class="skeleton skeleton-line" style="width:${35 + (i % 2) * 20}%"></div>
+      </div>
+    </div>`).join('');
+}
+
+// ── Patch loading states to use skeletons ─────────────────
+const _origRenderEmailFullSkel = window.renderEmailFull;
+window.renderEmailFull = function() {
+  if (currentUser && gmailMessages === null) {
+    return `<div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot" style="background:var(--yellow)"></div>Gmail</div>
+      </div>
+      <div class="card-body">${skeletonRows(4)}</div>
+    </div>`;
+  }
+  return _origRenderEmailFullSkel();
+};
+
+const _origRenderCalFullSkel = window.renderCalFull;
+window.renderCalFull = function() {
+  if (currentUser && calEvents === null) {
+    return `<div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot" style="background:var(--green)"></div>Календарь</div>
+      </div>
+      <div class="card-body">${skeletonRows(3)}</div>
+    </div>`;
+  }
+  return _origRenderCalFullSkel();
+};
+
+const _origRenderTasksFullSkel = window.renderTasksFull;
+window.renderTasksFull = function() {
+  if (currentUser && realTasks === null) {
+    return `<div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot" style="background:var(--purple)"></div>Google Tasks</div>
+      </div>
+      <div class="card-body">${skeletonRows(4)}</div>
+    </div>`;
+  }
+  return _origRenderTasksFullSkel();
+};
+
+const _origRenderJiraFullSkel = window.renderJiraFull;
+window.renderJiraFull = function() {
+  if (jiraCfgSet() && jiraIssues === null) {
+    return `
+    <div class="tabs">
+      ${['Все','В работе','На ревью','К выполнению','Готово'].map((t,i)=>
+        `<div class="tab${i===0?' active':''}">${t}</div>`).join('')}
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-body">${skeletonRows(5)}</div>
+    </div>`;
+  }
+  return _origRenderJiraFullSkel();
+};
+
+// ── Telegram Report ────────────────────────────────────────
+async function sendTelegramReport() {
+  const cfg = JSON.parse(localStorage.getItem('drCfg') || '{}');
+  if (!cfg.tgToken || !cfg.tgChatId) {
+    showToast('⚠ Укажите Telegram Bot Token и Chat ID в настройках');
+    openSettings();
+    return;
+  }
+
+  const btn = document.getElementById('tgBtn');
+  btn.classList.add('syncing');
+  showToast('📤 Отправляем отчёт...');
+
+  try {
+    const res = await fetch('/api/telegram/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tgToken:   cfg.tgToken,
+        tgChatId:  cfg.tgChatId,
+        jiraDomain: cfg.jiraDomain,
+        jiraEmail:  cfg.jiraEmail,
+        jiraToken:  cfg.jiraToken
+      })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showToast('✅ Отчёт отправлен в Telegram!');
+    } else {
+      showToast('❌ Ошибка: ' + (data.error || 'неизвестная ошибка'));
+    }
+  } catch (err) {
+    showToast('❌ Не удалось отправить отчёт');
+  } finally {
+    btn.classList.remove('syncing');
+  }
+}
+
 // Handle ?auth=success redirect
 if (new URLSearchParams(location.search).get('auth') === 'success') {
   history.replaceState({}, '', '/');
@@ -1494,9 +1933,12 @@ if (new URLSearchParams(location.search).get('auth') === 'success') {
 // ============================================================
 //  INIT
 // ============================================================
+initTheme();
 document.getElementById('pageDate').textContent = fmt(currentDate);
 render();
 checkAuth();
+startAutoRefresh();
+setTimeout(updateNavBadges, 4000);
 </script>
 </body>
 </html>
