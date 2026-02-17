@@ -1059,6 +1059,99 @@
   }
   .email-action-btn:hover { background: var(--bg3); color: var(--text); border-color: var(--accent); }
 
+  /* ── SLACK ── */
+  .slack-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background .1s;
+    position: relative;
+  }
+  .slack-row:hover { background: var(--bg3); }
+  .slack-row:hover .slack-actions { opacity: 1; }
+  .slack-avatar {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; flex-shrink: 0;
+    overflow: hidden;
+  }
+  .slack-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .slack-meta {
+    display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 2px;
+  }
+  .slack-channel { font-size: 12px; font-weight: 600; color: var(--text); }
+  .slack-from    { font-size: 11px; color: var(--muted2); }
+  .slack-time    { font-size: 10px; color: var(--muted); margin-left: auto; flex-shrink: 0; }
+  .slack-text    {
+    font-size: 12px; color: var(--muted2); line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .slack-type-badge {
+    display: inline-block; font-size: 9px; padding: 1px 6px; border-radius: 8px;
+    background: var(--bg4); color: var(--muted2); letter-spacing: .3px;
+    flex-shrink: 0;
+  }
+  .slack-type-badge.dm      { background: rgba(168,85,247,.12); color: var(--purple); }
+  .slack-type-badge.mention { background: rgba(239,68,68,.12);  color: var(--red); }
+  .slack-actions {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    display: flex; gap: 4px; opacity: 0; transition: opacity .15s;
+    background: var(--bg3); border-radius: 6px; padding: 2px;
+    border: 1px solid var(--border);
+  }
+  .slack-action-btn {
+    background: none; border: none; color: var(--muted2); cursor: pointer;
+    padding: 3px 8px; border-radius: 4px; font-size: 10px;
+    font-family: inherit; transition: all .12s; white-space: nowrap;
+  }
+  .slack-action-btn:hover { background: var(--bg4); color: var(--text); }
+
+  /* Slack compose bar */
+  .slack-compose {
+    display: flex; gap: 8px; align-items: center;
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--bg2);
+  }
+  .slack-compose-select {
+    background: var(--bg3); border: 1px solid var(--border2);
+    color: var(--text); border-radius: 6px; padding: 6px 8px;
+    font-size: 11px; font-family: inherit; cursor: pointer; flex-shrink: 0;
+    max-width: 140px;
+  }
+  .slack-compose-input {
+    flex: 1; background: var(--bg3); border: 1px solid var(--border2);
+    color: var(--text); border-radius: 6px; padding: 6px 10px;
+    font-size: 12px; font-family: inherit;
+    outline: none; transition: border-color .15s;
+  }
+  .slack-compose-input:focus { border-color: var(--accent); }
+  .slack-compose-btn {
+    background: var(--accent); border: none; color: #fff;
+    padding: 6px 14px; border-radius: 6px; font-size: 11px;
+    cursor: pointer; font-family: inherit; transition: background .15s; flex-shrink: 0;
+  }
+  .slack-compose-btn:hover { background: var(--accent2); }
+  .slack-compose-btn:disabled { opacity: .5; cursor: default; }
+
+  /* Slack filter tabs */
+  .slack-filter-tabs {
+    display: flex; gap: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    overflow-x: auto;
+  }
+  .slack-filter-tab {
+    padding: 10px 14px; font-size: 11px; color: var(--muted);
+    cursor: pointer; border-bottom: 2px solid transparent;
+    transition: all .15s; white-space: nowrap; letter-spacing: .2px;
+  }
+  .slack-filter-tab:hover { color: var(--text); }
+  .slack-filter-tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+
   @media (max-width: 900px) {
     .sidebar { width: 60px; }
     .sidebar .logo-mark, .sidebar .logo-sub, .sidebar .nav-item span, .sidebar-footer { display: none; }
@@ -1123,6 +1216,16 @@
           <path d="M13 9.5v1.5l1 1"/>
         </svg>
         <span>Tasks</span>
+      </div>
+      <div class="nav-item" onclick="setView('slack')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M5.5 1.5a2 2 0 0 1 0 4H1.5a2 2 0 0 1 0-4h4z"/>
+          <path d="M14.5 5.5a2 2 0 0 1-4 0v-4a2 2 0 0 1 4 0v4z"/>
+          <path d="M10.5 14.5a2 2 0 0 1 0-4h4a2 2 0 0 1 0 4h-4z"/>
+          <path d="M1.5 10.5a2 2 0 0 1 4 0v4a2 2 0 0 1-4 0v-4z"/>
+        </svg>
+        <span>Slack</span>
+        <span class="nav-badge" id="slackBadge" style="display:none"></span>
       </div>
     </nav>
 
@@ -1220,6 +1323,15 @@
     <div class="field-group">
       <div class="field-label">Telegram Chat ID</div>
       <input class="field-input" id="cfgTgChatId" placeholder="-100xxxxxxxxxx">
+    </div>
+    <div class="field-group" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+      <div class="field-label" style="display:flex;align-items:center;gap:6px">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 1.5a2 2 0 0 1 0 4H1.5a2 2 0 0 1 0-4h4z"/><path d="M14.5 5.5a2 2 0 0 1-4 0v-4a2 2 0 0 1 4 0v4z"/><path d="M10.5 14.5a2 2 0 0 1 0-4h4a2 2 0 0 1 0 4h-4z"/><path d="M1.5 10.5a2 2 0 0 1 4 0v4a2 2 0 0 1-4 0v-4z"/></svg>
+        Slack Bot Token
+        <a href="https://api.slack.com/apps" target="_blank" style="font-size:9px;color:var(--accent2);text-decoration:none;margin-left:auto">api.slack.com ↗</a>
+      </div>
+      <input class="field-input" id="cfgSlackToken" type="password" placeholder="xoxb-...">
+      <div style="font-size:10px;color:var(--muted);margin-top:4px">Создайте Slack App → OAuth Scopes: channels:history, im:history, im:read, users:read, chat:write</div>
     </div>
 
     <div class="modal-actions">
@@ -1408,8 +1520,8 @@ function render() {
   el.className = 'content fade-in';
   void el.offsetWidth;
 
-  const titles = {dashboard:'Dashboard', jira:'Jira задачи', calendar:'Календарь', email:'Gmail', tasks:'Google Tasks'};
-  document.getElementById('pageTitle').textContent = titles[currentView];
+  const titles = {dashboard:'Dashboard', jira:'Jira задачи', calendar:'Календарь', email:'Gmail', tasks:'Google Tasks', slack:'Slack'};
+  document.getElementById('pageTitle').textContent = titles[currentView] || currentView;
   document.getElementById('pageDate').textContent  = fmt(currentDate);
   document.getElementById('dateLabel').textContent = fmtShort(currentDate);
 
@@ -1419,12 +1531,13 @@ function render() {
     case 'calendar':  el.innerHTML = (window.renderCalFull   || renderCalFull)();   break;
     case 'email':     el.innerHTML = (window.renderEmailFull || renderEmailFull)(); break;
     case 'tasks':     el.innerHTML = (window.renderTasksFull || renderTasksFull)(); break;
+    case 'slack':     el.innerHTML = (window.renderSlackFull || renderSlackFull)(); break;
   }
 
   // sidebar active
   document.querySelectorAll('.nav-item').forEach((n,i)=>{
     n.classList.remove('active');
-    if(['dashboard','jira','calendar','email','tasks'][i]===currentView) n.classList.add('active');
+    if(['dashboard','jira','calendar','email','tasks','slack'][i]===currentView) n.classList.add('active');
   });
 
   // bind task toggles
@@ -1533,6 +1646,70 @@ function renderDashboard() {
       </div>
       ${renderBarChart()}
     </div>
+  </div>
+
+  ${renderSlackDashboardWidget()}`;
+}
+
+// ── SLACK DASHBOARD WIDGET ─────────────────────────────────
+function renderSlackDashboardWidget() {
+  const cfg = JSON.parse(localStorage.getItem('drCfg') || '{}');
+  if (!cfg.slackToken) return ''; // No token — don't show widget
+
+  if (!slackData || !slackData.ok) {
+    // Loading or error — show mini spinner
+    return `<div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <div class="card-title"><div class="dot" style="background:#4a154b"></div>Slack</div>
+      </div>
+      <div class="loading-row"><span class="spin">⟳</span> Загружаем Slack...</div>
+    </div>`;
+  }
+
+  const dms     = slackData.dms      || [];
+  const unreads = slackData.unreads  || [];
+  const mentions= slackData.mentions || [];
+  const all     = [...mentions, ...dms, ...unreads];
+  const seen    = new Set();
+  const unique  = all.filter(m => { if (seen.has(m.id)) return false; seen.add(m.id); return true; });
+  const preview = unique.slice(0, 3);
+
+  const dmCount  = dms.length;
+  const mentionCount = mentions.length;
+  const unreadCount  = unreads.length;
+
+  const subText = `${dmCount} DM · ${mentionCount} упоминаний · ${unreadCount} каналов`;
+
+  const rows = preview.map(m => {
+    const typeCls = m.type === 'dm' ? 'dm' : m.type === 'mention' ? 'mention' : '';
+    return `<div class="slack-row" onclick="setView('slack')" title="Открыть Slack вкладку" style="cursor:pointer">
+      <div class="slack-avatar" style="background:rgba(74,21,75,.15);color:#4a154b;width:28px;height:28px;font-size:11px">
+        ${m.avatar ? `<img src="${m.avatar}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:6px">` : (m.channel||'S').replace(/[#@]/g,'').slice(0,2).toUpperCase()}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="slack-meta">
+          <span class="slack-channel" style="font-size:11px">${m.channel}</span>
+          <span class="slack-type-badge ${typeCls}" style="font-size:8px">${m.type==='dm'?'DM':m.type==='mention'?'@':m.channel}</span>
+          <span class="slack-time">${m.time}</span>
+        </div>
+        <div class="slack-text" style="-webkit-line-clamp:1;font-size:11px">${m.text}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const empty = unique.length === 0
+    ? `<div class="empty" style="padding:16px">Нет непрочитанных сообщений 🎉</div>`
+    : '';
+
+  return `<div class="card" style="margin-top:16px">
+    <div class="card-header">
+      <div class="card-title"><div class="dot" style="background:#4a154b"></div>Slack</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="card-count">${subText}</div>
+        <button class="btn-secondary" onclick="setView('slack')" style="font-size:10px;padding:3px 10px">Открыть →</button>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0">${rows || empty}</div>
   </div>`;
 }
 
@@ -1731,6 +1908,7 @@ function setView(v) {
   // Reset per-view filter state when switching tabs
   if (v !== 'email')    window._emailFilter   = 'all';
   if (v !== 'calendar') window._calDayOffset  = 0;
+  if (v !== 'slack')    window_slackFilter    = 'all';
   render();
 }
 
@@ -1779,11 +1957,12 @@ async function syncData() {
 
 function openSettings() {
   const cfg = JSON.parse(localStorage.getItem('drCfg')||'{}');
-  document.getElementById('cfgJiraDomain').value = cfg.jiraDomain||'';
-  document.getElementById('cfgJiraEmail').value  = cfg.jiraEmail||'';
-  document.getElementById('cfgJiraToken').value  = cfg.jiraToken||'';
-  document.getElementById('cfgTgToken').value    = cfg.tgToken||'';
-  document.getElementById('cfgTgChatId').value   = cfg.tgChatId||'';
+  document.getElementById('cfgJiraDomain').value  = cfg.jiraDomain||'';
+  document.getElementById('cfgJiraEmail').value   = cfg.jiraEmail||'';
+  document.getElementById('cfgJiraToken').value   = cfg.jiraToken||'';
+  document.getElementById('cfgTgToken').value     = cfg.tgToken||'';
+  document.getElementById('cfgTgChatId').value    = cfg.tgChatId||'';
+  document.getElementById('cfgSlackToken').value  = cfg.slackToken||'';
   document.getElementById('settingsOverlay').classList.add('open');
 }
 function closeSettings() {
@@ -1791,17 +1970,19 @@ function closeSettings() {
 }
 function saveSettings() {
   const cfg = {
-    jiraDomain: document.getElementById('cfgJiraDomain').value.trim(),
-    jiraEmail:  document.getElementById('cfgJiraEmail').value.trim(),
-    jiraToken:  document.getElementById('cfgJiraToken').value.trim(),
-    tgToken:    document.getElementById('cfgTgToken').value.trim(),
-    tgChatId:   document.getElementById('cfgTgChatId').value.trim()
+    jiraDomain:  document.getElementById('cfgJiraDomain').value.trim(),
+    jiraEmail:   document.getElementById('cfgJiraEmail').value.trim(),
+    jiraToken:   document.getElementById('cfgJiraToken').value.trim(),
+    tgToken:     document.getElementById('cfgTgToken').value.trim(),
+    tgChatId:    document.getElementById('cfgTgChatId').value.trim(),
+    slackToken:  document.getElementById('cfgSlackToken').value.trim()
   };
   localStorage.setItem('drCfg', JSON.stringify(cfg));
   closeSettings();
   showToast('✓ Настройки сохранены');
-  // Reload Jira with new credentials
+  // Reload Jira and Slack with new credentials
   loadJiraIssues();
+  loadSlackData();
 }
 
 function showToast(msg) {
@@ -1819,6 +2000,8 @@ let gmailMessages  = null; // null = loading, [] = empty
 let calEvents      = null;
 let realTasks      = null;
 let jiraIssues     = null; // null = loading, [] = empty
+let slackData      = null; // null = loading, {} = no token, {ok,dms,unreads,mentions} = loaded
+let window_slackFilter = 'all'; // 'all' | 'dms' | 'mentions'
 
 async function checkAuth() {
   try {
@@ -1837,8 +2020,9 @@ async function checkAuth() {
   } catch {
     showLoginBlock();
   }
-  // Jira uses its own credentials — load independently of Google auth
+  // Jira and Slack use their own credentials — load independently of Google auth
   loadJiraIssues();
+  loadSlackData();
 }
 
 async function loadJiraIssues() {
@@ -2250,6 +2434,18 @@ function updateNavBadges() {
       calBadge.style.display = 'inline-flex';
     } else {
       calBadge.style.display = 'none';
+    }
+  }
+
+  // Slack — unread + mention count
+  const slackBadge = document.getElementById('slackBadge');
+  if (slackBadge && slackData && slackData.ok) {
+    const count = (slackData.unreads?.length || 0) + (slackData.mentions?.length || 0) + (slackData.dms?.length || 0);
+    if (count > 0) {
+      slackBadge.textContent = count > 99 ? '99+' : count;
+      slackBadge.style.display = 'inline-flex';
+    } else {
+      slackBadge.style.display = 'none';
     }
   }
 }
@@ -2728,7 +2924,8 @@ function renderQS(query) {
     { icon:'🔧', title:'Jira задачи',  action:()=>{ setView('jira'); closeQS(); } },
     { icon:'📅', title:'Календарь',    action:()=>{ setView('calendar'); closeQS(); } },
     { icon:'📬', title:'Gmail',        action:()=>{ setView('email'); closeQS(); } },
-    { icon:'✅', title:'Google Tasks', action:()=>{ setView('tasks'); closeQS(); } }
+    { icon:'✅', title:'Google Tasks', action:()=>{ setView('tasks'); closeQS(); } },
+    { icon:'💬', title:'Slack',        action:()=>{ setView('slack'); closeQS(); } }
   ];
 
   // Jira issues
@@ -2768,6 +2965,23 @@ function renderQS(query) {
       action: () => { if(e.meetLink) window.open(e.meetLink,'_blank'); setView('calendar'); closeQS(); }
     }));
 
+  // Slack messages
+  const slackAllMsgs = slackData && slackData.ok
+    ? [...(slackData.mentions||[]), ...(slackData.dms||[]), ...(slackData.unreads||[])]
+    : [];
+  const slackSeen = new Set();
+  const slackUnique = slackAllMsgs.filter(m => { if (slackSeen.has(m.id)) return false; slackSeen.add(m.id); return true; });
+  const slackItems = slackUnique
+    .filter(m => !q || m.text.toLowerCase().includes(q) || m.channel.toLowerCase().includes(q) || (m.from||'').toLowerCase().includes(q))
+    .slice(0, 5)
+    .map(m => ({
+      icon: m.type === 'dm' ? '💬' : m.type === 'mention' ? '🔔' : '📢',
+      title: m.text || '(пустое сообщение)',
+      sub: `${m.channel}${m.from ? ' · ' + m.from : ''} · ${m.time}`,
+      badge: m.type === 'dm' ? 'DM' : m.type === 'mention' ? '@mention' : '',
+      action: () => { setView('slack'); closeQS(); }
+    }));
+
   // Nav always shown when no query
   const filteredNav = q
     ? navItems.filter(n => n.title.toLowerCase().includes(q))
@@ -2779,6 +2993,7 @@ function renderQS(query) {
   if (jiraItems.length)   groups.push({ label:'Jira', items: jiraItems });
   if (mailItems.length)   groups.push({ label:'Gmail', items: mailItems });
   if (calItems.length)    groups.push({ label:'Календарь', items: calItems });
+  if (slackItems.length)  groups.push({ label:'Slack', items: slackItems });
 
   // Flatten for keyboard nav
   window._qsActions = [];
@@ -2871,8 +3086,8 @@ document.addEventListener('keydown', e => {
   }
 
   if (window._gPressed) {
-    const map = { 'd':'dashboard','j':'jira','c':'calendar','m':'email','t':'tasks' };
-    const labels = { 'd':'Dashboard','j':'Jira','c':'Календарь','m':'Gmail','t':'Tasks' };
+    const map = { 'd':'dashboard','j':'jira','c':'calendar','m':'email','t':'tasks','s':'slack' };
+    const labels = { 'd':'Dashboard','j':'Jira','c':'Календарь','m':'Gmail','t':'Tasks','s':'Slack' };
     if (map[e.key]) {
       setView(map[e.key]);
       showHotkeyHint('→ ' + labels[e.key]);
@@ -2890,7 +3105,7 @@ document.addEventListener('keydown', e => {
 
   // ? — show hotkeys
   if (e.key === '?') {
-    showHotkeyHint('Ctrl+K поиск · G+D/J/C/M/T навигация · R синк');
+    showHotkeyHint('Ctrl+K поиск · G+D/J/C/M/T/S навигация · R синк');
   }
 });
 
@@ -3276,6 +3491,220 @@ if (new URLSearchParams(location.search).get('auth') === 'success') {
 }
 
 // ============================================================
+//  SLACK
+// ============================================================
+
+// Base renderSlackFull — shown before real data override kicks in
+function renderSlackFull() {
+  const cfg = JSON.parse(localStorage.getItem('drCfg') || '{}');
+  if (!cfg.slackToken) {
+    return `<div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="dot" style="background:#4a154b"></div>Slack
+        </div>
+      </div>
+      <div class="empty" style="padding:40px 20px">
+        <div style="margin-bottom:12px;font-size:28px">
+          <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1"><path d="M5.5 1.5a2 2 0 0 1 0 4H1.5a2 2 0 0 1 0-4h4z"/><path d="M14.5 5.5a2 2 0 0 1-4 0v-4a2 2 0 0 1 4 0v4z"/><path d="M10.5 14.5a2 2 0 0 1 0-4h4a2 2 0 0 1 0 4h-4z"/><path d="M1.5 10.5a2 2 0 0 1 4 0v4a2 2 0 0 1-4 0v-4z"/></svg>
+        </div>
+        <div style="margin-bottom:8px;font-weight:600">Подключите Slack</div>
+        <div style="margin-bottom:4px;color:var(--muted);font-size:11px">1. Перейдите на <a href="https://api.slack.com/apps" target="_blank" style="color:var(--accent2)">api.slack.com/apps</a> → Create App</div>
+        <div style="margin-bottom:4px;color:var(--muted);font-size:11px">2. OAuth &amp; Permissions → Bot Token Scopes:</div>
+        <div style="margin-bottom:4px;color:var(--muted);font-size:11px;padding-left:16px">channels:history, im:history, im:read, users:read, chat:write</div>
+        <div style="margin-bottom:16px;color:var(--muted);font-size:11px">3. Install App → скопируйте <b>Bot User OAuth Token</b> (xoxb-...)</div>
+        <button class="btn-primary" onclick="openSettings()" style="font-size:11px;padding:9px 20px">⚙ Открыть настройки</button>
+      </div>
+    </div>`;
+  }
+  if (slackData === null) {
+    return `<div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot" style="background:#4a154b"></div>Slack</div>
+      </div>
+      <div class="loading-row"><span class="spin">⟳</span> Загружаем Slack...</div>
+    </div>`;
+  }
+  return renderSlackMessages();
+}
+
+// Override to show real data
+window.renderSlackFull = function() {
+  const cfg = JSON.parse(localStorage.getItem('drCfg') || '{}');
+  if (!cfg.slackToken) return renderSlackFull();
+  if (slackData === null) return renderSlackFull(); // loading skeleton
+  if (!slackData.ok)     return renderSlackFull(); // no token or error
+
+  return renderSlackMessages();
+};
+
+function renderSlackMessages() {
+  const filter  = window_slackFilter || 'all';
+  const dms     = slackData.dms      || [];
+  const unreads = slackData.unreads  || [];
+  const mentions= slackData.mentions || [];
+  const channels= slackData.channels || [];
+
+  let displayed = [];
+  if (filter === 'all') {
+    // Merge all, deduplicate by id, sort by ts desc
+    const seen = new Set();
+    [...mentions, ...dms, ...unreads].forEach(m => {
+      if (!seen.has(m.id)) { seen.add(m.id); displayed.push(m); }
+    });
+    displayed.sort((a,b) => parseFloat(b.ts) - parseFloat(a.ts));
+  } else if (filter === 'dms') {
+    displayed = dms;
+  } else if (filter === 'mentions') {
+    displayed = mentions;
+  } else if (filter === 'unreads') {
+    displayed = unreads;
+  }
+
+  const avatarColors = ['#4a154b','#3b82f6','#a855f7','#06b6d4','#f97316','#22c55e'];
+
+  const rows = displayed.map(m => {
+    const initials = (m.channel||m.from||'S').replace(/[#@]/g,'').slice(0,2).toUpperCase();
+    const color = avatarColors[(m.channel||'').charCodeAt(0) % avatarColors.length];
+    const typeLabel = m.type === 'dm' ? 'DM' : m.type === 'mention' ? '@mention' : m.channel;
+    const typeCls   = m.type === 'dm' ? 'dm' : m.type === 'mention' ? 'mention' : '';
+    const slackUrl  = `https://slack.com/app_redirect?channel=${m.channelId}`;
+    const fromLabel = m.from ? ` · ${m.from}` : '';
+
+    return `<div class="slack-row" onclick="window.open('${slackUrl}','_blank')" title="Открыть в Slack">
+      <div class="slack-avatar" style="background:${color}20;color:${color}">
+        ${m.avatar ? `<img src="${m.avatar}" alt="">` : initials}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="slack-meta">
+          <span class="slack-channel">${m.channel}</span>
+          ${fromLabel ? `<span class="slack-from">${fromLabel}</span>` : ''}
+          <span class="slack-type-badge ${typeCls}">${typeLabel}</span>
+          <span class="slack-time">${m.time}</span>
+        </div>
+        <div class="slack-text">${m.text || '(пустое сообщение)'}</div>
+      </div>
+      <div class="slack-actions">
+        <button class="slack-action-btn" onclick="event.stopPropagation();window.open('${slackUrl}','_blank')">↗ Открыть</button>
+        <button class="slack-action-btn" onclick="event.stopPropagation();setSlackReply('${m.channelId}')">↩ Ответить</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const empty = displayed.length === 0
+    ? `<div class="empty">${filter === 'all' ? 'Нет непрочитанных' : filter === 'dms' ? 'Нет DM' : 'Нет упоминаний'}</div>`
+    : '';
+
+  const tabs = [
+    { label: 'Все',          key: 'all',      count: dms.length + unreads.length + mentions.length },
+    { label: 'DM',           key: 'dms',      count: dms.length },
+    { label: '@Упоминания',  key: 'mentions', count: mentions.length },
+    { label: 'Каналы',       key: 'unreads',  count: unreads.length }
+  ];
+  const tabsHtml = `<div class="slack-filter-tabs">
+    ${tabs.map(t => `
+      <div class="slack-filter-tab${filter===t.key?' active':''}" onclick="window_slackFilter='${t.key}';render()">
+        ${t.label}${t.count > 0 ? ` <span style="font-size:9px;background:var(--bg4);padding:1px 5px;border-radius:8px;margin-left:3px">${t.count}</span>` : ''}
+      </div>`).join('')}
+  </div>`;
+
+  // Compose bar — channel selector
+  const channelOptions = channels.slice(0, 50).map(c =>
+    `<option value="${c.id}">${c.name}</option>`
+  ).join('');
+
+  const workspace = slackData.workspace ? ` — ${slackData.workspace}` : '';
+  const composeBar = `<div class="slack-compose">
+    <select class="slack-compose-select" id="slackComposeChannel">
+      <option value="">Выбрать канал...</option>
+      ${channelOptions}
+    </select>
+    <input class="slack-compose-input" id="slackComposeText" placeholder="Написать сообщение..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendSlackMessage()}">
+    <button class="slack-compose-btn" onclick="sendSlackMessage()" id="slackSendBtn">Отправить</button>
+  </div>`;
+
+  return `<div class="card" style="display:flex;flex-direction:column">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="dot" style="background:#4a154b"></div>Slack${workspace}
+      </div>
+      <div class="card-count">${displayed.length} сообщений</div>
+    </div>
+    ${tabsHtml}
+    <div class="card-body">${rows || empty}</div>
+    ${composeBar}
+  </div>`;
+}
+
+// Load Slack data
+async function loadSlackData() {
+  const cfg = JSON.parse(localStorage.getItem('drCfg') || '{}');
+  if (!cfg.slackToken) {
+    slackData = {}; // no token — show setup screen
+    if (currentView === 'slack') render();
+    return;
+  }
+  slackData = null; // loading
+  if (currentView === 'slack') render();
+  try {
+    const res  = await fetch('/api/slack/messages', {
+      headers: { 'x-slack-token': cfg.slackToken }
+    });
+    const data = await res.json();
+    slackData = data;
+    if (currentView === 'slack') render();
+    updateNavBadges();
+  } catch(err) {
+    console.error('Slack load error:', err);
+    slackData = { ok: false, error: err.message };
+    if (currentView === 'slack') render();
+  }
+}
+
+// Set channel in compose bar from "Reply" button
+function setSlackReply(channelId) {
+  const sel = document.getElementById('slackComposeChannel');
+  if (sel) sel.value = channelId;
+  const inp = document.getElementById('slackComposeText');
+  if (inp) inp.focus();
+}
+
+// Send Slack message
+async function sendSlackMessage() {
+  const cfg     = JSON.parse(localStorage.getItem('drCfg') || '{}');
+  const channel = document.getElementById('slackComposeChannel')?.value;
+  const text    = document.getElementById('slackComposeText')?.value?.trim();
+  const btn     = document.getElementById('slackSendBtn');
+
+  if (!cfg.slackToken) { showToast('⚠ Slack token не настроен'); return; }
+  if (!channel) { showToast('⚠ Выберите канал или DM'); return; }
+  if (!text)    { showToast('⚠ Введите текст сообщения'); return; }
+
+  if (btn) { btn.disabled = true; btn.textContent = '⟳'; }
+  showToast('⟳ Отправляем...');
+
+  try {
+    const res  = await fetch('/api/slack/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-slack-token': cfg.slackToken },
+      body: JSON.stringify({ channel, text })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      if (document.getElementById('slackComposeText')) document.getElementById('slackComposeText').value = '';
+      if (btn) { btn.disabled = false; btn.textContent = 'Отправить'; }
+      showToast('✅ Сообщение отправлено!');
+    } else {
+      if (btn) { btn.disabled = false; btn.textContent = 'Отправить'; }
+      showToast('❌ ' + (data.error || 'Ошибка отправки'));
+    }
+  } catch(err) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Отправить'; }
+    showToast('❌ Ошибка сети');
+  }
+}
+
+// ============================================================
 //  PHASE 1: CREATE TASK (Google Tasks API)
 // ============================================================
 
@@ -3553,6 +3982,22 @@ function exportMarkdown() {
       lines.push(`- **${m.from}**: ${m.subject}`);
     });
     lines.push('');
+  }
+
+  // Slack summary
+  if (slackData && slackData.ok) {
+    const allSlack = [...(slackData.mentions||[]), ...(slackData.dms||[]), ...(slackData.unreads||[])];
+    const seen = new Set();
+    const unique = allSlack.filter(m => { if (seen.has(m.id)) return false; seen.add(m.id); return true; });
+    if (unique.length > 0) {
+      lines.push('## 💬 Slack');
+      lines.push(`DM: ${slackData.dms?.length||0} · Упоминания: ${slackData.mentions?.length||0} · Каналы: ${slackData.unreads?.length||0}`);
+      unique.slice(0, 5).forEach(m => {
+        const type = m.type === 'dm' ? 'DM' : m.type === 'mention' ? '@mention' : 'канал';
+        lines.push(`- **${m.channel}** (${type}): ${m.text}`);
+      });
+      lines.push('');
+    }
   }
 
   lines.push(`---`);
