@@ -1,0 +1,24 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+@use '../../../styles/animations';
+
+.card-header { @include card-header; }
+.card-title { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; .dot { width: 8px; height: 8px; border-radius: 50%; } }
+.btn-create { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.2); color: var(--accent2); padding: 5px 12px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px; cursor: pointer; transition: all .15s; &:hover { background: rgba(59,130,246,.2); } }
+
+.create-panel { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+.create-actions { display: flex; gap: 8px; align-items: center; }
+
+.issue-row {
+  display: flex; align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px; cursor: pointer;
+  animation: rowIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  @include hover-lift(var(--accent));
+  &:last-child { border-bottom: none; }
+}
+.issue-key { font-size: 11px; color: var(--accent2); font-weight: 500; min-width: 80px; }
+.issue-meta { flex: 1; min-width: 0; }
+.issue-summary { font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.issue-project { font-size: 10px; color: var(--muted); }

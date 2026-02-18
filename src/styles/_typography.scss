@@ -1,0 +1,41 @@
+// ── GOOGLE FONTS ────────────────────────────────────────────────
+// Note: Add to index.html <head>:
+// <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+$font-mono: 'JetBrains Mono', monospace;
+$font-display: 'Syne', sans-serif;
+
+// ── BASE TYPOGRAPHY ─────────────────────────────────────────────
+html, body {
+  font-family: $font-mono;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+// ── UTILITY CLASSES ─────────────────────────────────────────────
+.font-display {
+  font-family: $font-display;
+}
+
+.text-xs   { font-size: 10px; }
+.text-sm   { font-size: 11px; }
+.text-base { font-size: 12px; }
+.text-md   { font-size: 13px; }
+.text-lg   { font-size: 16px; }
+.text-xl   { font-size: 20px; }
+.text-2xl  { font-size: 28px; }
+
+.text-muted   { color: var(--muted); }
+.text-muted2  { color: var(--muted2); }
+.text-accent  { color: var(--accent2); }
+.text-green   { color: var(--green); }
+.text-yellow  { color: var(--yellow); }
+.text-red     { color: var(--red); }
+.text-purple  { color: var(--purple); }
+
+.uppercase     { text-transform: uppercase; letter-spacing: 1px; }
+.letter-sm     { letter-spacing: 0.3px; }
+.font-medium   { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold     { font-weight: 700; }
+.font-black    { font-weight: 800; }

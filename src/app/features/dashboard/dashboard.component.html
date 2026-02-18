@@ -1,0 +1,163 @@
+<div class="fade-in">
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <app-stat-card
+      label="ВХОДЯЩИЕ"
+      [value]="unreadCount() ?? '—'"
+      color="blue"
+      [sub]="unreadCount() !== null ? 'непрочитанных писем' : 'загружаем...'"
+    />
+    <app-stat-card
+      label="ВСТРЕЧИ"
+      [value]="todayEventsCount() ?? '—'"
+      color="green"
+      [sub]="totalFocusMinutes() !== null ? (totalFocusMinutes() | fmtDur) + ' фокус-время' : ''"
+    />
+    <app-stat-card
+      label="ЗАДАЧИ"
+      [value]="activeTasks() ?? '—'"
+      color="yellow"
+      [sub]="activeTasks() !== null ? 'активных задач' : 'загружаем...'"
+    />
+    <app-stat-card
+      label="JIRA"
+      [value]="activeJira() ?? '—'"
+      color="purple"
+      [sub]="activeJira() !== null ? 'в работе / ревью' : 'загружаем...'"
+    />
+  </div>
+
+  <!-- Grid: Email + Calendar -->
+  <div class="grid-2">
+
+    <!-- Gmail Preview -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="dot" style="background: var(--cyan)"></div>
+          Gmail
+        </div>
+        <a routerLink="/email" class="card-link">Все →</a>
+      </div>
+      <div class="card-body">
+        @if (previewEmails() === null) {
+          <app-skeleton-loader [count]="4" />
+        } @else if (previewEmails()!.length === 0) {
+          <div class="empty">Нет писем</div>
+        } @else {
+          @for (email of previewEmails(); track email.id) {
+            <div class="email-row" [class.unread]="email.unread">
+              <div class="email-avatar" [style.background]="email.avatarColor + '20'" [style.color]="email.avatarColor">
+                {{ (email.from || '?').charAt(0).toUpperCase() }}
+              </div>
+              <div class="email-body">
+                <div class="email-from">{{ email.from }}
+                  @if (email.unread) { <span class="unread-dot"></span> }
+                </div>
+                <div class="email-subject">{{ email.subject }}</div>
+              </div>
+              <div class="email-time">{{ email.date | smartTime }}</div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Calendar Preview -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="dot" style="background: var(--green)"></div>
+          Calendar
+        </div>
+        <a routerLink="/calendar" class="card-link">Все →</a>
+      </div>
+      <div class="card-body">
+        @if (previewEvents() === null) {
+          <app-skeleton-loader [count]="3" />
+        } @else if (previewEvents()!.length === 0) {
+          <div class="empty">Нет событий</div>
+        } @else {
+          @for (ev of previewEvents(); track ev.id) {
+            <div class="event-row">
+              <div class="event-time">{{ formatEventTime(ev.start, ev.end) }}</div>
+              <div class="event-bar" [style.background]="getEventColor(ev)"></div>
+              <div class="event-info">
+                <div class="event-title">{{ ev.title }}</div>
+                @if (ev.location) {
+                  <div class="event-meta">📍 {{ ev.location }}</div>
+                }
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Grid: Jira + Tasks -->
+  <div class="grid-2">
+
+    <!-- Jira Preview -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="dot" style="background: var(--accent)"></div>
+          Jira Issues
+        </div>
+        <a routerLink="/jira" class="card-link">Все →</a>
+      </div>
+      <div class="card-body">
+        @if (previewIssues() === null) {
+          <app-skeleton-loader [count]="4" />
+        } @else if (previewIssues()!.length === 0) {
+          <div class="empty">Нет задач</div>
+        } @else {
+          @for (issue of previewIssues(); track issue.id) {
+            <div class="issue-row">
+              <div class="priority-dot" [class]="jiraSvc.priorityClass(issue.priority)"></div>
+              <div class="issue-key">{{ issue.key }}</div>
+              <div class="issue-summary">{{ issue.summary }}</div>
+              <app-status-pill
+                [label]="issue.status"
+                [type]="issue.status | statusType"
+              />
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Tasks Preview -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="dot" style="background: var(--purple)"></div>
+          Tasks
+        </div>
+        <a routerLink="/tasks" class="card-link">Все →</a>
+      </div>
+      <div class="card-body">
+        @if (previewTasks() === null) {
+          <app-skeleton-loader [count]="3" />
+        } @else if (previewTasks()!.length === 0) {
+          <div class="empty">Все задачи выполнены 🎉</div>
+        } @else {
+          @for (task of previewTasks(); track task.id) {
+            <div class="task-row">
+              <div class="task-check" [class.done]="task.done"></div>
+              <div class="task-text" [class.done]="task.done">{{ task.title }}</div>
+              @if (task.due) {
+                <div class="task-due">{{ task.due | smartTime }}</div>
+              }
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+  </div>
+
+</div>

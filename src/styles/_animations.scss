@@ -1,0 +1,78 @@
+// ── FADE IN ─────────────────────────────────────────────────────
+.fade-in {
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// ── ROW ENTRY (stagger) ─────────────────────────────────────────
+@keyframes rowIn {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// ── CARD ENTRY ──────────────────────────────────────────────────
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// ── SPIN (sync icon) ────────────────────────────────────────────
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+// ── PULSE (badge dot) ───────────────────────────────────────────
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+// ── SHIMMER (skeleton) ──────────────────────────────────────────
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -100% 0; }
+}
+
+// ── SLIDE IN (toast/alert) ──────────────────────────────────────
+@keyframes slideInRight {
+  from {
+    transform: translateX(340px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+// ── STAGGER DELAYS ──────────────────────────────────────────────
+// Applied via :nth-child in component SCSS
+$stagger-delays: (1: 0.03s, 2: 0.06s, 3: 0.09s, 4: 0.12s, 5: 0.15s);

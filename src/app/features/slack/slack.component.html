@@ -1,0 +1,59 @@
+<div class="card fade-in">
+  <div class="card-header">
+    <div class="card-title"><div class="dot" style="background: #4a154b"></div>Slack</div>
+    @if (slackData()) {
+      <div class="workspace-tag">{{ slackData()!.workspace }}</div>
+    }
+  </div>
+
+  @if (!isConfigured()) {
+    <div class="empty" style="padding: 40px 20px">
+      <div style="font-size: 24px; margin-bottom: 12px">💬</div>
+      <div style="font-weight: 600; margin-bottom: 8px">Slack не подключён</div>
+      <div style="color: var(--muted); font-size: 11px">Добавьте Bot Token в настройках</div>
+    </div>
+  } @else if (isLoading()) {
+    <app-skeleton-loader [count]="5" />
+  } @else if (isError()) {
+    <div class="empty" style="padding: 32px 20px">
+      <div style="font-size: 20px; margin-bottom: 8px">⚠️</div>
+      <div style="color: var(--red); font-weight: 600; margin-bottom: 6px">{{ slackError()!.error }}</div>
+      <div style="color: var(--muted); font-size: 11px">{{ errorHint() }}</div>
+    </div>
+  } @else if (hasData()) {
+    <div class="tabs">
+      <div class="tab" [class.active]="filter() === 'all'" (click)="setFilter('all')">Все</div>
+      <div class="tab" [class.active]="filter() === 'dms'" (click)="setFilter('dms')">DMs</div>
+      <div class="tab" [class.active]="filter() === 'mentions'" (click)="setFilter('mentions')">Упоминания</div>
+      <div class="tab" [class.active]="filter() === 'unreads'" (click)="setFilter('unreads')">Непрочитанные</div>
+    </div>
+    <div class="card-body">
+      @if (messages().length === 0) {
+        <div class="empty">Нет сообщений</div>
+      } @else {
+        @for (msg of messages(); track msg.id) {
+          <div class="slack-row" (click)="replyChannel.set(msg.channelId)">
+            <div class="slack-avatar">
+              @if (msg.avatar) { <img [src]="msg.avatar" [alt]="msg.from || ''" /> }
+              @else { {{ (msg.channelName || 'S').slice(0,2).toUpperCase() }} }
+            </div>
+            <div class="slack-body">
+              <div class="slack-meta">
+                <span class="slack-channel">{{ msg.channelName }}</span>
+                @if (msg.from) { <span class="slack-from">{{ msg.from }}</span> }
+                <span class="slack-time">{{ msg.ts | smartTime }}</span>
+              </div>
+              <div class="slack-text">{{ msg.text }}</div>
+            </div>
+          </div>
+        }
+      }
+    </div>
+    @if (replyChannel()) {
+      <div class="compose-row">
+        <input class="compose-input" placeholder="Написать сообщение..." [value]="messageText()" (input)="onTextInput($event)" (keydown.enter)="sendMessage()" />
+        <button class="compose-btn" (click)="sendMessage()">→</button>
+      </div>
+    }
+  }
+</div>

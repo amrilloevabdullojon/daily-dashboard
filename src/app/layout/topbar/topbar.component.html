@@ -1,0 +1,35 @@
+<div class="topbar">
+  <div class="topbar-left">
+    <h1 class="page-title">{{ pageTitle() }}</h1>
+    <div class="page-date">{{ getFormattedDate() }}</div>
+  </div>
+
+  <div class="topbar-right">
+    <!-- Date navigation -->
+    <div class="date-nav">
+      <button (click)="prevDay()" title="Предыдущий день">‹</button>
+      <span class="date-label">{{ currentDate() | date:'d MMM':'':'ru' }}</span>
+      <button (click)="nextDay()" title="Следующий день">›</button>
+    </div>
+
+    <!-- Quick Search -->
+    <button class="topbar-btn" (click)="openQuickSearch()" title="Быстрый поиск (Ctrl+K)">
+      <span>⌕</span>
+      <span class="kbd">Ctrl+K</span>
+    </button>
+
+    <!-- Theme toggle -->
+    <button class="theme-btn" (click)="toggleTheme()" [title]="isLight() ? 'Тёмная тема' : 'Светлая тема'">
+      {{ isLight() ? '☀' : '🌙' }}
+    </button>
+
+    <!-- Live indicator -->
+    <div class="badge">
+      <div class="badge-dot"></div>
+      LIVE
+    </div>
+
+    <!-- Settings -->
+    <button class="btn-secondary" (click)="openSettings()">⚙ Настройки</button>
+  </div>
+</div>

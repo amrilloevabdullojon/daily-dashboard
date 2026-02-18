@@ -1,0 +1,96 @@
+@use 'variables' as *;
+
+// ── GLASSMORPHISM ───────────────────────────────────────────────
+@mixin glass($opacity: 0.9) {
+  background: linear-gradient(
+    145deg,
+    rgba(21, 26, 34, $opacity) 0%,
+    rgba(12, 15, 20, $opacity) 100%
+  );
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+}
+
+@mixin glass-card {
+  background: linear-gradient(160deg, rgba(18, 23, 30, 0.95) 0%, rgba(10, 12, 16, 0.98) 100%);
+  border: 1px solid var(--border);
+  border-radius: $radius-lg;
+  overflow: hidden;
+}
+
+// ── HOVER LIFT (row effect with left accent border) ─────────────
+@mixin hover-lift($color: var(--accent)) {
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.03);
+    transform: translateX(2px);
+    box-shadow: inset 2px 0 0 #{$color};
+  }
+}
+
+// ── STAT CARD ACCENT BAR ────────────────────────────────────────
+@mixin stat-bar($color) {
+  &::before {
+    background: linear-gradient(90deg, $color, lighten($color, 15%));
+    box-shadow: 0 0 16px rgba($color, 0.5);
+  }
+  &::after {
+    background: $color;
+  }
+}
+
+// ── STATUS PILL ─────────────────────────────────────────────────
+@mixin status-pill-color($bg-color, $text-color, $border-color, $dot-glow: null) {
+  background: rgba($bg-color, 0.12);
+  color: $text-color;
+  border: 1px solid rgba($border-color, 0.25);
+
+  &::before {
+    background: $text-color;
+    @if $dot-glow {
+      box-shadow: 0 0 4px rgba($text-color, 0.8);
+    }
+  }
+}
+
+// ── SCROLLBAR ───────────────────────────────────────────────────
+@mixin custom-scrollbar($color: rgba(59, 130, 246, 0.3)) {
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: $color;
+    border-radius: 2px;
+    &:hover {
+      background: rgba(59, 130, 246, 0.55);
+    }
+  }
+}
+
+// ── TRUNCATE TEXT ───────────────────────────────────────────────
+@mixin truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ── FLEX CENTER ─────────────────────────────────────────────────
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// ── CARD HEADER GRADIENT ────────────────────────────────────────
+@mixin card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(31, 42, 56, 0.8);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0%, transparent 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

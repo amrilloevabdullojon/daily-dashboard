@@ -1,0 +1,53 @@
+<div class="sidebar">
+  <!-- Logo -->
+  <div class="logo">
+    <div class="logo-mark">Daily<span>.</span>DR</div>
+    <div class="logo-sub">WORKSPACE HUB</div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    @for (item of navItems; track item.route) {
+      <a
+        class="nav-item"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+      >
+        <span class="nav-icon">{{ item.icon }}</span>
+        <span class="nav-label">{{ item.label }}</span>
+        @if (getBadge(item); as badge) {
+          <span class="nav-badge" [class.red]="isUnreadBadge(item)">{{ badge }}</span>
+        }
+      </a>
+    }
+  </nav>
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    @if (currentUser(); as user) {
+      <div class="user-info">
+        <div class="user-avatar">
+          @if (user.picture) {
+            <img [src]="user.picture" [alt]="user.name" />
+          } @else {
+            {{ getUserInitial() }}
+          }
+        </div>
+        <div class="user-meta">
+          <div class="user-name">{{ user.name }}</div>
+          <div class="user-email">{{ user.email }}</div>
+        </div>
+      </div>
+    }
+
+    <button class="sync-btn" [class.syncing]="syncing()" (click)="syncAll()">
+      <span class="sync-icon">⟳</span>
+      {{ syncing() ? 'Синхронизация...' : 'Обновить данные' }}
+    </button>
+
+    @if (lastSync()) {
+      <div class="last-sync">{{ getLastSyncLabel() }}</div>
+    }
+  </div>
+</div>

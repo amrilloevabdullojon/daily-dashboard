@@ -1,0 +1,28 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+@use '../../../styles/animations';
+
+.card-header { @include card-header; }
+.card-title { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; .dot { width: 8px; height: 8px; border-radius: 50%; } }
+.workspace-tag { font-size: 10px; color: var(--muted); background: var(--bg3); border: 1px solid var(--border); padding: 2px 8px; border-radius: 10px; }
+
+.slack-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  animation: rowIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  @include hover-lift(#4a154b);
+  &:last-child { border-bottom: none; }
+}
+.slack-avatar { width: 32px; height: 32px; border-radius: 8px; background: rgba(74,21,75,.15); color: #9b59b6; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; overflow: hidden; img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; } }
+.slack-body { flex: 1; min-width: 0; }
+.slack-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.slack-channel { font-size: 11px; color: var(--accent2); font-weight: 500; }
+.slack-from { font-size: 10px; color: var(--muted); }
+.slack-time { font-size: 10px; color: var(--muted); margin-left: auto; }
+.slack-text { font-size: 11px; color: var(--muted2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.compose-row { display: flex; gap: 8px; padding: 10px 20px; border-top: 1px solid var(--border); }
+.compose-input { flex: 1; background: var(--bg3); border: 1px solid var(--border2); color: var(--text); padding: 7px 12px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12px; outline: none; &:focus { border-color: var(--accent); } }
+.compose-btn { background: var(--accent); border: none; color: #fff; width: 32px; border-radius: 6px; cursor: pointer; font-size: 14px; transition: background .15s; &:hover { background: var(--accent2); } }

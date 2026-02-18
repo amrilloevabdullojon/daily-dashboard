@@ -1,0 +1,54 @@
+<div class="card fade-in">
+  <div class="card-header">
+    <div class="card-title">
+      <div class="dot" style="background: var(--cyan)"></div>
+      Gmail
+      @if (unreadCount() > 0) {
+        <span class="card-count">{{ unreadCount() }} непрочитанных</span>
+      }
+    </div>
+    <input class="search-input" placeholder="Поиск..." (input)="onSearch($event)" />
+  </div>
+
+  <div class="tabs">
+    <div class="tab" [class.active]="filter() === 'all'" (click)="setFilter('all')">Все</div>
+    <div class="tab" [class.active]="filter() === 'unread'" (click)="setFilter('unread')">Непрочитанные</div>
+    <div class="tab" [class.active]="filter() === 'starred'" (click)="setFilter('starred')">Избранные ⭐</div>
+  </div>
+
+  <div class="card-body">
+    @if (emails() === null) {
+      <app-skeleton-loader [count]="5" />
+    } @else if (emails()!.length === 0) {
+      <div class="empty">Нет писем</div>
+    } @else {
+      @for (email of emails(); track email.id) {
+        <div class="email-row" [class.unread]="email.unread">
+          <div class="email-avatar" [style.background]="(email.avatarColor || '#3b82f6') + '20'" [style.color]="email.avatarColor || '#60a5fa'">
+            {{ getInitial(email.from) }}
+          </div>
+          <div class="email-body">
+            <div class="email-from">
+              {{ email.from }}
+              @if (email.unread) { <span class="unread-dot"></span> }
+              @if (email.starred) { <span class="star">⭐</span> }
+            </div>
+            <div class="email-subject">{{ email.subject }}</div>
+            @if (email.snippet) {
+              <div class="email-snippet">{{ email.snippet }}</div>
+            }
+          </div>
+          <div class="email-meta">
+            <div class="email-time">{{ email.date | smartTime }}</div>
+            <div class="email-actions">
+              @if (email.unread) {
+                <button class="action-btn" (click)="markRead(email.id, $event)" title="Отметить прочитанным">✓</button>
+              }
+              <button class="action-btn" (click)="archive(email.id, $event)" title="Архивировать">📥</button>
+            </div>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

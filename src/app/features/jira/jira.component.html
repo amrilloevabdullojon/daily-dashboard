@@ -1,0 +1,51 @@
+<div class="card fade-in">
+  <div class="card-header">
+    <div class="card-title"><div class="dot" style="background: var(--accent)"></div>Jira Issues</div>
+    <button class="btn-create" (click)="showCreate.set(!showCreate())">＋ Задача</button>
+  </div>
+
+  @if (showCreate()) {
+    <div class="create-panel">
+      <input class="field-input" placeholder="Название задачи..." (input)="onSummaryInput($event)" [value]="createSummary()" />
+      <div class="create-actions">
+        <select class="field-input" style="width:auto" (change)="createPriority.set($any($event.target).value)">
+          <option>High</option><option selected>Medium</option><option>Low</option>
+        </select>
+        <button class="btn-primary" (click)="submitCreate()" [disabled]="creating()">
+          {{ creating() ? 'Создаём...' : 'Создать' }}
+        </button>
+        <button class="btn-secondary" (click)="showCreate.set(false)">Отмена</button>
+      </div>
+    </div>
+  }
+
+  <div class="tabs">
+    <div class="tab" [class.active]="tab() === 'all'" (click)="setTab('all')">Все ({{ tabCounts().all || 0 }})</div>
+    <div class="tab" [class.active]="tab() === 'in_progress'" (click)="setTab('in_progress')">В работе</div>
+    <div class="tab" [class.active]="tab() === 'review'" (click)="setTab('review')">Ревью</div>
+    <div class="tab" [class.active]="tab() === 'todo'" (click)="setTab('todo')">Бэклог</div>
+    <div class="tab" [class.active]="tab() === 'done'" (click)="setTab('done')">Готово</div>
+  </div>
+
+  <div class="card-body">
+    @if (filtered() === null) {
+      <app-skeleton-loader [count]="5" />
+    } @else if (!isConfigured()) {
+      <div class="empty">⚙ Настройте Jira в настройках (домен, email, токен)</div>
+    } @else if (filtered()!.length === 0) {
+      <div class="empty">Нет задач в этой категории</div>
+    } @else {
+      @for (issue of filtered(); track issue.id) {
+        <div class="issue-row" (click)="openIssue(issue.url)">
+          <div class="priority-dot" [class]="jiraSvc.priorityClass(issue.priority)"></div>
+          <div class="issue-key">{{ issue.key }}</div>
+          <div class="issue-meta">
+            <div class="issue-summary">{{ issue.summary }}</div>
+            <div class="issue-project">{{ issue.project }}</div>
+          </div>
+          <app-status-pill [label]="issue.status" [type]="issue.status | statusType" />
+        </div>
+      }
+    }
+  </div>
+</div>

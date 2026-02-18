@@ -1,0 +1,37 @@
+<div class="card fade-in">
+  <div class="card-header">
+    <div class="card-title"><div class="dot" style="background: var(--purple)"></div>Google Tasks</div>
+    <div class="card-count">{{ done() }}/{{ total() }} выполнено</div>
+  </div>
+
+  @if (total() > 0) {
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" [style.width.%]="progress()"></div>
+    </div>
+  }
+
+  <div class="create-row">
+    <input class="create-input" placeholder="Новая задача..." [value]="newTaskTitle()" (input)="onInput($event)" (keydown)="onKeydown($event)" />
+    <button class="create-btn" (click)="createTask()">＋</button>
+  </div>
+
+  <div class="card-body">
+    @if (tasks() === null) {
+      <app-skeleton-loader [count]="4" />
+    } @else if (tasks()!.length === 0) {
+      <div class="empty">Нет задач</div>
+    } @else {
+      @for (task of tasks(); track task.id) {
+        <div class="task-row" [class.done]="task.done">
+          <div class="task-check" [class.done]="task.done" (click)="toggle(task)"></div>
+          <div class="task-text" [class.done]="task.done">{{ task.title }}</div>
+          @if (task.due) {
+            <div class="task-due" [class.overdue]="isOverdue(task.due)" [class.soon]="isDueSoon(task.due)">
+              {{ task.due | smartTime }}
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>

@@ -2,8 +2,8 @@
   "version": 2,
   "name": "daily-report-dashboard",
   "framework": null,
-  "buildCommand": "",
-  "outputDirectory": "public",
+  "buildCommand": "npx nx build daily-dashboard-ng --configuration=production",
+  "outputDirectory": "dist/daily-dashboard-ng/browser",
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/(.*)", "dest": "/index.html" }

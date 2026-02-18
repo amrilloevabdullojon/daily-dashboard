@@ -1,0 +1,27 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+@use '../../../styles/animations';
+
+.card-header { @include card-header; }
+.card-title { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; .dot { width: 8px; height: 8px; border-radius: 50%; } }
+.card-count { font-size: 11px; color: var(--muted); background: var(--bg3); border: 1px solid var(--border); padding: 2px 8px; border-radius: 12px; }
+
+.progress-bar-wrap { height: 2px; background: var(--bg3); }
+.progress-bar { height: 100%; background: linear-gradient(90deg, var(--purple), #c084fc); transition: width 0.4s cubic-bezier(0.4,0,.2,1); }
+
+.create-row { display: flex; gap: 8px; padding: 10px 20px; border-bottom: 1px solid var(--border); }
+.create-input { flex: 1; background: var(--bg3); border: 1px solid var(--border2); color: var(--text); padding: 7px 12px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12px; outline: none; &:focus { border-color: var(--accent); } &::placeholder { color: var(--muted); } }
+.create-btn { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.2); color: var(--accent2); width: 30px; height: 30px; border-radius: 6px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all .15s; &:hover { background: rgba(59,130,246,.2); } }
+
+.task-row {
+  display: flex; align-items: center;
+  padding: 11px 20px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  animation: rowIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  @include hover-lift(var(--purple));
+  &:last-child { border-bottom: none; }
+}
+.task-check { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--border2); flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; &.done { background: var(--green); border-color: var(--green); &::after { content: '✓'; color: #fff; font-size: 9px; } } }
+.task-text { flex: 1; font-size: 12px; color: var(--text); &.done { text-decoration: line-through; color: var(--muted); } }
+.task-due { font-size: 10px; color: var(--muted); &.overdue { color: var(--red); } &.soon { color: var(--yellow); } }
