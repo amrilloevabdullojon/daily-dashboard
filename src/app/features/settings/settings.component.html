@@ -1,0 +1,135 @@
+<div class="settings fade-in">
+
+  <div class="page-header">
+    <h1 class="page-title">Настройки</h1>
+    <p class="page-sub">Управление интеграциями и аккаунтом</p>
+  </div>
+
+  <!-- Google Account -->
+  <section class="section">
+    <div class="section-title">
+      <span class="section-icon">◎</span>
+      Google Account
+    </div>
+    <div class="card">
+      @if (store.currentUser(); as user) {
+        <div class="account-row">
+          <div class="account-avatar">
+            @if (user.picture) {
+              <img [src]="user.picture" [alt]="user.name" />
+            } @else {
+              {{ (user.name || '?').charAt(0).toUpperCase() }}
+            }
+          </div>
+          <div class="account-info">
+            <div class="account-name">{{ user.name }}</div>
+            <div class="account-email">{{ user.email }}</div>
+            <div class="account-badge">✓ Авторизован</div>
+          </div>
+          <button class="btn btn-danger" (click)="logout()">Выйти</button>
+        </div>
+      } @else {
+        <div class="login-prompt">
+          <div class="login-icon">◎</div>
+          <div class="login-text">
+            <div class="login-title">Войдите через Google</div>
+            <div class="login-sub">Для загрузки Gmail, Calendar и Tasks требуется авторизация</div>
+          </div>
+          <button class="btn btn-primary" (click)="login()">
+            Войти через Google
+          </button>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Jira -->
+  <section class="section">
+    <div class="section-title">
+      <span class="section-icon">◉</span>
+      Jira Integration
+    </div>
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">Jira Domain</label>
+        <input
+          class="form-input"
+          type="text"
+          placeholder="your-company.atlassian.net"
+          [(ngModel)]="cfg.jiraDomain"
+        />
+        <span class="form-hint">Без https://, например: mycompany.atlassian.net</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input
+          class="form-input"
+          type="email"
+          placeholder="your@email.com"
+          [(ngModel)]="cfg.jiraEmail"
+        />
+      </div>
+      <div class="form-group">
+        <label class="form-label">API Token</label>
+        <input
+          class="form-input"
+          type="password"
+          placeholder="Jira API token"
+          [(ngModel)]="cfg.jiraToken"
+        />
+        <span class="form-hint">
+          Получить: <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" rel="noopener">id.atlassian.com → API tokens</a>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slack -->
+  <section class="section">
+    <div class="section-title">
+      <span class="section-icon">◈</span>
+      Slack Integration
+    </div>
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">Slack Bot Token</label>
+        <input
+          class="form-input"
+          type="password"
+          placeholder="xoxb-..."
+          [(ngModel)]="cfg.slackToken"
+        />
+        <span class="form-hint">
+          Получить: <a href="https://api.slack.com/apps" target="_blank" rel="noopener">api.slack.com → Your Apps → OAuth Tokens</a>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Theme -->
+  <section class="section">
+    <div class="section-title">
+      <span class="section-icon">◷</span>
+      Внешний вид
+    </div>
+    <div class="card">
+      <div class="theme-row">
+        <div class="theme-info">
+          <div class="theme-label">Тема оформления</div>
+          <div class="theme-sub">Текущая: {{ isLight() ? 'Светлая' : 'Тёмная' }}</div>
+        </div>
+        <button class="btn btn-secondary" (click)="toggleTheme()">
+          {{ isLight() ? '🌙 Тёмная' : '☀️ Светлая' }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Save -->
+  <div class="save-row">
+    <button class="btn btn-primary btn-lg" (click)="save()">
+      @if (saved()) { ✓ Сохранено } @else { Сохранить настройки }
+    </button>
+  </div>
+
+</div>

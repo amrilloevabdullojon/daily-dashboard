@@ -43,6 +43,12 @@ export const appRoutes: Route[] = [
     title: 'Slack',
   },
   {
+    path: 'settings',
+    loadComponent: () =>
+      import('./features/settings/settings.component').then(m => m.SettingsComponent),
+    title: 'Настройки',
+  },
+  {
     path: '**',
     redirectTo: 'dashboard',
   },

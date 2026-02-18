@@ -21,6 +21,17 @@
         }
       </a>
     }
+
+    <!-- Settings -->
+    <a
+      class="nav-item"
+      routerLink="/settings"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: false }"
+    >
+      <span class="nav-icon">⚙</span>
+      <span class="nav-label">Настройки</span>
+    </a>
   </nav>
 
   <!-- Footer -->
@@ -39,6 +50,10 @@
           <div class="user-email">{{ user.email }}</div>
         </div>
       </div>
+    } @else {
+      <button class="login-btn" (click)="login()">
+        <span>◎</span> Войти через Google
+      </button>
     }
 
     <button class="sync-btn" [class.syncing]="syncing()" (click)="syncAll()">

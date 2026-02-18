@@ -1,8 +1,8 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { AsyncPipe, NgClass, NgIf } from '@angular/common';
 import { AppStore } from '../../core/store/app.store';
 import { SyncService } from '../../core/services/sync.service';
+import { AuthService } from '../../core/services/auth.service';
 
 interface NavItem {
   route: string;
@@ -14,13 +14,14 @@ interface NavItem {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, NgClass, NgIf],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
 })
 export class SidebarComponent {
   private store = inject(AppStore);
   private sync  = inject(SyncService);
+  private auth  = inject(AuthService);
 
   currentUser = this.store.currentUser;
   syncing     = this.store.syncing;
@@ -100,6 +101,10 @@ export class SidebarComponent {
 
   syncAll(): void {
     this.sync.syncAll();
+  }
+
+  login(): void {
+    this.auth.login();
   }
 
   getUserInitial(): string {

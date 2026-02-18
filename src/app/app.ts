@@ -43,11 +43,10 @@ export class App implements OnInit {
     // Init hotkeys
     this.hotkeys.init();
 
-    // Check auth, then start auto-refresh
-    this.auth.checkAuth().subscribe(user => {
-      if (user) {
-        this.sync.startAutoRefresh();
-      }
+    // Check auth, then always start auto-refresh
+    // If not authorized - services will return empty arrays (handled by catchError)
+    this.auth.checkAuth().subscribe(() => {
+      this.sync.startAutoRefresh();
     });
   }
 }

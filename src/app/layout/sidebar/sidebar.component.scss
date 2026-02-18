@@ -161,6 +161,29 @@
   text-overflow: ellipsis;
 }
 
+.login-btn {
+  width: 100%;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: var(--accent2);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 10px;
+
+  &:hover {
+    background: rgba(59, 130, 246, 0.22);
+  }
+}
+
 .sync-btn {
   width: 100%;
   background: rgba(59, 130, 246, 0.08);

@@ -1,0 +1,271 @@
+@use '../../../styles/mixins' as *;
+@use '../../../styles/variables' as *;
+
+.settings {
+  padding: 2rem;
+  max-width: 720px;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 0.25rem;
+  letter-spacing: 0.05em;
+}
+
+.page-sub {
+  color: var(--text3);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+// ── SECTION ─────────────────────────────────────────────────────
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 0.75rem;
+}
+
+.section-icon {
+  color: var(--accent);
+  font-size: 1rem;
+}
+
+// ── CARD ─────────────────────────────────────────────────────────
+.card {
+  @include glass();
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+// ── ACCOUNT ──────────────────────────────────────────────────────
+.account-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.account-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.account-info {
+  flex: 1;
+}
+
+.account-name {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.account-email {
+  color: var(--text3);
+  font-size: 0.8rem;
+  margin-top: 0.1rem;
+}
+
+.account-badge {
+  display: inline-block;
+  margin-top: 0.3rem;
+  font-size: 0.7rem;
+  color: var(--green);
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  font-weight: 600;
+}
+
+// ── LOGIN PROMPT ─────────────────────────────────────────────────
+.login-prompt {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.login-icon {
+  font-size: 2rem;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.login-text {
+  flex: 1;
+}
+
+.login-title {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.login-sub {
+  color: var(--text3);
+  font-size: 0.8rem;
+  margin-top: 0.2rem;
+}
+
+// ── FORM ─────────────────────────────────────────────────────────
+.form-group {
+  margin-bottom: 1.25rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.form-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 0.4rem;
+}
+
+.form-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.875rem;
+  font-family: var(--font-mono);
+  padding: 0.6rem 0.875rem;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+
+  &::placeholder {
+    color: var(--text3);
+    opacity: 0.5;
+  }
+
+  &:focus {
+    border-color: var(--accent);
+  }
+}
+
+.form-hint {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text3);
+  margin-top: 0.35rem;
+
+  a {
+    color: var(--accent);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// ── THEME ─────────────────────────────────────────────────────────
+.theme-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.theme-info {
+  flex: 1;
+}
+
+.theme-label {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.theme-sub {
+  color: var(--text3);
+  font-size: 0.8rem;
+  margin-top: 0.15rem;
+}
+
+// ── BUTTONS ──────────────────────────────────────────────────────
+.save-row {
+  margin-top: 1.5rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  padding: 0.55rem 1.1rem;
+  font-family: var(--font-mono);
+
+  &:hover {
+    opacity: 0.85;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &.btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  &.btn-secondary {
+    background: var(--bg3);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  &.btn-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--red);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+  }
+
+  &.btn-lg {
+    padding: 0.75rem 1.75rem;
+    font-size: 0.9rem;
+  }
+}
