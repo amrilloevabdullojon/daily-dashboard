@@ -21,10 +21,10 @@ export class ConfigService {
   getJiraHeaders(): Record<string, string> {
     const cfg = this.get();
     if (!cfg.jiraEmail || !cfg.jiraToken) return {};
-    const encoded = btoa(`${cfg.jiraEmail}:${cfg.jiraToken}`);
     return {
       'x-jira-domain': cfg.jiraDomain || '',
-      'x-jira-auth': encoded,
+      'x-jira-email':  cfg.jiraEmail,
+      'x-jira-token':  cfg.jiraToken,
     };
   }
 

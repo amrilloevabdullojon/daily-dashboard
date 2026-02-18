@@ -44,6 +44,7 @@ export class SyncService {
         events: this.calendar.load(),
         tasks:  this.tasks.load(),
         jira:   this.jira.load(),
+        slack:  this.slack.load(),
       })),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
