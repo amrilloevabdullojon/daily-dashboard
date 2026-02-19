@@ -70,6 +70,21 @@
   text-align: center;
 }
 
+.today-btn {
+  width: auto !important;
+  padding: 0 10px !important;
+  font-size: 11px !important;
+  background: rgba(59, 130, 246, 0.12) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  color: var(--accent2) !important;
+  font-family: 'JetBrains Mono', monospace;
+
+  &:hover {
+    background: rgba(59, 130, 246, 0.22) !important;
+    border-color: var(--accent) !important;
+  }
+}
+
 // ── BUTTONS ───────────────────────────────────────────────────────
 .topbar-btn {
   background: var(--bg3);

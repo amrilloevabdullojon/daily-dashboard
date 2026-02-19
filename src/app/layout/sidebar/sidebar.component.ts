@@ -80,10 +80,20 @@ export class SidebarComponent {
         return active || null;
       },
     },
+    {
+      route: '/slack',
+      icon: '#',
+      label: 'Slack',
+      badge: () => {
+        const data = this.store.slackData() as any;
+        if (!data || !data.ok) return null;
+        return ((data.unreads?.length || 0) + (data.mentions?.length || 0)) || null;
+      },
+    },
   ];
 
   isUnreadBadge(item: NavItem): boolean {
-    return item.route === '/email';
+    return item.route === '/email' || item.route === '/slack';
   }
 
   getBadge(item: NavItem): number | null {

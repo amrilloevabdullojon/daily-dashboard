@@ -10,6 +10,9 @@
       <button (click)="prevDay()" title="Предыдущий день">‹</button>
       <span class="date-label">{{ currentDate() | date:'d MMM':'':'ru' }}</span>
       <button (click)="nextDay()" title="Следующий день">›</button>
+      @if (!isToday()) {
+        <button class="today-btn" (click)="goToday()" title="Перейти к сегодня">Сегодня</button>
+      }
     </div>
 
     <!-- Quick Search -->
@@ -28,8 +31,5 @@
       <div class="badge-dot"></div>
       LIVE
     </div>
-
-    <!-- Settings -->
-    <button class="btn-secondary" (click)="openSettings()">⚙ Настройки</button>
   </div>
 </div>

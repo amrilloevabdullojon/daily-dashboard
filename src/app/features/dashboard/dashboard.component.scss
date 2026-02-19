@@ -2,6 +2,28 @@
 @use '../../../styles/mixins' as *;
 @use '../../../styles/animations';
 
+// ── GREETING ─────────────────────────────────────────────────────
+.greeting {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+  margin-bottom: 20px;
+}
+
+// ── STAT LINKS ────────────────────────────────────────────────────
+.stat-link {
+  text-decoration: none;
+  display: block;
+  border-radius: 10px;
+  transition: transform 0.15s;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
 .card-header { @include card-header; }
 
 .card-title {

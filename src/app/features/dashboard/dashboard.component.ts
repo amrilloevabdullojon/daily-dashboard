@@ -27,6 +27,18 @@ export class DashboardComponent {
   protected calSvc   = inject(CalendarService);
   protected jiraSvc  = inject(JiraService);
 
+  // ── GREETING ──────────────────────────────────────────────────
+  greeting = computed(() => {
+    const hour = new Date().getHours();
+    const user = this.store.currentUser();
+    const name = user?.name?.split(' ')[0] || '';
+    let greet = '';
+    if (hour < 12) greet = 'Доброе утро';
+    else if (hour < 18) greet = 'Добрый день';
+    else greet = 'Добрый вечер';
+    return name ? `${greet}, ${name}` : greet;
+  });
+
   // ── COMPUTED STATS ────────────────────────────────────────────
   unreadCount = computed(() => {
     const msgs = this.store.gmailMessages();
