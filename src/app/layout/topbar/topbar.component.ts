@@ -36,6 +36,14 @@ export class TopbarComponent {
     { initialValue: 'Dashboard' }
   );
 
+  isToday = computed(() => {
+    const d = this.currentDate();
+    const now = new Date();
+    return d.getFullYear() === now.getFullYear() &&
+           d.getMonth() === now.getMonth() &&
+           d.getDate() === now.getDate();
+  });
+
   getFormattedDate(): string {
     const d = this.currentDate();
     return d.toLocaleDateString('ru-RU', {
@@ -51,6 +59,10 @@ export class TopbarComponent {
 
   nextDay(): void {
     this.store.shiftDate(1);
+  }
+
+  goToday(): void {
+    this.store.setDate(new Date());
   }
 
   toggleTheme(): void {

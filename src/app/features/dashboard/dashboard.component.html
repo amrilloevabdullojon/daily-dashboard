@@ -1,31 +1,42 @@
 <div class="fade-in">
 
+  <!-- Greeting -->
+  <div class="greeting">{{ greeting() }}</div>
+
   <!-- Stats Row -->
   <div class="stats-row">
-    <app-stat-card
-      label="ВХОДЯЩИЕ"
-      [value]="unreadCount() ?? '—'"
-      color="blue"
-      [sub]="unreadCount() !== null ? 'непрочитанных писем' : 'загружаем...'"
-    />
-    <app-stat-card
-      label="ВСТРЕЧИ"
-      [value]="todayEventsCount() ?? '—'"
-      color="green"
-      [sub]="totalFocusMinutes() !== null ? (totalFocusMinutes() | fmtDur) + ' фокус-время' : ''"
-    />
-    <app-stat-card
-      label="ЗАДАЧИ"
-      [value]="activeTasks() ?? '—'"
-      color="yellow"
-      [sub]="activeTasks() !== null ? 'активных задач' : 'загружаем...'"
-    />
-    <app-stat-card
-      label="JIRA"
-      [value]="activeJira() ?? '—'"
-      color="purple"
-      [sub]="activeJira() !== null ? 'в работе / ревью' : 'загружаем...'"
-    />
+    <a routerLink="/email" class="stat-link">
+      <app-stat-card
+        label="ВХОДЯЩИЕ"
+        [value]="unreadCount() ?? '—'"
+        color="blue"
+        [sub]="unreadCount() !== null ? 'непрочитанных писем' : 'загружаем...'"
+      />
+    </a>
+    <a routerLink="/calendar" class="stat-link">
+      <app-stat-card
+        label="ВСТРЕЧИ"
+        [value]="todayEventsCount() ?? '—'"
+        color="green"
+        [sub]="totalFocusMinutes() !== null ? (totalFocusMinutes() | fmtDur) + ' фокус-время' : ''"
+      />
+    </a>
+    <a routerLink="/tasks" class="stat-link">
+      <app-stat-card
+        label="ЗАДАЧИ"
+        [value]="activeTasks() ?? '—'"
+        color="yellow"
+        [sub]="activeTasks() !== null ? 'активных задач' : 'загружаем...'"
+      />
+    </a>
+    <a routerLink="/jira" class="stat-link">
+      <app-stat-card
+        label="JIRA"
+        [value]="activeJira() ?? '—'"
+        color="purple"
+        [sub]="activeJira() !== null ? 'в работе / ревью' : 'загружаем...'"
+      />
+    </a>
   </div>
 
   <!-- Grid: Email + Calendar -->
