@@ -1,15 +1,7 @@
 // api/auth/me.js
 // Returns current user info if authenticated. Refreshes the token if expired.
 
-function parseCookies(cookieHeader) {
-  const cookies = {};
-  if (!cookieHeader) return cookies;
-  cookieHeader.split(';').forEach(pair => {
-    const [k, ...v] = pair.trim().split('=');
-    cookies[k.trim()] = decodeURIComponent(v.join('='));
-  });
-  return cookies;
-}
+import { parseCookies, fetchWithTimeout } from '../_auth.js';
 
 export default async function handler(req, res) {
   const cookies = parseCookies(req.headers.cookie);
@@ -30,7 +22,7 @@ export default async function handler(req, res) {
       return res.json({ authenticated: false });
     }
     try {
-      const refreshRes = await fetch('https://oauth2.googleapis.com/token', {
+      const refreshRes = await fetchWithTimeout('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
@@ -40,6 +32,9 @@ export default async function handler(req, res) {
           grant_type:    'refresh_token'
         })
       });
+      if (!refreshRes.ok) {
+        return res.json({ authenticated: false });
+      }
       const refreshed = await refreshRes.json();
       if (refreshed.error) {
         return res.json({ authenticated: false });
@@ -57,9 +52,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const userRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+    const userRes = await fetchWithTimeout('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` }
     });
+    if (!userRes.ok) {
+      return res.json({ authenticated: false });
+    }
     const user = await userRes.json();
 
     if (user.error) {

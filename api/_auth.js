@@ -26,7 +26,7 @@ export async function getAccessToken(req, res) {
   if (Date.now() > tokenData.expires_at - 300_000) {
     if (!tokenData.refresh_token) return null;
 
-    const refreshRes = await fetch('https://oauth2.googleapis.com/token', {
+    const refreshRes = await fetchWithTimeout('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
@@ -36,6 +36,7 @@ export async function getAccessToken(req, res) {
         grant_type:    'refresh_token'
       })
     });
+    if (!refreshRes.ok) return null;
     const refreshed = await refreshRes.json();
     if (refreshed.error) return null;
 
@@ -49,4 +50,24 @@ export async function getAccessToken(req, res) {
   }
 
   return tokenData.access_token;
+}
+
+/**
+ * Returns the allowed CORS origin.
+ * Uses ALLOWED_ORIGIN env var in production; falls back to reflecting the
+ * request origin in development so local dev still works.
+ */
+export function getAllowedOrigin(req) {
+  return process.env.ALLOWED_ORIGIN || req.headers.origin || '';
+}
+
+/**
+ * fetch() wrapper that aborts after timeoutMs (default 8 s).
+ * Prevents serverless functions from hanging until platform timeout.
+ */
+export function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(timer));
 }

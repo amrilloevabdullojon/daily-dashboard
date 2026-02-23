@@ -2,10 +2,13 @@
 // Toggles a Google Task completed/needsAction status
 // Requires tasks scope (not readonly) — if not available, returns soft error
 
-import { getAccessToken } from '../_auth.js';
+import { getAccessToken, getAllowedOrigin, fetchWithTimeout } from '../_auth.js';
+
+const VALID_STATUSES = ['completed', 'needsAction'];
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', getAllowedOrigin(req));
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
@@ -19,21 +22,26 @@ export default async function handler(req, res) {
   if (!taskId || !status) {
     return res.status(400).json({ error: 'Missing taskId or status' });
   }
+  if (!VALID_STATUSES.includes(status)) {
+    return res.status(400).json({ error: `status must be one of: ${VALID_STATUSES.join(', ')}` });
+  }
 
   // If no listId — find task across all lists
   async function findListForTask(token, tid) {
-    const listsRes  = await fetch(
+    const listsRes  = await fetchWithTimeout(
       'https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=20',
       { headers: { Authorization: `Bearer ${token}` } }
     );
+    if (!listsRes.ok) return null;
     const listsData = await listsRes.json();
     const lists     = listsData.items || [];
 
     for (const list of lists) {
-      const tasksRes  = await fetch(
+      const tasksRes  = await fetchWithTimeout(
         `https://tasks.googleapis.com/tasks/v1/lists/${list.id}/tasks?showHidden=true&maxResults=100`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      if (!tasksRes.ok) continue;
       const tasksData = await tasksRes.json();
       if ((tasksData.items || []).some(t => t.id === tid)) {
         return list.id;
@@ -45,10 +53,10 @@ export default async function handler(req, res) {
   try {
     const resolvedListId = listId || await findListForTask(accessToken, taskId);
     if (!resolvedListId) {
-      return res.status(404).json({ error: 'Task list not found', ok: false });
+      return res.status(404).json({ error: 'Task not found in any list', ok: false });
     }
 
-    const patchRes = await fetch(
+    const patchRes = await fetchWithTimeout(
       `https://tasks.googleapis.com/tasks/v1/lists/${resolvedListId}/tasks/${taskId}`,
       {
         method:  'PATCH',

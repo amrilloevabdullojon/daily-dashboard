@@ -26,6 +26,14 @@ export class HotkeysService {
     fromEvent<KeyboardEvent>(document, 'keydown').pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(e => this.handleKey(e));
+
+    // Clear pending G-key timer when the service is destroyed
+    this.destroyRef.onDestroy(() => {
+      if (this.gTimer) {
+        clearTimeout(this.gTimer);
+        this.gTimer = null;
+      }
+    });
   }
 
   private handleKey(e: KeyboardEvent): void {

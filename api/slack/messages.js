@@ -3,8 +3,11 @@
 // Token is passed from frontend via x-slack-token header (same pattern as Jira)
 // Uses parallel fetch to stay well within Vercel's 10s serverless timeout
 
+import { getAllowedOrigin, fetchWithTimeout } from '../_auth.js';
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', getAllowedOrigin(req));
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Headers', 'x-slack-token, Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).end();
@@ -17,7 +20,10 @@ export default async function handler(req, res) {
 
   try {
     // 1. Validate token and get bot user ID
-    const authRes  = await fetch('https://slack.com/api/auth.test', { headers: authHeader });
+    const authRes  = await fetchWithTimeout('https://slack.com/api/auth.test', { headers: authHeader });
+    if (!authRes.ok) {
+      return res.status(401).json({ ok: false, error: 'Slack auth request failed' });
+    }
     const authData = await authRes.json();
     if (!authData.ok) {
       return res.status(401).json({ ok: false, error: authData.error || 'invalid_auth' });
@@ -26,7 +32,7 @@ export default async function handler(req, res) {
 
     // 2. Fetch all conversations the bot is member of
     // Note: private_channel requires groups:read scope — use only im, mpim, public_channel
-    const convRes  = await fetch(
+    const convRes  = await fetchWithTimeout(
       'https://slack.com/api/conversations.list?types=im,mpim,public_channel&limit=200&exclude_archived=true',
       { headers: authHeader }
     );
@@ -44,7 +50,7 @@ export default async function handler(req, res) {
     // Helper: fetch history for one channel, returns [] on any error
     const fetchHistory = async (channelId, limit = 3) => {
       try {
-        const r = await fetch(
+        const r = await fetchWithTimeout(
           `https://slack.com/api/conversations.history?channel=${channelId}&limit=${limit}`,
           { headers: authHeader }
         );
@@ -59,7 +65,7 @@ export default async function handler(req, res) {
       if (!userId) return { name: 'Unknown', avatar: '' };
       if (userCache[userId]) return userCache[userId];
       try {
-        const r = await fetch(`https://slack.com/api/users.info?user=${userId}`, { headers: authHeader });
+        const r = await fetchWithTimeout(`https://slack.com/api/users.info?user=${userId}`, { headers: authHeader });
         const d = await r.json();
         const profile = d.user?.profile || {};
         const info = {
@@ -86,13 +92,13 @@ export default async function handler(req, res) {
     dmHistories.forEach(({ msgs }) => msgs.forEach(m => { if (m.user) allUserIds.add(m.user); }));
     pubHistories.forEach(({ msgs }) => msgs.forEach(m => { if (m.user) allUserIds.add(m.user); }));
 
-    // 6. Resolve all users IN PARALLEL
+    // 6. Resolve all users IN PARALLEL (results cached in userCache)
     await Promise.all([...allUserIds].map(id => resolveUser(id)));
 
-    // 7. Build DMs list
+    // 7. Build DMs list (userCache already populated — no extra awaits needed)
     const dms = [];
     for (const { ch, msgs } of dmHistories) {
-      const userInfo = await resolveUser(ch.user);
+      const userInfo = userCache[ch.user] || { name: ch.user || 'DM', avatar: '' };
       for (const msg of msgs) {
         if (!msg.text || msg.bot_id || msg.subtype) continue;
         dms.push({
@@ -153,12 +159,12 @@ export default async function handler(req, res) {
       }));
 
     res.json({
-      ok:       true,
+      ok:        true,
       workspace: authData.team,
-      dms:      dms.sort((a, b) => parseFloat(b.ts) - parseFloat(a.ts)),
-      unreads:  unreads.sort((a, b) => parseFloat(b.ts) - parseFloat(a.ts)),
-      mentions: mentions.sort((a, b) => parseFloat(b.ts) - parseFloat(a.ts)),
-      channels: composeChannels
+      dms:       dms.sort((a, b) => parseFloat(b.ts) - parseFloat(a.ts)),
+      unreads:   unreads.sort((a, b) => parseFloat(b.ts) - parseFloat(a.ts)),
+      mentions:  mentions.sort((a, b) => parseFloat(b.ts) - parseFloat(a.ts)),
+      channels:  composeChannels
     });
 
   } catch (err) {

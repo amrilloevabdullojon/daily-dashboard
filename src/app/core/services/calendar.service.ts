@@ -3,11 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of } from 'rxjs';
 import { CalEvent, FocusSlot } from '../models';
 import { AppStore } from '../store/app.store';
+import { NotificationService } from './notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class CalendarService {
   private http = inject(HttpClient);
   private store = inject(AppStore);
+  private notification = inject(NotificationService);
 
   load(date?: Date): Observable<CalEvent[]> {
     const d = date || this.store.currentDate();
@@ -18,6 +20,7 @@ export class CalendarService {
     return this.http.get<CalEvent[]>('/api/calendar/events', { params }).pipe(
       tap(events => this.store.setCalEvents(events)),
       catchError(() => {
+        this.notification.showToast('Ошибка загрузки календаря', '✗');
         this.store.setCalEvents([]);
         return of([]);
       })

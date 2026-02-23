@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AppStore } from '../../core/store/app.store';
 import { SyncService } from '../../core/services/sync.service';
 import { AuthService } from '../../core/services/auth.service';
+import { SlackData, SlackError } from '../../core/models';
 
 interface NavItem {
   route: string;
@@ -85,7 +86,7 @@ export class SidebarComponent {
       icon: '#',
       label: 'Slack',
       badge: () => {
-        const data = this.store.slackData() as any;
+        const data = this.store.slackData() as SlackData | SlackError | null;
         if (!data || !data.ok) return null;
         return ((data.unreads?.length || 0) + (data.mentions?.length || 0)) || null;
       },

@@ -3,16 +3,19 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of } from 'rxjs';
 import { Email } from '../models';
 import { AppStore } from '../store/app.store';
+import { NotificationService } from './notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class GmailService {
   private http = inject(HttpClient);
   private store = inject(AppStore);
+  private notification = inject(NotificationService);
 
   load(): Observable<Email[]> {
     return this.http.get<Email[]>('/api/gmail/messages').pipe(
       tap(msgs => this.store.setEmails(msgs)),
       catchError(() => {
+        this.notification.showToast('Ошибка загрузки Gmail', '✗');
         this.store.setEmails([]);
         return of([]);
       })

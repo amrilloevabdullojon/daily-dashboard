@@ -1,10 +1,11 @@
 // api/tasks/list.js
 // Returns Google Tasks from all task lists
 
-import { getAccessToken } from '../_auth.js';
+import { getAccessToken, getAllowedOrigin, fetchWithTimeout } from '../_auth.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', getAllowedOrigin(req));
+  res.setHeader('Vary', 'Origin');
 
   const accessToken = await getAccessToken(req, res);
   if (!accessToken) {
@@ -13,10 +14,13 @@ export default async function handler(req, res) {
 
   try {
     // Get all task lists
-    const listsRes  = await fetch(
+    const listsRes  = await fetchWithTimeout(
       'https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=10',
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
+    if (!listsRes.ok) {
+      return res.status(listsRes.status).json({ error: 'Failed to fetch task lists' });
+    }
     const listsData = await listsRes.json();
 
     if (listsData.error) {
@@ -28,7 +32,7 @@ export default async function handler(req, res) {
     // Fetch tasks from all lists in parallel
     const allTasks = await Promise.all(
       taskLists.map(async list => {
-        const tasksRes  = await fetch(
+        const tasksRes  = await fetchWithTimeout(
           `https://tasks.googleapis.com/tasks/v1/lists/${list.id}/tasks?` +
           new URLSearchParams({
             maxResults:  '20',
@@ -37,6 +41,7 @@ export default async function handler(req, res) {
           }),
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
+        if (!tasksRes.ok) return [];
         const tasksData = await tasksRes.json();
         return (tasksData.items || []).map(t => ({
           id:       t.id,

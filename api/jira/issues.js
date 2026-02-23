@@ -2,8 +2,11 @@
 // Proxies requests to Jira Cloud REST API v3
 // Credentials come from frontend via request headers (never stored server-side)
 
+import { getAllowedOrigin, fetchWithTimeout } from '../_auth.js';
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', getAllowedOrigin(req));
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Headers', 'x-jira-domain, x-jira-email, x-jira-token');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -23,7 +26,7 @@ export default async function handler(req, res) {
     const jql = '(assignee = currentUser() OR reporter = currentUser()) ORDER BY updated DESC';
     const url  = `https://${domain}/rest/api/3/search/jql`;
 
-    const jiraRes  = await fetch(url, {
+    const jiraRes  = await fetchWithTimeout(url, {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${basicAuth}`,
@@ -37,6 +40,10 @@ export default async function handler(req, res) {
       })
     });
 
+    if (!jiraRes.ok && jiraRes.status !== 400) {
+      return res.status(jiraRes.status).json({ error: `Jira responded with status ${jiraRes.status}` });
+    }
+
     const jiraData = await jiraRes.json();
 
     if (jiraData.errorMessages?.length || jiraData.errors) {
@@ -46,7 +53,7 @@ export default async function handler(req, res) {
     }
 
     if (!jiraData.issues) {
-      return res.status(jiraRes.status).json({ error: 'Unexpected Jira response', raw: jiraData });
+      return res.status(502).json({ error: 'Unexpected Jira response' });
     }
 
     const issues = jiraData.issues.map(issue => ({

@@ -18,7 +18,9 @@ export class NotificationService {
   toasts = signal<Toast[]>([]);
   meetingAlert = signal<MeetingAlert | null>(null);
 
-  private notifiedEvents = new Set<string>();
+  // Map of key → timestamp (ms). Entries older than 24 h are discarded to prevent memory leak.
+  private notifiedEvents = new Map<string, number>();
+  private readonly NOTIFY_TTL_MS = 24 * 60 * 60 * 1000;
 
   showToast(message: string, icon = '✓', durationMs = 3000): void {
     const id = ++this.toastCounter;
@@ -48,14 +50,23 @@ export class NotificationService {
   }
 
   checkUpcomingMeetings(events: CalEvent[]): void {
-    const now = new Date();
+    const now = Date.now();
+
+    // Clean up entries older than 24 hours
+    for (const [key, ts] of this.notifiedEvents) {
+      if (now - ts > this.NOTIFY_TTL_MS) {
+        this.notifiedEvents.delete(key);
+      }
+    }
+
+    const nowDate = new Date(now);
     for (const ev of events) {
       if (ev.allDay) continue;
       const start = new Date(ev.start);
-      const minsLeft = Math.round((start.getTime() - now.getTime()) / 60000);
+      const minsLeft = Math.round((start.getTime() - nowDate.getTime()) / 60000);
       const key = `${ev.id}-${minsLeft}`;
       if ([5, 10, 15].includes(minsLeft) && !this.notifiedEvents.has(key)) {
-        this.notifiedEvents.add(key);
+        this.notifiedEvents.set(key, now);
         this.showMeetingAlert(ev, minsLeft);
         break;
       }

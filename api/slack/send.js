@@ -2,8 +2,13 @@
 // Sends a Slack message via chat.postMessage
 // Token passed via x-slack-token header
 
+import { getAllowedOrigin, fetchWithTimeout } from '../_auth.js';
+
+const MAX_TEXT_LENGTH = 4000; // Slack's practical limit
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', getAllowedOrigin(req));
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Headers', 'x-slack-token, Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
@@ -15,9 +20,12 @@ export default async function handler(req, res) {
   if (!channel || !text?.trim()) {
     return res.status(400).json({ ok: false, error: 'channel and text are required' });
   }
+  if (text.length > MAX_TEXT_LENGTH) {
+    return res.status(400).json({ ok: false, error: `text must not exceed ${MAX_TEXT_LENGTH} characters` });
+  }
 
   try {
-    const slackRes = await fetch('https://slack.com/api/chat.postMessage', {
+    const slackRes = await fetchWithTimeout('https://slack.com/api/chat.postMessage', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,

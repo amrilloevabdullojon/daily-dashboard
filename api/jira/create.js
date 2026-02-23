@@ -1,6 +1,11 @@
 // api/jira/create.js — Create a new Jira issue
+import { getAllowedOrigin, fetchWithTimeout } from '../_auth.js';
+
+const VALID_PRIORITIES = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', getAllowedOrigin(req));
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-jira-domain, x-jira-email, x-jira-token');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
@@ -13,8 +18,11 @@ export default async function handler(req, res) {
   }
 
   const { summary, description, priority, projectKey } = req.body || {};
-  if (!summary) return res.status(400).json({ error: 'summary is required' });
-  if (!projectKey) return res.status(400).json({ error: 'projectKey is required' });
+  if (!summary?.trim()) return res.status(400).json({ error: 'summary is required' });
+  if (!projectKey?.trim()) return res.status(400).json({ error: 'projectKey is required' });
+  if (priority && !VALID_PRIORITIES.includes(priority)) {
+    return res.status(400).json({ error: `priority must be one of: ${VALID_PRIORITIES.join(', ')}` });
+  }
 
   const auth    = Buffer.from(`${email}:${token}`).toString('base64');
   const baseUrl = `https://${domain}`;
@@ -22,8 +30,8 @@ export default async function handler(req, res) {
   try {
     const body = {
       fields: {
-        project:   { key: projectKey },
-        summary:   summary,
+        project:   { key: projectKey.trim() },
+        summary:   summary.trim(),
         issuetype: { name: 'Task' },
         priority:  { name: priority || 'Medium' }
       }
@@ -36,7 +44,7 @@ export default async function handler(req, res) {
       };
     }
 
-    const createRes  = await fetch(`${baseUrl}/rest/api/3/issue`, {
+    const createRes  = await fetchWithTimeout(`${baseUrl}/rest/api/3/issue`, {
       method:  'POST',
       headers: {
         Authorization:  `Basic ${auth}`,
@@ -45,6 +53,11 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify(body)
     });
+
+    if (!createRes.ok && createRes.status !== 400) {
+      return res.status(createRes.status).json({ error: `Jira responded with status ${createRes.status}` });
+    }
+
     const created = await createRes.json();
 
     if (created.errorMessages?.length || created.errors) {
@@ -52,16 +65,20 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: msg });
     }
 
+    if (!created.key) {
+      return res.status(502).json({ error: 'Jira did not return an issue key' });
+    }
+
     res.json({
       ok: true,
       issue: {
-        key:     created.key,
-        summary: summary,
-        status:  'To Do',
+        key:      created.key,
+        summary:  summary.trim(),
+        status:   'To Do',
         priority: priority || 'Medium',
-        project: projectKey,
-        updated: 'только что',
-        url:     `${baseUrl}/browse/${created.key}`
+        project:  projectKey.trim(),
+        updated:  'только что',
+        url:      `${baseUrl}/browse/${created.key}`
       }
     });
   } catch (err) {

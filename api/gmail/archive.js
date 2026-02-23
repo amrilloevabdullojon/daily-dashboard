@@ -1,8 +1,9 @@
 // api/gmail/archive.js — Archive Gmail message (remove INBOX label)
-import { getAccessToken } from '../_auth.js';
+import { getAccessToken, getAllowedOrigin, fetchWithTimeout } from '../_auth.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', getAllowedOrigin(req));
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
@@ -14,7 +15,7 @@ export default async function handler(req, res) {
   if (!messageId) return res.status(400).json({ error: 'messageId is required' });
 
   try {
-    const modRes = await fetch(
+    const modRes = await fetchWithTimeout(
       `https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}/modify`,
       {
         method: 'POST',

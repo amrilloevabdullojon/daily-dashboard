@@ -12,11 +12,12 @@
         [routerLink]="item.route"
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: false }"
+        [attr.aria-label]="item.label"
       >
-        <span class="nav-icon">{{ item.icon }}</span>
+        <span class="nav-icon" aria-hidden="true">{{ item.icon }}</span>
         <span class="nav-label">{{ item.label }}</span>
         @if (getBadge(item); as badge) {
-          <span class="nav-badge" [class.red]="isUnreadBadge(item)">{{ badge }}</span>
+          <span class="nav-badge" [class.red]="isUnreadBadge(item)" aria-hidden="true">{{ badge }}</span>
         }
       </a>
     }
@@ -28,8 +29,9 @@
       routerLink="/settings"
       routerLinkActive="active"
       [routerLinkActiveOptions]="{ exact: false }"
+      aria-label="Настройки"
     >
-      <span class="nav-icon">⚙</span>
+      <span class="nav-icon" aria-hidden="true">⚙</span>
       <span class="nav-label">Настройки</span>
     </a>
   </nav>

@@ -1,13 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { Observable, tap, catchError, of, map } from 'rxjs';
 import { User } from '../models';
 import { AppStore } from '../store/app.store';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private http = inject(HttpClient);
-  private store = inject(AppStore);
+  private http   = inject(HttpClient);
+  private store  = inject(AppStore);
+  private router = inject(Router);
 
   checkAuth(): Observable<User | null> {
     return this.http.get<any>('/api/auth/me').pipe(
@@ -34,10 +36,16 @@ export class AuthService {
   }
 
   logout(): void {
-    // Clear cookie by calling logout endpoint
-    fetch('/api/auth/logout', { method: 'POST' }).then(() => {
-      this.store.setUser(null);
-      window.location.reload();
+    this.http.post('/api/auth/logout', {}).subscribe({
+      next: () => {
+        this.store.setUser(null);
+        this.router.navigate(['/']);
+      },
+      error: () => {
+        // Even if the server call fails, clear local state
+        this.store.setUser(null);
+        this.router.navigate(['/']);
+      },
     });
   }
 
