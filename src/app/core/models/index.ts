@@ -104,6 +104,7 @@ export interface AppConfig {
   jiraDomain?: string;
   jiraEmail?: string;
   jiraToken?: string;
+  jiraProjectKey?: string;
   tgToken?: string;
   tgChatId?: string;
   slackToken?: string;

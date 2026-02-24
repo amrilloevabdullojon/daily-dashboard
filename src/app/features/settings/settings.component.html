@@ -81,6 +81,16 @@
           Получить: <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" rel="noopener">id.atlassian.com → API tokens</a>
         </span>
       </div>
+      <div class="form-group">
+        <label class="form-label">Project Key</label>
+        <input
+          class="form-input"
+          type="text"
+          placeholder="MYPROJECT"
+          [(ngModel)]="cfg.jiraProjectKey"
+        />
+        <span class="form-hint">Ключ проекта для создания задач, например: MYPROJ</span>
+      </div>
     </div>
   </section>
 

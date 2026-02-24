@@ -34,7 +34,8 @@ export class JiraService {
     type?: string;
   }): Observable<JiraIssue> {
     const headers = this.config.getJiraHeaders();
-    return this.http.post<JiraIssue>('/api/jira/create', data, { headers });
+    const projectKey = this.config.get().jiraProjectKey;
+    return this.http.post<JiraIssue>('/api/jira/create', { ...data, projectKey }, { headers });
   }
 
   search(query: string): Observable<JiraIssue[]> {
