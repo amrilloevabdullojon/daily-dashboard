@@ -74,7 +74,7 @@ export default async function handler(req, res) {
     const listData = await listRes.json();
 
     if (!listData.messages) {
-      return res.json({ messages: [] });
+      return res.json([]);
     }
 
     // Fetch each message in parallel (metadata only — fast)
@@ -109,7 +109,7 @@ export default async function handler(req, res) {
       })
     );
 
-    res.json({ messages });
+    res.json(messages);
   } catch (err) {
     console.error('Gmail API error:', err);
     res.status(500).json({ error: 'Failed to fetch Gmail messages' });

@@ -33,7 +33,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         jql,
         maxResults: 25,
-        fields:     ['summary','status','priority','project','updated','assignee']
+        fields:     ['summary','status','priority','project','updated','assignee','reporter','issuetype']
       })
     });
 
@@ -50,16 +50,21 @@ export default async function handler(req, res) {
     }
 
     const issues = jiraData.issues.map(issue => ({
-      key:      issue.key,
-      summary:  issue.fields.summary || '(без названия)',
-      status:   issue.fields.status?.name   || 'To Do',
-      priority: issue.fields.priority?.name || 'Medium',
-      project:  issue.fields.project?.name  || '',
-      updated:  formatUpdated(issue.fields.updated),
-      url:      `https://${domain}/browse/${issue.key}`
+      id:         issue.id,
+      key:        issue.key,
+      summary:    issue.fields.summary || '(без названия)',
+      status:     issue.fields.status?.name       || 'To Do',
+      priority:   issue.fields.priority?.name     || 'Medium',
+      project:    issue.fields.project?.name      || '',
+      projectKey: issue.fields.project?.key       || '',
+      assignee:   issue.fields.assignee?.displayName || '',
+      reporter:   issue.fields.reporter?.displayName || '',
+      type:       issue.fields.issuetype?.name    || 'Task',
+      updated:    formatUpdated(issue.fields.updated),
+      url:        `https://${domain}/browse/${issue.key}`
     }));
 
-    res.json({ issues, total: jiraData.total });
+    res.json(issues);
   } catch (err) {
     console.error('Jira API error:', err);
     res.status(500).json({ error: 'Failed to fetch Jira issues', message: err.message });

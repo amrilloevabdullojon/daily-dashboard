@@ -39,14 +39,12 @@ export default async function handler(req, res) {
         );
         const tasksData = await tasksRes.json();
         return (tasksData.items || []).map(t => ({
-          id:       t.id,
-          listId:   list.id,
-          text:     t.title || '(без названия)',
-          done:     t.status === 'completed',
-          due:      t.due ? formatDue(t.due) : '',
-          overdue:  t.due ? new Date(t.due) < new Date() && t.status !== 'completed' : false,
-          list:     list.title,
-          notes:    t.notes || ''
+          id:     t.id,
+          listId: list.id,
+          title:  t.title || '(без названия)',
+          done:   t.status === 'completed',
+          due:    t.due ? formatDue(t.due) : '',
+          notes:  t.notes || ''
         }));
       })
     );
@@ -60,7 +58,7 @@ export default async function handler(req, res) {
         return 0;
       });
 
-    res.json({ tasks });
+    res.json(tasks);
   } catch (err) {
     console.error('Tasks API error:', err);
     res.status(500).json({ error: 'Failed to fetch tasks' });

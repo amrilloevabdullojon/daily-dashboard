@@ -48,25 +48,25 @@ export default async function handler(req, res) {
         ? `${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`
         : '';
 
-      const attendees = (ev.attendees || []).length || 1;
-      const color     = ev.colorId
+      const attendeesCount = (ev.attendees || []).length || 1;
+      const color          = ev.colorId
         ? GOOGLE_COLORS[ev.colorId] || '#3b82f6'
         : '#3b82f6';
 
       return {
-        id:         ev.id,
-        title:      ev.summary || '(без названия)',
-        start:      startStr,
-        end:        endStr,
+        id:             ev.id,
+        title:          ev.summary || '(без названия)',
+        start:          startStr,
+        end:            endStr,
         color,
-        attendees,
-        location:   ev.location || '',
-        meetLink:   ev.hangoutLink || '',
-        allDay:     !ev.start?.dateTime
+        attendeesCount,
+        location:       ev.location || '',
+        hangoutLink:    ev.hangoutLink || '',
+        allDay:         !ev.start?.dateTime
       };
     });
 
-    res.json({ events });
+    res.json(events);
   } catch (err) {
     console.error('Calendar API error:', err);
     res.status(500).json({ error: 'Failed to fetch calendar events' });
