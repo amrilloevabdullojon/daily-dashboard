@@ -47,11 +47,9 @@ export default async function handler(req, res) {
       task: {
         id:     created.id,
         listId: targetListId,
-        text:   created.title,
+        title:  created.title,
         done:   false,
         due:    due || '',
-        overdue: false,
-        list:   '',
         notes:  ''
       }
     });

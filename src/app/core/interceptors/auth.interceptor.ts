@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { AppStore } from '../store/app.store';
+import { NotificationService } from '../services/notification.service';
 
 // Only Google-backed endpoints should trigger session expiry on 401.
 // Jira/Slack/Telegram use their own credentials — a 401 there must NOT
@@ -11,7 +12,8 @@ const GOOGLE_API_PATHS = ['/api/gmail/', '/api/calendar/', '/api/tasks/'];
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
-  const store = inject(AppStore);
+  const store  = inject(AppStore);
+  const notif  = inject(NotificationService);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -19,6 +21,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (error.status === 401 && isGoogleEndpoint) {
         store.setUser(null);
         router.navigate(['/']);
+      }
+      // Network error (status 0 = offline / CORS / server unreachable)
+      if (error.status === 0) {
+        notif.showToast('Нет соединения с сервером', '⚡', 5000);
       }
       return throwError(() => error);
     })

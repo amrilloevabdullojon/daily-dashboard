@@ -1,19 +1,22 @@
 // api/jira/issues.js
 // Proxies requests to Jira Cloud REST API v3
-// Credentials come from frontend via request headers (never stored server-side)
+// Credentials are read from the httpOnly drConfig cookie set by /api/config/save
+
+import { formatRelativeTime, parseConfigCookie } from '../_utils.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'x-jira-domain, x-jira-email, x-jira-token');
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const domain = (req.headers['x-jira-domain'] || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
-  const email  = req.headers['x-jira-email'];
-  const token  = req.headers['x-jira-token'];
+  const cfg    = parseConfigCookie(req.headers.cookie);
+  const domain = cfg.jiraDomain || '';
+  const email  = cfg.jiraEmail  || '';
+  const token  = cfg.jiraToken  || '';
 
   if (!domain || !email || !token) {
-    return res.status(400).json({ error: 'Missing Jira credentials in headers' });
+    return res.status(400).json({ error: 'Jira credentials not configured' });
   }
 
   const basicAuth = Buffer.from(`${email}:${token}`).toString('base64');
@@ -60,7 +63,7 @@ export default async function handler(req, res) {
       assignee:   issue.fields.assignee?.displayName || '',
       reporter:   issue.fields.reporter?.displayName || '',
       type:       issue.fields.issuetype?.name    || 'Task',
-      updated:    formatUpdated(issue.fields.updated),
+      updated:    formatRelativeTime(issue.fields.updated),
       url:        `https://${domain}/browse/${issue.key}`
     }));
 
@@ -71,18 +74,3 @@ export default async function handler(req, res) {
   }
 }
 
-function formatUpdated(isoDate) {
-  if (!isoDate) return '';
-  const d    = new Date(isoDate);
-  const now  = new Date();
-  const diff = Math.floor((now - d) / 1000); // seconds
-
-  if (diff < 60)           return 'только что';
-  if (diff < 3600)         return Math.floor(diff / 60) + ' мин назад';
-  if (diff < 86400)        return Math.floor(diff / 3600) + ' ч назад';
-  if (diff < 86400 * 2)    return 'вчера';
-  if (diff < 86400 * 7)    return Math.floor(diff / 86400) + ' дн. назад';
-
-  const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
-  return `${d.getDate()} ${months[d.getMonth()]}`;
-}

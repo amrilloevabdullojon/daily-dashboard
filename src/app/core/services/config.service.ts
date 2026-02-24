@@ -1,10 +1,13 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { AppConfig } from '../models';
 
 const CONFIG_KEY = 'drCfg';
 
 @Injectable({ providedIn: 'root' })
 export class ConfigService {
+  private http = inject(HttpClient);
+
   get(): AppConfig {
     try {
       return JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}') as AppConfig;
@@ -15,17 +18,10 @@ export class ConfigService {
 
   save(config: Partial<AppConfig>): void {
     const current = this.get();
-    localStorage.setItem(CONFIG_KEY, JSON.stringify({ ...current, ...config }));
-  }
-
-  getJiraHeaders(): Record<string, string> {
-    const cfg = this.get();
-    if (!cfg.jiraEmail || !cfg.jiraToken) return {};
-    return {
-      'x-jira-domain': cfg.jiraDomain || '',
-      'x-jira-email':  cfg.jiraEmail,
-      'x-jira-token':  cfg.jiraToken,
-    };
+    const merged  = { ...current, ...config };
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(merged));
+    // Persist sensitive tokens server-side in an httpOnly cookie (fire-and-forget)
+    this.http.post('/api/config/save', merged, { withCredentials: true }).subscribe();
   }
 
   isJiraConfigured(): boolean {

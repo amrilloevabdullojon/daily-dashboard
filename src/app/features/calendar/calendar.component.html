@@ -12,6 +12,11 @@
           }
         </div>
       </div>
+    } @else if ((regularEvents() || []).length > 0) {
+      <div class="focus-banner focus-banner--busy">
+        <span class="focus-icon">📅</span>
+        <span>День полностью занят встречами — свободного времени нет</span>
+      </div>
     }
 
     <div class="card">

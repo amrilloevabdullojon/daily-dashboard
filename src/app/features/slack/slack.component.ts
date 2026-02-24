@@ -31,7 +31,7 @@ export class SlackComponent {
 
   isConfigured = computed(() => this.config.isSlackConfigured());
   isLoading    = computed(() => this.slackRaw() === null && this.isConfigured());
-  isError      = computed(() => { const d = this.slackRaw(); return d !== null && !(d as SlackData).ok && Object.keys(d as object).length > 0; });
+  isError      = computed(() => { const d = this.slackRaw(); return d !== null && (d as SlackError).ok === false; });
   hasData      = computed(() => { const d = this.slackRaw(); return d !== null && (d as SlackData).ok === true; });
 
   slackData  = computed(() => this.hasData() ? this.slackRaw() as SlackData : null);
@@ -59,7 +59,7 @@ export class SlackComponent {
     const text = this.messageText().trim();
     if (!channel || !text) return;
     this.slackSvc.sendMessage(channel, text).subscribe({
-      next:  () => this.messageText.set(''),
+      next:  () => { this.messageText.set(''); this.notif.showToast('Сообщение отправлено', '✓'); },
       error: () => this.notif.showToast('Не удалось отправить сообщение', '✗'),
     });
   }

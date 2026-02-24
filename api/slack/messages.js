@@ -3,14 +3,17 @@
 // Token is passed from frontend via x-slack-token header (same pattern as Jira)
 // Uses parallel fetch to stay well within Vercel's 10s serverless timeout
 
+import { formatRelativeTime, parseConfigCookie } from '../_utils.js';
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'x-slack-token, Content-Type');
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).end();
 
-  const token = req.headers['x-slack-token'];
-  if (!token) return res.status(400).json({ ok: false, error: 'Missing x-slack-token header' });
+  const cfg   = parseConfigCookie(req.headers.cookie);
+  const token = cfg.slackToken;
+  if (!token) return res.status(400).json({ ok: false, error: 'Slack token not configured' });
 
   // Only pass Authorization header — Content-Type not needed for GET requests
   const authHeader = { Authorization: `Bearer ${token}` };
@@ -102,7 +105,7 @@ export default async function handler(req, res) {
           type:        'dm',
           text:      cleanSlackText(msg.text),
           ts:        msg.ts,
-          time:      slackTime(msg.ts),
+          time:      formatRelativeTime(parseFloat(msg.ts)),
           avatar:    userInfo.avatar,
           from:      userInfo.name,
           url:       `slack://channel?id=${ch.id}&message=${msg.ts}`
@@ -125,7 +128,7 @@ export default async function handler(req, res) {
           type:        'channel',
           text:      cleanSlackText(msg.text),
           ts:        msg.ts,
-          time:      slackTime(msg.ts),
+          time:      formatRelativeTime(parseFloat(msg.ts)),
           from:      senderInfo.name,
           avatar:    senderInfo.avatar,
           url:       `slack://channel?id=${ch.id}&message=${msg.ts}`
@@ -165,19 +168,6 @@ export default async function handler(req, res) {
     console.error('Slack API error:', err);
     res.status(500).json({ ok: false, error: 'server_error', message: err.message });
   }
-}
-
-// Convert Slack unix timestamp string to readable time
-function slackTime(ts) {
-  if (!ts) return '';
-  const d    = new Date(parseFloat(ts) * 1000);
-  const now  = new Date();
-  const diff = Math.floor((now - d) / 1000);
-  if (diff < 60)        return 'только что';
-  if (diff < 3600)      return Math.floor(diff / 60) + ' мин назад';
-  if (diff < 86400)     return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-  if (diff < 86400 * 2) return 'вчера';
-  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
 }
 
 // Strip Slack mrkdwn/HTML: <@USER>, <#CH|name>, <url|text>, *bold*, _italic_

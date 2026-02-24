@@ -1,4 +1,5 @@
-import { signalStore, withState, withMethods, patchState } from '@ngrx/signals';
+import { computed } from '@angular/core';
+import { signalStore, withState, withMethods, withComputed, patchState } from '@ngrx/signals';
 import {
   User, Email, CalEvent, Task,
   JiraIssue, SlackData, SlackError, LoadingState
@@ -33,6 +34,35 @@ const initialState: AppState = {
 export const AppStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
+  withComputed((store) => ({
+    unreadEmailCount: computed(() => {
+      const msgs = store.gmailMessages();
+      return Array.isArray(msgs) ? msgs.filter((m: Email) => m.unread).length : 0;
+    }),
+    activeTaskCount: computed(() => {
+      const tasks = store.realTasks();
+      return Array.isArray(tasks) ? tasks.filter((t: Task) => !t.done).length : 0;
+    }),
+    activeJiraCount: computed(() => {
+      const issues = store.jiraIssues();
+      if (!Array.isArray(issues)) return 0;
+      return issues.filter((i: JiraIssue) => {
+        const s = i.status?.toLowerCase() || '';
+        return s.includes('progress') || s.includes('review');
+      }).length;
+    }),
+    slackUnreadCount: computed(() => {
+      const data = store.slackData() as any;
+      if (!data?.ok) return 0;
+      return (data.unreads?.length || 0) + (data.mentions?.length || 0);
+    }),
+    upcomingEventCount: computed(() => {
+      const events = store.calEvents();
+      if (!Array.isArray(events)) return 0;
+      const now = new Date();
+      return events.filter((e: CalEvent) => !e.allDay && new Date(e.start) > now).length;
+    }),
+  })),
   withMethods((store) => ({
     // ── USER ──────────────────────────────────────────────────────
     setUser(user: User | null) {

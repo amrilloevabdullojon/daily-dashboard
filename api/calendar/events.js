@@ -37,19 +37,9 @@ export default async function handler(req, res) {
     }
 
     const events = (evData.items || []).map(ev => {
-      const start = ev.start?.dateTime || ev.start?.date || '';
-      const end   = ev.end?.dateTime   || ev.end?.date   || '';
-
-      const startDate = new Date(start);
-      const endDate   = new Date(end);
-
-      const pad = n => String(n).padStart(2, '0');
-      const startStr = ev.start?.dateTime
-        ? `${pad(startDate.getHours())}:${pad(startDate.getMinutes())}`
-        : 'Весь день';
-      const endStr = ev.end?.dateTime
-        ? `${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`
-        : '';
+      const allDay = !ev.start?.dateTime;
+      const start  = ev.start?.dateTime || ev.start?.date || '';
+      const end    = ev.end?.dateTime   || ev.end?.date   || '';
 
       const attendeesCount = (ev.attendees || []).length || 1;
       const color          = ev.colorId
@@ -59,13 +49,13 @@ export default async function handler(req, res) {
       return {
         id:             ev.id,
         title:          ev.summary || '(без названия)',
-        start:          startStr,
-        end:            endStr,
+        start,          // ISO datetime string — e.g. "2024-01-15T14:30:00+03:00"
+        end,            // ISO datetime string
         color,
         attendeesCount,
         location:       ev.location || '',
         hangoutLink:    ev.hangoutLink || '',
-        allDay:         !ev.start?.dateTime
+        allDay,
       };
     });
 

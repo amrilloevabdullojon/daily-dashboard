@@ -18,10 +18,7 @@ export class SlackService {
       return of(empty as any);
     }
 
-    const token = this.config.get().slackToken;
-    const headers = { 'x-slack-token': token! };
-
-    return this.http.get<SlackData | SlackError>('/api/slack/messages', { headers }).pipe(
+    return this.http.get<SlackData | SlackError>('/api/slack/messages', { withCredentials: true }).pipe(
       tap(data => {
         if (!data || !(data as SlackData).ok) {
           this.store.setSlackData({ ok: false, error: (data as SlackError).error || 'unknown' } as SlackError);
@@ -38,9 +35,11 @@ export class SlackService {
   }
 
   sendMessage(channel: string, text: string): Observable<{ ok: boolean; ts?: string }> {
-    const token = this.config.get().slackToken;
-    const headers = { 'x-slack-token': token! };
-    return this.http.post<{ ok: boolean; ts?: string }>('/api/slack/send', { channel, text }, { headers });
+    return this.http.post<{ ok: boolean; ts?: string }>(
+      '/api/slack/send',
+      { channel, text },
+      { withCredentials: true }
+    );
   }
 
   getErrorHint(errorCode: string): string {

@@ -37,58 +37,31 @@ export class SidebarComponent {
       route: '/jira',
       icon: '◉',
       label: 'Jira',
-      badge: () => {
-        const issues = this.store.jiraIssues();
-        if (!Array.isArray(issues)) return null;
-        return issues.filter(i => {
-          const s = i.status?.toLowerCase() || '';
-          return s.includes('progress') || s.includes('review');
-        }).length || null;
-      },
+      badge: () => this.store.activeJiraCount() || null,
     },
     {
       route: '/calendar',
       icon: '◷',
       label: 'Calendar',
-      badge: () => {
-        const events = this.store.calEvents();
-        if (!Array.isArray(events)) return null;
-        const now = new Date();
-        const upcoming = events.filter(e => !e.allDay && new Date(e.start) > now).length;
-        return upcoming || null;
-      },
+      badge: () => this.store.upcomingEventCount() || null,
     },
     {
       route: '/email',
       icon: '◎',
       label: 'Gmail',
-      badge: () => {
-        const msgs = this.store.gmailMessages();
-        if (!Array.isArray(msgs)) return null;
-        const unread = msgs.filter(m => m.unread).length;
-        return unread || null;
-      },
+      badge: () => this.store.unreadEmailCount() || null,
     },
     {
       route: '/tasks',
       icon: '◻',
       label: 'Tasks',
-      badge: () => {
-        const tasks = this.store.realTasks();
-        if (!Array.isArray(tasks)) return null;
-        const active = tasks.filter(t => !t.done).length;
-        return active || null;
-      },
+      badge: () => this.store.activeTaskCount() || null,
     },
     {
       route: '/slack',
       icon: '#',
       label: 'Slack',
-      badge: () => {
-        const data = this.store.slackData() as any;
-        if (!data || !data.ok) return null;
-        return ((data.unreads?.length || 0) + (data.mentions?.length || 0)) || null;
-      },
+      badge: () => this.store.slackUnreadCount() || null,
     },
   ];
 

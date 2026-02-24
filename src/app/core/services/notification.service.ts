@@ -20,6 +20,7 @@ export class NotificationService {
 
   private notifiedEvents = new Set<string>();
   private notifiedDate   = '';
+  private alertTimer: ReturnType<typeof setTimeout> | null = null;
 
   showToast(message: string, icon = '✓', durationMs = 3000): void {
     const id = ++this.toastCounter;
@@ -32,6 +33,8 @@ export class NotificationService {
   }
 
   showMeetingAlert(event: CalEvent, minsLeft: number): void {
+    // Clear previous auto-dismiss timer to avoid race condition
+    if (this.alertTimer) clearTimeout(this.alertTimer);
     this.meetingAlert.set({ event, minsLeft });
     // Browser notification
     if (Notification.permission === 'granted') {
@@ -41,10 +44,11 @@ export class NotificationService {
       });
     }
     // Auto-dismiss after 10s
-    setTimeout(() => this.dismissMeetingAlert(), 10000);
+    this.alertTimer = setTimeout(() => this.dismissMeetingAlert(), 10000);
   }
 
   dismissMeetingAlert(): void {
+    if (this.alertTimer) { clearTimeout(this.alertTimer); this.alertTimer = null; }
     this.meetingAlert.set(null);
   }
 
@@ -59,9 +63,13 @@ export class NotificationService {
       if (ev.allDay) continue;
       const start = new Date(ev.start);
       const minsLeft = Math.round((start.getTime() - now.getTime()) / 60000);
-      const key = `${ev.id}-${minsLeft}`;
-      if ([5, 10, 15].includes(minsLeft) && !this.notifiedEvents.has(key)) {
-        this.notifiedEvents.add(key);
+      // Use time-range buckets so notifications fire even if sync timing is off by a few minutes
+      let bucket: string | null = null;
+      if (minsLeft > 10 && minsLeft <= 15)     bucket = `${ev.id}-15`;
+      else if (minsLeft > 5 && minsLeft <= 10) bucket = `${ev.id}-10`;
+      else if (minsLeft > 0 && minsLeft <= 5)  bucket = `${ev.id}-5`;
+      if (bucket && !this.notifiedEvents.has(bucket)) {
+        this.notifiedEvents.add(bucket);
         this.showMeetingAlert(ev, minsLeft);
         break;
       }

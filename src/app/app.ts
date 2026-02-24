@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from './layout/sidebar/sidebar.component';
 import { TopbarComponent } from './layout/topbar/topbar.component';
@@ -14,15 +14,25 @@ import { NgClass, DatePipe } from '@angular/common';
   standalone: true,
   imports: [RouterOutlet, SidebarComponent, TopbarComponent, NgClass, DatePipe],
   template: `
-    <div class="app" [ngClass]="{ 'light': store.isLight() }">
-      <app-sidebar />
-      <div class="main">
-        <app-topbar />
-        <div class="content fade-in">
-          <router-outlet />
+    @if (authChecked()) {
+      <div class="app" [ngClass]="{ 'light': store.isLight() }">
+        <app-sidebar />
+        <div class="main">
+          <app-topbar />
+          <div class="content fade-in">
+            <router-outlet />
+          </div>
         </div>
       </div>
-    </div>
+    } @else {
+      <div class="app-loading" [ngClass]="{ 'light': store.isLight() }">
+        <div class="app-loading-inner">
+          <div class="app-loading-dot"></div>
+          <div class="app-loading-dot"></div>
+          <div class="app-loading-dot"></div>
+        </div>
+      </div>
+    }
 
     <!-- Toast notifications -->
     @if (notif.toasts().length) {
@@ -63,14 +73,35 @@ import { NgClass, DatePipe } from '@angular/common';
   `,
   styles: [`
     :host { display: block; }
+    .app-loading {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+    }
+    .app-loading-inner {
+      display: flex;
+      gap: 8px;
+    }
+    .app-loading-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1.2s ease-in-out infinite;
+      &:nth-child(2) { animation-delay: 0.2s; }
+      &:nth-child(3) { animation-delay: 0.4s; }
+    }
   `]
 })
 export class App implements OnInit {
-  protected store    = inject(AppStore);
-  protected notif    = inject(NotificationService);
-  private auth       = inject(AuthService);
-  private sync       = inject(SyncService);
-  private hotkeys    = inject(HotkeysService);
+  protected store       = inject(AppStore);
+  protected notif       = inject(NotificationService);
+  protected authChecked = signal(false);
+  private auth          = inject(AuthService);
+  private sync          = inject(SyncService);
+  private hotkeys       = inject(HotkeysService);
 
   ngOnInit(): void {
     // Restore theme
@@ -84,8 +115,10 @@ export class App implements OnInit {
 
     // Check auth, then always start auto-refresh
     // If not authorized - services will return empty arrays (handled by catchError)
-    this.auth.checkAuth().subscribe(() => {
-      this.sync.startAutoRefresh();
+    this.auth.checkAuth().subscribe({
+      next:     () => { this.authChecked.set(true); this.sync.startAutoRefresh(); },
+      error:    () => this.authChecked.set(true),
+      complete: () => this.authChecked.set(true),
     });
   }
 }

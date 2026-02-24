@@ -17,8 +17,7 @@ export class JiraService {
       return of([]);
     }
 
-    const headers = this.config.getJiraHeaders();
-    return this.http.get<JiraIssue[]>('/api/jira/issues', { headers }).pipe(
+    return this.http.get<JiraIssue[]>('/api/jira/issues', { withCredentials: true }).pipe(
       tap(issues => this.store.setJiraIssues(issues)),
       catchError(() => {
         this.store.setJiraIssues([]);
@@ -33,9 +32,8 @@ export class JiraService {
     priority?: string;
     type?: string;
   }): Observable<JiraIssue> {
-    const headers = this.config.getJiraHeaders();
     const projectKey = this.config.get().jiraProjectKey;
-    return this.http.post<JiraIssue>('/api/jira/create', { ...data, projectKey }, { headers });
+    return this.http.post<JiraIssue>('/api/jira/create', { ...data, projectKey }, { withCredentials: true });
   }
 
   search(query: string): Observable<JiraIssue[]> {
