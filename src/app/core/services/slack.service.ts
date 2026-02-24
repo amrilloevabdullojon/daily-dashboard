@@ -45,11 +45,16 @@ export class SlackService {
 
   getErrorHint(errorCode: string): string {
     const hints: Record<string, string> = {
-      'invalid_auth':    'Токен неверный или отозван. Создайте новый Bot Token на api.slack.com',
-      'missing_scope':   'Не хватает прав у Bot Token. Добавьте scopes: channels:history, im:history, im:read, users:read, chat:write',
-      'not_in_channel':  'Бот не добавлен в каналы. Используйте /invite @yourbot',
-      'token_revoked':   'Токен отозван. Создайте новый Bot Token',
-      'account_inactive':'Аккаунт неактивен',
+      'invalid_auth':     'Токен неверный или отозван. Создайте новый Bot Token на api.slack.com',
+      'missing_scope':    'Не хватает прав у Bot Token. Добавьте scopes: channels:history, im:history, im:read, users:read, chat:write',
+      'not_in_channel':   'Бот не добавлен в каналы. Используйте /invite @yourbot',
+      'token_revoked':    'Токен отозван. Создайте новый Bot Token',
+      'account_inactive': 'Аккаунт неактивен',
+      'http_401':         'Токен неверный или не передан. Проверьте Slack Bot Token в настройках',
+      'http_403':         'Нет доступа. Убедитесь, что бот добавлен в workspace и имеет нужные права',
+      'http_429':         'Превышен лимит запросов Slack API. Повторите через минуту',
+      'http_500':         'Ошибка сервера Slack. Попробуйте позже',
+      'http_network':     'Нет соединения с Slack. Проверьте интернет-подключение',
     };
     return hints[errorCode] || 'Проверьте токен и права приложения в api.slack.com';
   }

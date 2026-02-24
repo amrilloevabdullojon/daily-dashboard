@@ -27,6 +27,7 @@ export class TopbarComponent {
 
   currentDate = this.store.currentDate;
   isLight     = this.store.isLight;
+  syncing     = this.store.syncing;
 
   pageTitle = toSignal(
     this.router.events.pipe(

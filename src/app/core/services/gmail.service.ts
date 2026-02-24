@@ -22,7 +22,7 @@ export class GmailService {
   markRead(id: string): Observable<void> {
     // Optimistic update first
     this.store.markEmailRead(id);
-    return this.http.post<void>('/api/gmail/markread', { id }).pipe(
+    return this.http.post<void>('/api/gmail/markread', { messageId: id }).pipe(
       catchError(() => {
         // Revert on failure — reload data
         this.load().subscribe();
@@ -34,7 +34,7 @@ export class GmailService {
   archive(id: string): Observable<void> {
     // Optimistic remove
     this.store.removeEmail(id);
-    return this.http.post<void>('/api/gmail/archive', { id }).pipe(
+    return this.http.post<void>('/api/gmail/archive', { messageId: id }).pipe(
       catchError(() => {
         this.load().subscribe();
         return of(void 0);

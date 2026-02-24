@@ -1,6 +1,14 @@
 // api/gmail/messages.js
 // Returns list of recent Gmail messages for the authenticated user
 
+const AVATAR_COLORS = ['#3b82f6','#ef4444','#22c55e','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316'];
+
+function emailToColor(email) {
+  let hash = 0;
+  for (const ch of (email || '')) hash = (hash * 31 + ch.charCodeAt(0)) & 0xffffffff;
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
 async function refreshAccessToken(refreshToken) {
   const res = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
@@ -92,19 +100,21 @@ export default async function handler(req, res) {
         });
 
         // Parse "From" header: "Name <email>" or just "email"
-        const fromRaw = headers['From'] || '';
-        const nameMatch = fromRaw.match(/^"?([^"<]+)"?\s*</);
+        const fromRaw    = headers['From'] || '';
+        const nameMatch  = fromRaw.match(/^"?([^"<]+)"?\s*</);
         const emailMatch = fromRaw.match(/<([^>]+)>/);
+        const emailAddr  = emailMatch ? emailMatch[1] : fromRaw;
 
         return {
           id,
-          from:    nameMatch ? nameMatch[1].trim() : fromRaw,
-          email:   emailMatch ? emailMatch[1] : fromRaw,
-          subject: headers['Subject'] || '(без темы)',
-          date:    headers['Date'] || '',
-          snippet: msg.snippet || '',
-          unread:  (msg.labelIds || []).includes('UNREAD'),
-          starred: (msg.labelIds || []).includes('STARRED')
+          from:        nameMatch ? nameMatch[1].trim() : fromRaw,
+          email:       emailAddr,
+          subject:     headers['Subject'] || '(без темы)',
+          date:        headers['Date'] || '',
+          snippet:     msg.snippet || '',
+          unread:      (msg.labelIds || []).includes('UNREAD'),
+          starred:     (msg.labelIds || []).includes('STARRED'),
+          avatarColor: emailToColor(emailAddr),
         };
       })
     );

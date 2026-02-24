@@ -12,10 +12,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Time range: today from 00:00 to 23:59
-    const now       = new Date();
-    const timeMin   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).toISOString();
-    const timeMax   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).toISOString();
+    // Time range: use requested date or today
+    const base    = req.query.date ? new Date(req.query.date) : new Date();
+    const timeMin = new Date(base.getFullYear(), base.getMonth(), base.getDate(),  0,  0,  0).toISOString();
+    const timeMax = new Date(base.getFullYear(), base.getMonth(), base.getDate(), 23, 59, 59).toISOString();
 
     const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?` +
       new URLSearchParams({

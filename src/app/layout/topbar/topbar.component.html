@@ -26,10 +26,10 @@
       {{ isLight() ? '☀' : '🌙' }}
     </button>
 
-    <!-- Live indicator -->
-    <div class="badge">
+    <!-- Live / Sync indicator -->
+    <div class="badge" [class.badge-syncing]="syncing()">
       <div class="badge-dot"></div>
-      LIVE
+      {{ syncing() ? 'SYNC...' : 'LIVE' }}
     </div>
   </div>
 </div>

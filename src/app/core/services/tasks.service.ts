@@ -25,7 +25,7 @@ export class TasksService {
     return this.http.post<void>('/api/tasks/toggle', {
       taskId: task.id,
       listId: task.listId,
-      done: !task.done,
+      status: task.done ? 'needsAction' : 'completed',
     }).pipe(
       catchError(() => {
         // Revert on failure

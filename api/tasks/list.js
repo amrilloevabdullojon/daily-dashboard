@@ -44,19 +44,24 @@ export default async function handler(req, res) {
           title:  t.title || '(без названия)',
           done:   t.status === 'completed',
           due:    t.due ? formatDue(t.due) : '',
+          dueIso: t.due || '',
           notes:  t.notes || ''
         }));
       })
     );
 
-    // Flatten and sort: undone first, then by due date
+    // Flatten and sort: undone first, overdue undone tasks bubble to top
+    const nowMs = Date.now();
     const tasks = allTasks
       .flat()
       .sort((a, b) => {
         if (a.done !== b.done) return a.done ? 1 : -1;
-        if (a.overdue !== b.overdue) return a.overdue ? -1 : 1;
+        const aOverdue = !a.done && a.dueIso && new Date(a.dueIso).getTime() < nowMs;
+        const bOverdue = !b.done && b.dueIso && new Date(b.dueIso).getTime() < nowMs;
+        if (aOverdue !== bOverdue) return aOverdue ? -1 : 1;
         return 0;
-      });
+      })
+      .map(({ dueIso, ...t }) => t);
 
     res.json(tasks);
   } catch (err) {
