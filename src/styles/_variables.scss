@@ -36,9 +36,27 @@ $orange:    #f97316;
   --purple:    #{$purple};
   --cyan:      #{$cyan};
   --orange:    #{$orange};
-  --card-glow: 0 0 0 1px var(--border), 0 4px 24px rgba(0,0,0,0.5);
   --text3:     #566578;
   --font-mono: 'JetBrains Mono', monospace;
+
+  // ── COMPONENT BACKGROUNDS ───────────────────────────────────────
+  --sidebar-bg:       linear-gradient(180deg, #0d1219 0%, #090b0e 60%, #070910 100%);
+  --topbar-bg:        linear-gradient(180deg, rgba(15,19,24,0.98) 0%, rgba(10,12,15,0.95) 100%);
+  --card-bg:          linear-gradient(160deg, rgba(18,23,30,0.95) 0%, rgba(10,12,16,0.98) 100%);
+  --glass-bg:         linear-gradient(145deg, rgba(21,26,34,0.9) 0%, rgba(12,15,20,0.9) 100%);
+  --card-header-border: rgba(31, 42, 56, 0.8);
+  --card-header-bg:   linear-gradient(180deg, rgba(255,255,255,0.025) 0%, transparent 100%);
+
+  // ── SHADOWS ─────────────────────────────────────────────────────
+  --card-glow:  0 0 0 1px var(--border), 0 4px 24px rgba(0,0,0,0.5);
+  --shadow-sm:  2px 0 24px rgba(0,0,0,0.35);
+  --shadow-md:  0 8px 24px rgba(0,0,0,0.4);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.45);
+  --topbar-shadow: 0 1px 0 rgba(59,130,246,0.12), 0 4px 20px rgba(0,0,0,0.3);
+
+  // ── INTERACTIVE ─────────────────────────────────────────────────
+  --hover-bg:   rgba(255, 255, 255, 0.04);
+  --active-bg:  rgba(59, 130, 246, 0.09);
 }
 
 // ── LIGHT THEME ─────────────────────────────────────────────────
@@ -52,8 +70,28 @@ body.light {
   --text:    #0f172a;
   --muted:   #94a3b8;
   --muted2:  #64748b;
+  --accent:  #2563eb;
   --accent2: #2563eb;
   --text3:   #94a3b8;
+
+  // ── COMPONENT BACKGROUNDS ───────────────────────────────────────
+  --sidebar-bg:       var(--bg2);
+  --topbar-bg:        var(--bg2);
+  --card-bg:          var(--bg2);
+  --glass-bg:         var(--bg2);
+  --card-header-border: var(--border);
+  --card-header-bg:   transparent;
+
+  // ── SHADOWS ─────────────────────────────────────────────────────
+  --card-glow:  0 0 0 1px var(--border), 0 2px 12px rgba(0,0,0,0.06);
+  --shadow-sm:  2px 0 12px rgba(0,0,0,0.06);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg:  0 4px 24px rgba(0,0,0,0.1);
+  --topbar-shadow: 0 1px 0 var(--border), 0 2px 8px rgba(0,0,0,0.04);
+
+  // ── INTERACTIVE ─────────────────────────────────────────────────
+  --hover-bg:   rgba(0, 0, 0, 0.04);
+  --active-bg:  rgba(37, 99, 235, 0.08);
 }
 
 // ── BREAKPOINTS ─────────────────────────────────────────────────

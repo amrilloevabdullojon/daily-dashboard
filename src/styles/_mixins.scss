@@ -2,17 +2,13 @@
 
 // ── GLASSMORPHISM ───────────────────────────────────────────────
 @mixin glass($opacity: 0.9) {
-  background: linear-gradient(
-    145deg,
-    rgba(21, 26, 34, $opacity) 0%,
-    rgba(12, 15, 20, $opacity) 100%
-  );
+  background: var(--glass-bg);
   backdrop-filter: blur(8px);
   border: 1px solid var(--border);
 }
 
 @mixin glass-card {
-  background: linear-gradient(160deg, rgba(18, 23, 30, 0.95) 0%, rgba(10, 12, 16, 0.98) 100%);
+  background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: $radius-lg;
   overflow: hidden;
@@ -23,7 +19,7 @@
   transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--hover-bg);
     transform: translateX(2px);
     box-shadow: inset 2px 0 0 #{$color};
   }
@@ -88,8 +84,8 @@
 // ── CARD HEADER GRADIENT ────────────────────────────────────────
 @mixin card-header {
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(31, 42, 56, 0.8);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0%, transparent 100%);
+  border-bottom: 1px solid var(--card-header-border);
+  background: var(--card-header-bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
