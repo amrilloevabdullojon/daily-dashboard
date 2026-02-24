@@ -8,7 +8,7 @@
     <!-- Date navigation -->
     <div class="date-nav">
       <button (click)="prevDay()" title="Предыдущий день">‹</button>
-      <span class="date-label">{{ currentDate() | date:'d MMM':'':'ru' }}</span>
+      <span class="date-label">{{ currentDate() | date:'d MMM' }}</span>
       <button (click)="nextDay()" title="Следующий день">›</button>
       @if (!isToday()) {
         <button class="today-btn" (click)="goToday()" title="Перейти к сегодня">Сегодня</button>
