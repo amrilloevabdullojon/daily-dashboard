@@ -17,6 +17,9 @@
   animation: rowIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
   @include hover-lift(var(--accent));
   &:last-child { border-bottom: none; }
+  @for $i from 1 through 10 {
+    &:nth-child(#{$i}) { animation-delay: #{($i - 1) * 0.04}s; }
+  }
 }
 .issue-key { font-size: 11px; color: var(--accent2); font-weight: 500; min-width: 80px; }
 .issue-meta { flex: 1; min-width: 0; }

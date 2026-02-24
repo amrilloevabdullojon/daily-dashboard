@@ -7,22 +7,22 @@
   <div class="topbar-right">
     <!-- Date navigation -->
     <div class="date-nav">
-      <button (click)="prevDay()" title="Предыдущий день">‹</button>
+      <button (click)="prevDay()" title="Предыдущий день" aria-label="Предыдущий день">‹</button>
       <span class="date-label">{{ currentDate() | date:'d MMM':'':'ru' }}</span>
-      <button (click)="nextDay()" title="Следующий день">›</button>
+      <button (click)="nextDay()" title="Следующий день" aria-label="Следующий день">›</button>
       @if (!isToday()) {
-        <button class="today-btn" (click)="goToday()" title="Перейти к сегодня">Сегодня</button>
+        <button class="today-btn" (click)="goToday()" title="Перейти к сегодня" aria-label="Перейти к сегодня">Сегодня</button>
       }
     </div>
 
     <!-- Quick Search -->
-    <button class="topbar-btn" (click)="openQuickSearch()" title="Быстрый поиск (Ctrl+K)">
+    <button class="topbar-btn" (click)="openQuickSearch()" title="Быстрый поиск (Ctrl+K)" aria-label="Быстрый поиск">
       <span>⌕</span>
       <span class="kbd">Ctrl+K</span>
     </button>
 
     <!-- Theme toggle -->
-    <button class="theme-btn" (click)="toggleTheme()" [title]="isLight() ? 'Тёмная тема' : 'Светлая тема'">
+    <button class="theme-btn" (click)="toggleTheme()" [title]="isLight() ? 'Тёмная тема' : 'Светлая тема'" [attr.aria-label]="isLight() ? 'Переключить на тёмную тему' : 'Переключить на светлую тему'">
       {{ isLight() ? '☀' : '🌙' }}
     </button>
 

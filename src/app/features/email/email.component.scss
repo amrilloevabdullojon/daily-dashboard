@@ -15,6 +15,9 @@
   @include hover-lift(var(--cyan));
   &:last-child { border-bottom: none; }
   &.unread .email-from { font-weight: 600; color: var(--text); }
+  @for $i from 1 through 10 {
+    &:nth-child(#{$i}) { animation-delay: #{($i - 1) * 0.04}s; }
+  }
 }
 .email-avatar { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px; flex-shrink: 0; margin-top: 1px; }
 .email-body { flex: 1; min-width: 0; overflow: hidden; }

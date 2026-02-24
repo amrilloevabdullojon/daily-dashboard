@@ -68,10 +68,16 @@ html, body {
 
 // ── EMPTY STATE ──────────────────────────────────────────────────
 .empty {
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 32px 20px;
   text-align: center;
   color: var(--muted);
   font-size: 12px;
+  flex-direction: column;
+  gap: 8px;
 }
 
 // ── TABS ─────────────────────────────────────────────────────────
@@ -135,6 +141,7 @@ html, body {
   transition: background 0.15s;
 
   &:hover { background: var(--accent2); }
+  &:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
 }
 
 .btn-secondary {
@@ -149,6 +156,123 @@ html, body {
   transition: all 0.15s;
 
   &:hover { color: var(--text); border-color: var(--border); }
+  &:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+}
+
+// ── FOCUS RINGS ───────────────────────────────────────────────────
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+// ── TOAST CONTAINER ───────────────────────────────────────────────
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+  cursor: pointer;
+  min-width: 240px;
+  max-width: 340px;
+
+  .toast-icon { font-size: 14px; flex-shrink: 0; }
+  .toast-msg  { flex: 1; }
+}
+
+// ── MEETING ALERT ─────────────────────────────────────────────────
+.meeting-alert {
+  position: fixed;
+  top: 72px;
+  right: 24px;
+  z-index: 9000;
+  background: var(--bg3);
+  border: 1px solid rgba(59,130,246,0.35);
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  min-width: 280px;
+  max-width: 340px;
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  .alert-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: var(--accent2);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .alert-title {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .alert-meta {
+    font-size: 11px;
+    color: var(--muted2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .alert-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .alert-btn {
+    flex: 1;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--muted2);
+    &:hover { color: var(--text); border-color: var(--border); }
+  }
+
+  .alert-btn-join {
+    background: rgba(59,130,246,0.15);
+    border-color: rgba(59,130,246,0.3);
+    color: var(--accent2);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    &:hover { background: rgba(59,130,246,0.25); }
+  }
 }
 
 // ── PRIORITY DOTS ────────────────────────────────────────────────

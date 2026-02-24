@@ -21,6 +21,9 @@
   animation: rowIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
   @include hover-lift(var(--purple));
   &:last-child { border-bottom: none; }
+  @for $i from 1 through 10 {
+    &:nth-child(#{$i}) { animation-delay: #{($i - 1) * 0.04}s; }
+  }
 }
 .task-check { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--border2); flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; &.done { background: var(--green); border-color: var(--green); &::after { content: '✓'; color: #fff; font-size: 9px; } } }
 .task-text { flex: 1; font-size: 12px; color: var(--text); &.done { text-decoration: line-through; color: var(--muted); } }
