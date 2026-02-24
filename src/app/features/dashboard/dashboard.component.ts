@@ -39,6 +39,17 @@ export class DashboardComponent {
     return name ? `${greet}, ${name}` : greet;
   });
 
+  todayDate = computed(() => {
+    return new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+  });
+
+  nextEvent = computed(() => {
+    const events = this.store.calEvents();
+    if (!Array.isArray(events)) return null;
+    const now = new Date();
+    return events.find(e => !e.allDay && new Date(e.start) > now) ?? null;
+  });
+
   // ── COMPUTED STATS ────────────────────────────────────────────
   unreadCount = computed(() => {
     const msgs = this.store.gmailMessages();

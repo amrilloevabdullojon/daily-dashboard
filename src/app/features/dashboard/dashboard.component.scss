@@ -2,28 +2,89 @@
 @use '../../../styles/mixins' as *;
 @use '../../../styles/animations';
 
-// ── GREETING ─────────────────────────────────────────────────────
+// ── HEADER ────────────────────────────────────────────────────────
+.dash-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
 .greeting {
   font-family: 'Syne', sans-serif;
   font-size: 22px;
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.3px;
-  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.today-date {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  text-transform: capitalize;
+}
+
+// ── NEXT EVENT CALLOUT ────────────────────────────────────────────
+.next-event {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 16px;
+  min-width: 0;
+  max-width: 340px;
+  animation: cardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.next-event-label {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.next-event-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.next-event-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.next-event-title {
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.next-event-time {
+  font-size: 11px;
+  color: var(--muted2);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 // ── STAT LINKS ────────────────────────────────────────────────────
 .stat-link {
   text-decoration: none;
   display: block;
-  border-radius: 10px;
-  transition: transform 0.15s;
-
-  &:hover {
-    transform: translateY(-2px);
-  }
 }
 
+// ── CARD SHARED ───────────────────────────────────────────────────
 .card-header { @include card-header; }
 
 .card-title {
@@ -48,7 +109,7 @@
   &:hover { color: var(--accent2); }
 }
 
-// ── EMAIL ROWS ───────────────────────────────────────────────────
+// ── EMAIL ROWS ────────────────────────────────────────────────────
 .email-row {
   display: flex;
   align-items: center;
@@ -108,7 +169,7 @@
   white-space: nowrap;
 }
 
-// ── CALENDAR ─────────────────────────────────────────────────────
+// ── CALENDAR ──────────────────────────────────────────────────────
 .event-row {
   display: flex;
   align-items: center;
@@ -136,9 +197,9 @@
 
 .event-info { flex: 1; }
 .event-title { font-size: 12px; color: var(--text); }
-.event-meta { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.event-meta  { font-size: 10px; color: var(--muted); margin-top: 2px; }
 
-// ── JIRA ISSUES ──────────────────────────────────────────────────
+// ── JIRA ISSUES ───────────────────────────────────────────────────
 .issue-row {
   display: flex;
   align-items: center;
@@ -168,7 +229,7 @@
   text-overflow: ellipsis;
 }
 
-// ── TASKS ────────────────────────────────────────────────────────
+// ── TASKS ─────────────────────────────────────────────────────────
 .task-row {
   display: flex;
   align-items: center;

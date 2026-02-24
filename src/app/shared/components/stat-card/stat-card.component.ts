@@ -9,7 +9,12 @@ export type StatCardColor = 'blue' | 'green' | 'yellow' | 'purple';
   imports: [NgClass],
   template: `
     <div class="stat-card" [ngClass]="color">
-      <div class="stat-label">{{ label }}</div>
+      <div class="stat-top">
+        <div class="stat-label">{{ label }}</div>
+        @if (icon) {
+          <div class="stat-icon">{{ icon }}</div>
+        }
+      </div>
       <div class="stat-value" [ngClass]="color">{{ value }}</div>
       @if (sub) {
         <div class="stat-sub">{{ sub }}</div>
@@ -23,4 +28,5 @@ export class StatCardComponent {
   @Input({ required: true }) value!: string | number;
   @Input() color: StatCardColor = 'blue';
   @Input() sub?: string;
+  @Input() icon?: string;
 }
