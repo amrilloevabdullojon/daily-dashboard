@@ -20,6 +20,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       const isGoogleEndpoint = GOOGLE_API_PATHS.some(p => req.url.includes(p));
       if (error.status === 401 && isGoogleEndpoint) {
         store.setUser(null);
+        notif.showToast('Сессия истекла — войдите снова', '🔑', 5000);
         router.navigate(['/']);
       }
       // Network error (status 0 = offline / CORS / server unreachable)

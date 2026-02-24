@@ -1,6 +1,6 @@
 import { Injectable, inject, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { timer, switchMap, forkJoin } from 'rxjs';
+import { timer, switchMap, forkJoin, tap } from 'rxjs';
 import { GmailService } from './gmail.service';
 import { CalendarService } from './calendar.service';
 import { TasksService } from './tasks.service';
@@ -39,6 +39,7 @@ export class SyncService {
   /** Start auto-refresh timer (call once from AppComponent) */
   startAutoRefresh(): void {
     timer(0, AUTO_REFRESH_MS).pipe(
+      tap(() => this.store.setSyncing(true)),
       switchMap(() => forkJoin({
         emails: this.gmail.load(),
         events: this.calendar.load(),

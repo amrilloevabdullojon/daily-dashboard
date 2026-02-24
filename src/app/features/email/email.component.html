@@ -17,6 +17,9 @@
   </div>
 
   <div class="card-body">
+    @if (searchHint()) {
+      <div class="search-hint">{{ searchHint() }}</div>
+    }
     @if (emails() === null) {
       <app-skeleton-loader [count]="5" />
     } @else if (emails()!.length === 0) {

@@ -48,6 +48,7 @@
     <div class="section-title">
       <span class="section-icon">◉</span>
       Jira Integration
+      @if (jiraConfigured) { <span class="configured-badge">✓ Настроено</span> }
     </div>
     <div class="card">
       <div class="form-group">
@@ -56,7 +57,8 @@
           class="form-input"
           type="text"
           placeholder="your-company.atlassian.net"
-          [(ngModel)]="cfg.jiraDomain"
+          [value]="jiraDomain()"
+          (input)="jiraDomain.set($any($event.target).value)"
         />
         <span class="form-hint">Без https://, например: mycompany.atlassian.net</span>
       </div>
@@ -66,7 +68,8 @@
           class="form-input"
           type="email"
           placeholder="your@email.com"
-          [(ngModel)]="cfg.jiraEmail"
+          [value]="jiraEmail()"
+          (input)="jiraEmail.set($any($event.target).value)"
         />
       </div>
       <div class="form-group">
@@ -74,8 +77,9 @@
         <input
           class="form-input"
           type="password"
-          placeholder="Jira API token"
-          [(ngModel)]="cfg.jiraToken"
+          [placeholder]="jiraConfigured ? '••••••••  (оставьте пустым, чтобы не менять)' : 'Jira API token'"
+          [value]="jiraTokenNew()"
+          (input)="jiraTokenNew.set($any($event.target).value)"
         />
         <span class="form-hint">
           Получить: <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" rel="noopener">id.atlassian.com → API tokens</a>
@@ -87,7 +91,8 @@
           class="form-input"
           type="text"
           placeholder="MYPROJECT"
-          [(ngModel)]="cfg.jiraProjectKey"
+          [value]="jiraProjectKey()"
+          (input)="jiraProjectKey.set($any($event.target).value)"
         />
         <span class="form-hint">Ключ проекта для создания задач, например: MYPROJ</span>
       </div>
@@ -99,6 +104,7 @@
     <div class="section-title">
       <span class="section-icon">◈</span>
       Slack Integration
+      @if (slackConfigured) { <span class="configured-badge">✓ Настроено</span> }
     </div>
     <div class="card">
       <div class="form-group">
@@ -106,8 +112,9 @@
         <input
           class="form-input"
           type="password"
-          placeholder="xoxb-..."
-          [(ngModel)]="cfg.slackToken"
+          [placeholder]="slackConfigured ? '••••••••  (оставьте пустым, чтобы не менять)' : 'xoxb-...'"
+          [value]="slackTokenNew()"
+          (input)="slackTokenNew.set($any($event.target).value)"
         />
         <span class="form-hint">
           Получить: <a href="https://api.slack.com/apps" target="_blank" rel="noopener">api.slack.com → Your Apps → OAuth Tokens</a>

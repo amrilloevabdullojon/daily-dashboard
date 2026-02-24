@@ -3,11 +3,10 @@
 // Token is passed from frontend via x-slack-token header (same pattern as Jira)
 // Uses parallel fetch to stay well within Vercel's 10s serverless timeout
 
-import { formatRelativeTime, parseConfigCookie } from '../_utils.js';
+import { formatRelativeTime, parseConfigCookie, setCorsHeaders } from '../_utils.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  setCorsHeaders(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).end();
 

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, catchError, of } from 'rxjs';
+import { Observable, tap, catchError, of, map, retry } from 'rxjs';
 import { Email } from '../models';
 import { AppStore } from '../store/app.store';
 import { NotificationService } from './notification.service';
@@ -13,6 +13,7 @@ export class GmailService {
 
   load(): Observable<Email[]> {
     return this.http.get<Email[]>('/api/gmail/messages').pipe(
+      retry({ count: 2, delay: 1000 }),
       tap(msgs => this.store.setEmails(msgs)),
       catchError(() => {
         this.store.setEmails([]);
@@ -26,9 +27,9 @@ export class GmailService {
     this.store.markEmailRead(id);
     return this.http.post<void>('/api/gmail/markread', { messageId: id }).pipe(
       catchError(() => {
-        this.load().subscribe();
+        // Chain reload in the observable instead of calling subscribe() to avoid dangling subscriptions
         this.notif.showToast('Не удалось пометить как прочитанное', '✗');
-        return of(void 0);
+        return this.load().pipe(map(() => void 0 as void));
       })
     );
   }
@@ -38,9 +39,8 @@ export class GmailService {
     this.store.removeEmail(id);
     return this.http.post<void>('/api/gmail/archive', { messageId: id }).pipe(
       catchError(() => {
-        this.load().subscribe();
         this.notif.showToast('Не удалось архивировать письмо', '✗');
-        return of(void 0);
+        return this.load().pipe(map(() => void 0 as void));
       })
     );
   }

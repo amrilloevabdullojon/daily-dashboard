@@ -29,8 +29,14 @@ export class TasksComponent {
   createTask(): void {
     const title = this.newTaskTitle().trim();
     if (!title) return;
-    this.tasksSvc.create(title).subscribe();
+    // Clear input immediately for optimistic UX; restore if the API call failed
     this.newTaskTitle.set('');
+    this.tasksSvc.create(title).subscribe({
+      next: (task) => {
+        // If the returned task is still the temp placeholder, the API failed — restore the input
+        if (task.id.startsWith('temp-')) this.newTaskTitle.set(title);
+      },
+    });
   }
 
   onKeydown(event: KeyboardEvent): void {

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, catchError, of } from 'rxjs';
+import { Observable, tap, catchError, of, retry } from 'rxjs';
 import { CalEvent, FocusSlot } from '../models';
 import { AppStore } from '../store/app.store';
 
@@ -16,6 +16,7 @@ export class CalendarService {
       params['date'] = d.toISOString().split('T')[0];
     }
     return this.http.get<CalEvent[]>('/api/calendar/events', { params }).pipe(
+      retry({ count: 2, delay: 1000 }),
       tap(events => this.store.setCalEvents(events)),
       catchError(() => {
         this.store.setCalEvents([]);
@@ -32,6 +33,8 @@ export class CalendarService {
         start: this.toMinutes(e.start),
         end:   this.toMinutes(e.end),
       }))
+      // Skip events with unparseable dates or end before start (malformed API response)
+      .filter(e => !isNaN(e.start) && !isNaN(e.end) && e.end >= e.start)
       .sort((a, b) => a.start - b.start);
 
     const slots: FocusSlot[] = [];

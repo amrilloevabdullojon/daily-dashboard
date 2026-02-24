@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, catchError, of } from 'rxjs';
+import { Observable, tap, catchError, of, retry } from 'rxjs';
 import { Task } from '../models';
 import { AppStore } from '../store/app.store';
 import { NotificationService } from './notification.service';
@@ -13,6 +13,7 @@ export class TasksService {
 
   load(): Observable<Task[]> {
     return this.http.get<Task[]>('/api/tasks/list').pipe(
+      retry({ count: 2, delay: 1000 }),
       tap(tasks => this.store.setTasks(tasks)),
       catchError(() => {
         this.store.setTasks([]);

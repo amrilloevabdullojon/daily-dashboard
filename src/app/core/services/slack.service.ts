@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, catchError, of } from 'rxjs';
+import { Observable, tap, catchError, of, retry } from 'rxjs';
 import { SlackData, SlackError } from '../models';
 import { AppStore } from '../store/app.store';
 import { ConfigService } from './config.service';
@@ -19,6 +19,7 @@ export class SlackService {
     }
 
     return this.http.get<SlackData | SlackError>('/api/slack/messages', { withCredentials: true }).pipe(
+      retry({ count: 2, delay: 1000 }),
       tap(data => {
         if (!data || !(data as SlackData).ok) {
           this.store.setSlackData({ ok: false, error: (data as SlackError).error || 'unknown' } as SlackError);

@@ -1,15 +1,7 @@
 // api/auth/me.js
 // Returns current user info if authenticated. Refreshes the token if expired.
 
-function parseCookies(cookieHeader) {
-  const cookies = {};
-  if (!cookieHeader) return cookies;
-  cookieHeader.split(';').forEach(pair => {
-    const [k, ...v] = pair.trim().split('=');
-    cookies[k.trim()] = decodeURIComponent(v.join('='));
-  });
-  return cookies;
-}
+import { parseCookies } from '../_auth.js';
 
 export default async function handler(req, res) {
   const cookies = parseCookies(req.headers.cookie);

@@ -1,6 +1,9 @@
 // api/gmail/messages.js
 // Returns list of recent Gmail messages for the authenticated user
 
+import { getAccessToken } from '../_auth.js';
+import { setCorsHeaders }  from '../_utils.js';
+
 const AVATAR_COLORS = ['#3b82f6','#ef4444','#22c55e','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316'];
 
 function emailToColor(email) {
@@ -9,68 +12,13 @@ function emailToColor(email) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-async function refreshAccessToken(refreshToken) {
-  const res = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id:     process.env.GOOGLE_CLIENT_ID,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET,
-      refresh_token: refreshToken,
-      grant_type:    'refresh_token'
-    })
-  });
-  return res.json();
-}
-
-function parseCookies(cookieHeader) {
-  const cookies = {};
-  if (!cookieHeader) return cookies;
-  cookieHeader.split(';').forEach(pair => {
-    const [k, ...v] = pair.trim().split('=');
-    cookies[k.trim()] = decodeURIComponent(v.join('='));
-  });
-  return cookies;
-}
-
 export default async function handler(req, res) {
-  // CORS for local development
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
+  setCorsHeaders(req, res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // Parse auth cookie
-  const cookies = parseCookies(req.headers.cookie);
-  if (!cookies.gauth) {
+  const accessToken = await getAccessToken(req, res);
+  if (!accessToken) {
     return res.status(401).json({ error: 'Not authenticated', loginUrl: '/api/auth/google' });
-  }
-
-  let tokenData;
-  try {
-    tokenData = JSON.parse(Buffer.from(cookies.gauth, 'base64').toString('utf-8'));
-  } catch {
-    return res.status(401).json({ error: 'Invalid auth cookie', loginUrl: '/api/auth/google' });
-  }
-
-  let accessToken = tokenData.access_token;
-
-  // Refresh token if expired (5 min buffer)
-  if (Date.now() > tokenData.expires_at - 300_000) {
-    if (!tokenData.refresh_token) {
-      return res.status(401).json({ error: 'Token expired, please login again', loginUrl: '/api/auth/google' });
-    }
-    const refreshed = await refreshAccessToken(tokenData.refresh_token);
-    if (refreshed.error) {
-      return res.status(401).json({ error: 'Failed to refresh token', loginUrl: '/api/auth/google' });
-    }
-    accessToken = refreshed.access_token;
-
-    // Update cookie with new token
-    const newPayload = Buffer.from(JSON.stringify({
-      access_token:  refreshed.access_token,
-      refresh_token: tokenData.refresh_token,
-      expires_at:    Date.now() + refreshed.expires_in * 1000
-    })).toString('base64');
-    res.setHeader('Set-Cookie', `gauth=${newPayload}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=2592000`);
   }
 
   try {

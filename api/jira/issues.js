@@ -2,12 +2,10 @@
 // Proxies requests to Jira Cloud REST API v3
 // Credentials are read from the httpOnly drConfig cookie set by /api/config/save
 
-import { formatRelativeTime, parseConfigCookie } from '../_utils.js';
+import { formatRelativeTime, parseConfigCookie, setCorsHeaders } from '../_utils.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-
+  setCorsHeaders(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const cfg    = parseConfigCookie(req.headers.cookie);

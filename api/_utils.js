@@ -38,6 +38,26 @@ export function formatRelativeTime(input) {
  * @param {string|undefined} cookieHeader  The raw Cookie request header value
  * @returns {Record<string, string>}
  */
+/**
+ * Set CORS headers for API responses.
+ * Restricts allowed origins to ALLOWED_ORIGIN env var (production) or
+ * any localhost origin (development). Browsers block CORS from unknown origins.
+ * @param {import('http').IncomingMessage} req
+ * @param {import('http').ServerResponse}  res
+ */
+export function setCorsHeaders(req, res) {
+  const origin  = req.headers.origin || '';
+  const allowed = process.env.ALLOWED_ORIGIN || '';
+  const isAllowed = !origin
+    || (allowed && origin === allowed)
+    || (!allowed && origin.startsWith('http://localhost'));
+
+  res.setHeader('Access-Control-Allow-Origin',  isAllowed ? (origin || '*') : (allowed || 'null'));
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods',  'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers',  'Content-Type');
+}
+
 export function parseConfigCookie(cookieHeader) {
   if (!cookieHeader) return {};
   const match = cookieHeader.match(/drConfig=([^;]+)/);

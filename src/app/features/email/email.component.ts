@@ -41,6 +41,13 @@ export class EmailComponent {
     return Array.isArray(msgs) ? msgs.filter(m => m.unread).length : 0;
   });
 
+  searchHint = computed(() => {
+    const q = this.search();
+    if (!q) return null;
+    const count = this.emails()?.length ?? 0;
+    return count === 1 ? 'Найдено 1 письмо' : `Найдено ${count} писем`;
+  });
+
   setFilter(f: EmailFilter): void { this.filter.set(f); }
 
   onSearch(event: Event): void {
