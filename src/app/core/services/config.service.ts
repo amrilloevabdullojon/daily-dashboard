@@ -32,4 +32,16 @@ export class ConfigService {
   isSlackConfigured(): boolean {
     return !!this.get().slackToken;
   }
+
+  /**
+   * Called once on app startup. If localStorage already has Jira/Slack tokens
+   * (set before the httpOnly-cookie migration), push them to the server so the
+   * cookie exists before any API calls are made.
+   */
+  syncCookieFromStorage(): void {
+    const cfg = this.get();
+    if (cfg.jiraToken || cfg.slackToken) {
+      this.http.post('/api/config/save', cfg, { withCredentials: true }).subscribe();
+    }
+  }
 }

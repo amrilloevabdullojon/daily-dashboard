@@ -6,6 +6,7 @@ import { AuthService } from './core/services/auth.service';
 import { SyncService } from './core/services/sync.service';
 import { HotkeysService } from './core/services/hotkeys.service';
 import { NotificationService } from './core/services/notification.service';
+import { ConfigService } from './core/services/config.service';
 import { AppStore } from './core/store/app.store';
 import { NgClass, DatePipe } from '@angular/common';
 
@@ -102,6 +103,7 @@ export class App implements OnInit {
   private auth          = inject(AuthService);
   private sync          = inject(SyncService);
   private hotkeys       = inject(HotkeysService);
+  private config        = inject(ConfigService);
 
   ngOnInit(): void {
     // Restore theme
@@ -112,6 +114,9 @@ export class App implements OnInit {
 
     // Init hotkeys
     this.hotkeys.init();
+
+    // Migrate tokens from localStorage → httpOnly cookie (once per session)
+    this.config.syncCookieFromStorage();
 
     // Check auth, then always start auto-refresh
     // If not authorized - services will return empty arrays (handled by catchError)
