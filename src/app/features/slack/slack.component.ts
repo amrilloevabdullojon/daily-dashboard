@@ -2,6 +2,7 @@ import { Component, inject, computed, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { AppStore } from '../../core/store/app.store';
 import { SlackService } from '../../core/services/slack.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader/skeleton-loader.component';
 import { SmartTimePipe } from '../../shared/pipes/smart-time.pipe';
 import { ConfigService } from '../../core/services/config.service';
@@ -20,6 +21,7 @@ export class SlackComponent {
   protected store    = inject(AppStore);
   protected slackSvc = inject(SlackService);
   private config     = inject(ConfigService);
+  private notif      = inject(NotificationService);
 
   filter = signal<SlackFilter>('all');
   replyChannel = signal<string | null>(null);
@@ -57,7 +59,8 @@ export class SlackComponent {
     const text = this.messageText().trim();
     if (!channel || !text) return;
     this.slackSvc.sendMessage(channel, text).subscribe({
-      next: () => this.messageText.set(''),
+      next:  () => this.messageText.set(''),
+      error: () => this.notif.showToast('Не удалось отправить сообщение', '✗'),
     });
   }
 

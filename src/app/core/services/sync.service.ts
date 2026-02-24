@@ -32,7 +32,7 @@ export class SyncService {
       slack:  this.slack.load(),
     }).subscribe({
       next:  () => this.store.setSynced(),
-      error: () => this.store.setSynced(),
+      error: () => this.store.setSyncing(false),
     });
   }
 
@@ -49,7 +49,7 @@ export class SyncService {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next:  () => this.store.setSynced(),
-      error: () => this.store.setSynced(),
+      error: () => this.store.setSyncing(false),
     });
   }
 }

@@ -96,10 +96,10 @@ export default async function handler(req, res) {
       for (const msg of msgs) {
         if (!msg.text || msg.bot_id || msg.subtype) continue;
         dms.push({
-          id:        msg.ts,
-          channelId: ch.id,
-          channel:   userInfo.name,
-          type:      'dm',
+          id:          msg.ts,
+          channelId:   ch.id,
+          channelName: userInfo.name,
+          type:        'dm',
           text:      cleanSlackText(msg.text),
           ts:        msg.ts,
           time:      slackTime(msg.ts),
@@ -119,10 +119,10 @@ export default async function handler(req, res) {
         if (!msg.text || msg.bot_id || msg.subtype) continue;
         const senderInfo = userCache[msg.user] || { name: msg.user || 'Unknown', avatar: '' };
         const item = {
-          id:        msg.ts,
-          channelId: ch.id,
-          channel:   '#' + (ch.name || ch.id),
-          type:      'channel',
+          id:          msg.ts,
+          channelId:   ch.id,
+          channelName: '#' + (ch.name || ch.id),
+          type:        'channel',
           text:      cleanSlackText(msg.text),
           ts:        msg.ts,
           time:      slackTime(msg.ts),

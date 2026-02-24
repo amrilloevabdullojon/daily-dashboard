@@ -19,6 +19,7 @@ export class NotificationService {
   meetingAlert = signal<MeetingAlert | null>(null);
 
   private notifiedEvents = new Set<string>();
+  private notifiedDate   = '';
 
   showToast(message: string, icon = '✓', durationMs = 3000): void {
     const id = ++this.toastCounter;
@@ -49,6 +50,11 @@ export class NotificationService {
 
   checkUpcomingMeetings(events: CalEvent[]): void {
     const now = new Date();
+    const today = now.toDateString();
+    if (this.notifiedDate !== today) {
+      this.notifiedEvents.clear();
+      this.notifiedDate = today;
+    }
     for (const ev of events) {
       if (ev.allDay) continue;
       const start = new Date(ev.start);

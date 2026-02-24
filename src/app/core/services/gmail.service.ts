@@ -3,11 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of } from 'rxjs';
 import { Email } from '../models';
 import { AppStore } from '../store/app.store';
+import { NotificationService } from './notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class GmailService {
-  private http = inject(HttpClient);
+  private http  = inject(HttpClient);
   private store = inject(AppStore);
+  private notif = inject(NotificationService);
 
   load(): Observable<Email[]> {
     return this.http.get<Email[]>('/api/gmail/messages').pipe(
@@ -24,8 +26,8 @@ export class GmailService {
     this.store.markEmailRead(id);
     return this.http.post<void>('/api/gmail/markread', { messageId: id }).pipe(
       catchError(() => {
-        // Revert on failure — reload data
         this.load().subscribe();
+        this.notif.showToast('Не удалось пометить как прочитанное', '✗');
         return of(void 0);
       })
     );
@@ -37,6 +39,7 @@ export class GmailService {
     return this.http.post<void>('/api/gmail/archive', { messageId: id }).pipe(
       catchError(() => {
         this.load().subscribe();
+        this.notif.showToast('Не удалось архивировать письмо', '✗');
         return of(void 0);
       })
     );

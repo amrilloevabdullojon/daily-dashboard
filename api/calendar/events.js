@@ -13,7 +13,10 @@ export default async function handler(req, res) {
 
   try {
     // Time range: use requested date or today
-    const base    = req.query.date ? new Date(req.query.date) : new Date();
+    const base = req.query.date ? new Date(req.query.date) : new Date();
+    if (isNaN(base.getTime())) {
+      return res.status(400).json({ error: 'Invalid date parameter' });
+    }
     const timeMin = new Date(base.getFullYear(), base.getMonth(), base.getDate(),  0,  0,  0).toISOString();
     const timeMax = new Date(base.getFullYear(), base.getMonth(), base.getDate(), 23, 59, 59).toISOString();
 

@@ -2,6 +2,7 @@ import { Component, inject, computed, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { AppStore } from '../../core/store/app.store';
 import { TasksService } from '../../core/services/tasks.service';
+import { Task } from '../../core/models';
 import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader/skeleton-loader.component';
 import { SmartTimePipe } from '../../shared/pipes/smart-time.pipe';
 
@@ -23,7 +24,7 @@ export class TasksComponent {
   total = computed(() => { const t = this.tasks(); return Array.isArray(t) ? t.length : 0; });
   progress = computed(() => this.total() > 0 ? Math.round((this.done() / this.total()) * 100) : 0);
 
-  toggle(task: any): void { this.tasksSvc.toggle(task).subscribe(); }
+  toggle(task: Task): void { this.tasksSvc.toggle(task).subscribe(); }
 
   createTask(): void {
     const title = this.newTaskTitle().trim();

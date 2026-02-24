@@ -3,11 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of } from 'rxjs';
 import { Task } from '../models';
 import { AppStore } from '../store/app.store';
+import { NotificationService } from './notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class TasksService {
-  private http = inject(HttpClient);
+  private http  = inject(HttpClient);
   private store = inject(AppStore);
+  private notif = inject(NotificationService);
 
   load(): Observable<Task[]> {
     return this.http.get<Task[]>('/api/tasks/list').pipe(
@@ -28,8 +30,8 @@ export class TasksService {
       status: task.done ? 'needsAction' : 'completed',
     }).pipe(
       catchError(() => {
-        // Revert on failure
         this.store.toggleTaskOptimistic(task.id);
+        this.notif.showToast('Не удалось изменить задачу', '✗');
         return of(void 0);
       })
     );
@@ -38,7 +40,7 @@ export class TasksService {
   create(title: string): Observable<Task> {
     // Optimistic add
     const tempTask: Task = {
-      id: `temp-${Date.now()}`,
+      id: `temp-${crypto.randomUUID()}`,
       listId: '',
       title,
       done: false,
@@ -54,11 +56,11 @@ export class TasksService {
         this.store.setTasks(updated);
       }),
       catchError(() => {
-        // Remove temp task on failure
         const tasks = this.store.realTasks();
         if (Array.isArray(tasks)) {
           this.store.setTasks(tasks.filter(t => t.id !== tempTask.id));
         }
+        this.notif.showToast('Не удалось создать задачу', '✗');
         return of(tempTask);
       })
     );
