@@ -12,7 +12,7 @@
 
   <div class="create-row">
     <input class="create-input" placeholder="Новая задача..." [value]="newTaskTitle()" (input)="onInput($event)" (keydown)="onKeydown($event)" />
-    <button class="create-btn" (click)="createTask()">＋</button>
+    <button class="create-btn" (click)="createTask()" aria-label="Добавить задачу">＋</button>
   </div>
 
   <div class="card-body">
@@ -23,7 +23,7 @@
     } @else {
       @for (task of tasks(); track task.id) {
         <div class="task-row" [class.done]="task.done">
-          <div class="task-check" [class.done]="task.done" (click)="toggle(task)"></div>
+          <div class="task-check" [class.done]="task.done" (click)="toggle(task)" role="checkbox" [attr.aria-checked]="task.done" [attr.aria-label]="'Отметить: ' + task.title" tabindex="0"></div>
           <div class="task-text" [class.done]="task.done">{{ task.title }}</div>
           @if (task.due) {
             <div class="task-due" [class.overdue]="isOverdue(task.due)" [class.soon]="isDueSoon(task.due)">

@@ -74,7 +74,7 @@ export default async function handler(req, res) {
   let msg = `📊 *Дневной отчёт* — ${dateStr}\n\n`;
 
   // Calendar
-  const events = calData.value?.items || [];
+  const events = calData.status === 'fulfilled' ? (calData.value?.items || []) : [];
   if (events.length > 0) {
     msg += `📅 *Встречи сегодня* (${events.length})\n`;
     events.forEach(ev => {
@@ -89,7 +89,8 @@ export default async function handler(req, res) {
   }
 
   // Tasks
-  const tasks = Array.isArray(tasksData.value) ? tasksData.value : [];
+  const rawTasks = tasksData.status === 'fulfilled' ? tasksData.value : [];
+  const tasks = Array.isArray(rawTasks) ? rawTasks : [];
   const pending  = tasks.filter(t => t.status !== 'completed');
   const done     = tasks.filter(t => t.status === 'completed');
   if (tasks.length > 0) {
@@ -103,7 +104,7 @@ export default async function handler(req, res) {
   }
 
   // Jira
-  const jiraIssues = jiraData.value?.issues || [];
+  const jiraIssues = jiraData.status === 'fulfilled' ? (jiraData.value?.issues || []) : [];
   if (jiraIssues.length > 0) {
     msg += `🔧 *Jira задачи* (${jiraIssues.length})\n`;
     jiraIssues.slice(0,5).forEach(issue => {
@@ -117,7 +118,7 @@ export default async function handler(req, res) {
   }
 
   // Gmail
-  const unreadCount = gmailData.value?.resultSizeEstimate || 0;
+  const unreadCount = gmailData.status === 'fulfilled' ? (gmailData.value?.resultSizeEstimate || 0) : 0;
   if (unreadCount > 0) {
     msg += `📬 *Gmail:* ${unreadCount} непрочитанных\n\n`;
   }

@@ -21,11 +21,8 @@ export default async function handler(req, res) {
   const redirectUri = `${proto}://${host}/api/auth/callback`;
 
   if (!clientId || !clientSecret) {
-    return res.status(500).json({
-      error: 'Missing env vars',
-      has_client_id: !!clientId,
-      has_client_secret: !!clientSecret
-    });
+    console.error('OAuth misconfiguration: GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not set');
+    return res.status(500).json({ error: 'Server configuration error' });
   }
 
   try {
@@ -45,12 +42,8 @@ export default async function handler(req, res) {
     const tokens = await tokenRes.json();
 
     if (tokens.error) {
-      // Return debug info to help diagnose
-      return res.status(400).json({
-        error:        tokens.error,
-        description:  tokens.error_description,
-        redirect_uri_used: redirectUri
-      });
+      console.error('OAuth token exchange failed:', tokens.error, tokens.error_description, 'redirect_uri:', redirectUri);
+      return res.status(400).json({ error: 'Authentication failed' });
     }
 
     // Store tokens in a secure httpOnly cookie (base64 encoded)

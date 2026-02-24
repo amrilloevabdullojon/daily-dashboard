@@ -9,15 +9,24 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { jiraDomain, jiraEmail, jiraToken, jiraProjectKey, slackToken } = req.body || {};
+  const body = req.body || {};
+  const { jiraDomain, jiraEmail, jiraToken, jiraProjectKey, slackToken } = body;
+
+  // Validate that all provided fields are strings (reject arrays, objects, etc.)
+  const stringFields = { jiraDomain, jiraEmail, jiraToken, jiraProjectKey, slackToken };
+  for (const [key, val] of Object.entries(stringFields)) {
+    if (val !== undefined && (typeof val !== 'string' || val.length > 1000)) {
+      return res.status(400).json({ error: `Invalid field: ${key}` });
+    }
+  }
 
   // Build a minimal object — only store the fields we actually need server-side
   const cfg = {};
-  if (jiraDomain)     cfg.jiraDomain     = String(jiraDomain).replace(/^https?:\/\//, '').replace(/\/$/, '');
-  if (jiraEmail)      cfg.jiraEmail      = String(jiraEmail);
-  if (jiraToken)      cfg.jiraToken      = String(jiraToken);
-  if (jiraProjectKey) cfg.jiraProjectKey = String(jiraProjectKey);
-  if (slackToken)     cfg.slackToken     = String(slackToken);
+  if (jiraDomain?.trim())     cfg.jiraDomain     = jiraDomain.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
+  if (jiraEmail?.trim())      cfg.jiraEmail      = jiraEmail.trim();
+  if (jiraToken?.trim())      cfg.jiraToken      = jiraToken.trim();
+  if (jiraProjectKey?.trim()) cfg.jiraProjectKey = jiraProjectKey.trim();
+  if (slackToken?.trim())     cfg.slackToken     = slackToken.trim();
 
   const encoded = encodeURIComponent(Buffer.from(JSON.stringify(cfg)).toString('base64'));
   // httpOnly: JS cannot read it; SameSite=Strict: no cross-site leakage

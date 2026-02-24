@@ -22,6 +22,7 @@ export class SyncService {
 
   /** Single sync of all data sources in parallel */
   syncAll() {
+    if (this.store.syncing()) return; // skip if auto-refresh already in flight
     this.store.setSyncing(true);
 
     forkJoin({

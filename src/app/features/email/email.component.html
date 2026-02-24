@@ -45,9 +45,9 @@
             <div class="email-time">{{ email.date | smartTime }}</div>
             <div class="email-actions">
               @if (email.unread) {
-                <button class="action-btn" (click)="markRead(email.id, $event)" title="Отметить прочитанным">✓</button>
+                <button class="action-btn" (click)="markRead(email.id, $event)" title="Отметить прочитанным" aria-label="Отметить прочитанным">✓</button>
               }
-              <button class="action-btn" (click)="archive(email.id, $event)" title="Архивировать">📥</button>
+              <button class="action-btn" (click)="archive(email.id, $event)" title="Архивировать" aria-label="Архивировать">📥</button>
             </div>
           </div>
         </div>

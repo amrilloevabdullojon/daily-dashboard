@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing taskId or status' });
   }
 
-  // If no listId — find task across all lists
+  // If no listId — find task across all lists (parallel fetch)
   async function findListForTask(token, tid) {
     const listsRes  = await fetch(
       'https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=20',
@@ -29,17 +29,21 @@ export default async function handler(req, res) {
     const listsData = await listsRes.json();
     const lists     = listsData.items || [];
 
-    for (const list of lists) {
-      const tasksRes  = await fetch(
-        `https://tasks.googleapis.com/tasks/v1/lists/${list.id}/tasks?showHidden=true&maxResults=100`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const tasksData = await tasksRes.json();
-      if ((tasksData.items || []).some(t => t.id === tid)) {
-        return list.id;
-      }
-    }
-    return null;
+    const checks = await Promise.all(
+      lists.map(async list => {
+        try {
+          const tasksRes  = await fetch(
+            `https://tasks.googleapis.com/tasks/v1/lists/${list.id}/tasks?showHidden=true&maxResults=100`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          const tasksData = await tasksRes.json();
+          return (tasksData.items || []).some(t => t.id === tid) ? list.id : null;
+        } catch {
+          return null;
+        }
+      })
+    );
+    return checks.find(id => id !== null) ?? null;
   }
 
   try {

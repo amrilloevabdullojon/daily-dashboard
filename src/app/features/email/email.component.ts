@@ -2,6 +2,7 @@ import { Component, inject, computed, signal } from '@angular/core';
 import { NgClass, NgFor, NgIf } from '@angular/common';
 import { AppStore } from '../../core/store/app.store';
 import { GmailService } from '../../core/services/gmail.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader/skeleton-loader.component';
 import { SmartTimePipe } from '../../shared/pipes/smart-time.pipe';
 
@@ -17,6 +18,7 @@ type EmailFilter = 'all' | 'unread' | 'starred';
 export class EmailComponent {
   protected store    = inject(AppStore);
   protected gmailSvc = inject(GmailService);
+  private notif      = inject(NotificationService);
 
   filter = signal<EmailFilter>('all');
   search = signal('');
@@ -56,12 +58,16 @@ export class EmailComponent {
 
   markRead(id: string, event: MouseEvent): void {
     event.stopPropagation();
-    this.gmailSvc.markRead(id).subscribe();
+    this.gmailSvc.markRead(id).subscribe({
+      error: () => this.notif.showToast('Не удалось отметить письмо прочитанным', '✗'),
+    });
   }
 
   archive(id: string, event: MouseEvent): void {
     event.stopPropagation();
-    this.gmailSvc.archive(id).subscribe();
+    this.gmailSvc.archive(id).subscribe({
+      error: () => this.notif.showToast('Не удалось архивировать письмо', '✗'),
+    });
   }
 
   getInitial(from: string): string {

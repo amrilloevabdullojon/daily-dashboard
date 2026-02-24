@@ -34,8 +34,10 @@ export class AuthService {
   }
 
   logout(): void {
-    // Clear cookie by calling logout endpoint
-    fetch('/api/auth/logout', { method: 'POST' }).then(() => {
+    // Clear cookie by calling logout endpoint — use HttpClient so errors aren't silent
+    this.http.post('/api/auth/logout', {}).pipe(
+      catchError(() => of(null))
+    ).subscribe(() => {
       this.store.setUser(null);
       window.location.reload();
     });

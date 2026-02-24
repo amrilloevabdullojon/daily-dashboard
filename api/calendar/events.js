@@ -2,9 +2,26 @@
 // Returns today's Google Calendar events
 
 import { getAccessToken } from '../_auth.js';
+import { setCorsHeaders } from '../_utils.js';
+
+// Google Calendar color IDs → hex
+const GOOGLE_COLORS = {
+  '1':  '#7986cb', // Lavender
+  '2':  '#33b679', // Sage
+  '3':  '#8e24aa', // Grape
+  '4':  '#e67c73', // Flamingo
+  '5':  '#f6bf26', // Banana
+  '6':  '#f4511e', // Tangerine
+  '7':  '#039be5', // Peacock
+  '8':  '#616161', // Graphite
+  '9':  '#3f51b5', // Blueberry
+  '10': '#0b8043', // Basil
+  '11': '#d50000', // Tomato
+};
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  setCorsHeaders(req, res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
   const accessToken = await getAccessToken(req, res);
   if (!accessToken) {
@@ -65,18 +82,3 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Failed to fetch calendar events' });
   }
 }
-
-// Google Calendar color IDs → hex
-const GOOGLE_COLORS = {
-  '1':  '#7986cb', // Lavender
-  '2':  '#33b679', // Sage
-  '3':  '#8e24aa', // Grape
-  '4':  '#e67c73', // Flamingo
-  '5':  '#f6bf26', // Banana
-  '6':  '#f4511e', // Tangerine
-  '7':  '#039be5', // Peacock
-  '8':  '#616161', // Graphite
-  '9':  '#3f51b5', // Blueberry
-  '10': '#0b8043', // Basil
-  '11': '#d50000', // Tomato
-};

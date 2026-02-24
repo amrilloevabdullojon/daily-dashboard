@@ -94,7 +94,8 @@ export default async function handler(req, res) {
     // 7. Build DMs list
     const dms = [];
     for (const { ch, msgs } of dmHistories) {
-      const userInfo = await resolveUser(ch.user);
+      // userCache is already populated from step 6 — no extra fetch needed
+      const userInfo = userCache[ch.user] || { name: ch.user || 'Unknown', avatar: '' };
       for (const msg of msgs) {
         if (!msg.text || msg.bot_id || msg.subtype) continue;
         dms.push({

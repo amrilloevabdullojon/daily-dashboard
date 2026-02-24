@@ -34,7 +34,8 @@ export default async function handler(req, res) {
     }
 
     // Fetch each message in parallel (metadata only — fast)
-    const messages = await Promise.all(
+    // Use allSettled so one inaccessible message doesn't block the entire inbox
+    const results = await Promise.allSettled(
       listData.messages.map(async ({ id }) => {
         const msgRes = await fetch(
           `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
@@ -66,6 +67,10 @@ export default async function handler(req, res) {
         };
       })
     );
+
+    const messages = results
+      .filter(r => r.status === 'fulfilled')
+      .map(r => r.value);
 
     res.json(messages);
   } catch (err) {

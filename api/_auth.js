@@ -26,16 +26,24 @@ export async function getAccessToken(req, res) {
   if (Date.now() > tokenData.expires_at - 300_000) {
     if (!tokenData.refresh_token) return null;
 
-    const refreshRes = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id:     process.env.GOOGLE_CLIENT_ID,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        refresh_token: tokenData.refresh_token,
-        grant_type:    'refresh_token'
-      })
-    });
+    const refreshController = new AbortController();
+    const refreshTimeout = setTimeout(() => refreshController.abort(), 5000);
+    let refreshRes;
+    try {
+      refreshRes = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id:     process.env.GOOGLE_CLIENT_ID,
+          client_secret: process.env.GOOGLE_CLIENT_SECRET,
+          refresh_token: tokenData.refresh_token,
+          grant_type:    'refresh_token'
+        }),
+        signal: refreshController.signal
+      });
+    } finally {
+      clearTimeout(refreshTimeout);
+    }
     const refreshed = await refreshRes.json();
     if (refreshed.error) return null;
 

@@ -1,4 +1,5 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgClass } from '@angular/common';
 import { AppStore } from '../../core/store/app.store';
 import { JiraService } from '../../core/services/jira.service';
@@ -23,6 +24,7 @@ export class JiraComponent {
   protected jiraSvc  = inject(JiraService);
   protected notif    = inject(NotificationService);
   private config     = inject(ConfigService);
+  private destroyRef = inject(DestroyRef);
 
   tab = signal<JiraTab>('all');
   showCreate = signal(false);
@@ -68,7 +70,7 @@ export class JiraComponent {
         this.showCreate.set(false);
         this.createSummary.set('');
         this.creating.set(false);
-        this.jiraSvc.load().subscribe();
+        this.jiraSvc.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
       },
       error: () => {
         this.notif.showToast('Ошибка создания задачи');
