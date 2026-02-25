@@ -205,6 +205,17 @@
           }
         }
       </div>
+      @if (sheetsConfigured() && previewSheetTasks()?.length) {
+        <div class="sheets-divider">
+          <span class="sheets-label">Sheets</span>
+        </div>
+        @for (task of previewSheetTasks()!; track task.id) {
+          <div class="task-row">
+            <div class="task-check" [class.done]="task.done"></div>
+            <div class="task-text" [class.done]="task.done">{{ task.title }}</div>
+          </div>
+        }
+      }
     </div>
 
   </div>

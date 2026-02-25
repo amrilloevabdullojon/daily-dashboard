@@ -10,6 +10,7 @@ import { SmartTimePipe } from '../../shared/pipes/smart-time.pipe';
 import { StatusTypePipe } from '../../shared/pipes/status-label.pipe';
 import { FmtDurPipe } from '../../shared/pipes/fmt-dur.pipe';
 import { JiraService } from '../../core/services/jira.service';
+import { SheetsService } from '../../core/services/sheets.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -23,9 +24,10 @@ import { JiraService } from '../../core/services/jira.service';
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent {
-  protected store   = inject(AppStore);
-  protected calSvc  = inject(CalendarService);
-  protected jiraSvc = inject(JiraService);
+  protected store     = inject(AppStore);
+  protected calSvc    = inject(CalendarService);
+  protected jiraSvc   = inject(JiraService);
+  protected sheetsSvc = inject(SheetsService);
 
   constructor() {
     // Reload calendar whenever the selected date changes
@@ -91,7 +93,11 @@ export class DashboardComponent {
 
   activeTasks = computed(() => {
     const tasks = this.store.realTasks();
-    return Array.isArray(tasks) ? tasks.filter(t => !t.done).length : null;
+    if (!Array.isArray(tasks)) return null;
+    const gtCount = tasks.filter(t => !t.done).length;
+    const sheetList = this.store.sheetTasks();
+    const stCount = Array.isArray(sheetList) ? sheetList.filter(t => !t.done).length : 0;
+    return gtCount + stCount;
   });
 
   activeJira = computed(() => {
@@ -144,6 +150,12 @@ export class DashboardComponent {
   previewTasks = computed(() => {
     const tasks = this.store.realTasks();
     return Array.isArray(tasks) ? tasks.filter(t => !t.done).slice(0, 5) : null;
+  });
+
+  sheetsConfigured  = computed(() => this.sheetsSvc.isConfigured());
+  previewSheetTasks = computed(() => {
+    const tasks = this.store.sheetTasks();
+    return Array.isArray(tasks) ? tasks.filter(t => !t.done).slice(0, 3) : null;
   });
 
   // ── HELPERS ───────────────────────────────────────────────────
