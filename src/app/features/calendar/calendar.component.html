@@ -2,26 +2,52 @@
   @if (events() === null) {
     <div class="card"><app-skeleton-loader [count]="5" /></div>
   } @else {
+
+    <!-- All-day events -->
+    @if (allDayEvents().length > 0) {
+      <div class="allday-section">
+        <span class="allday-label">Весь день</span>
+        @for (ev of allDayEvents(); track ev.id) {
+          <div class="allday-chip"
+               [style.background]="getColor(ev) + '20'"
+               [style.color]="getColor(ev)"
+               [style.border-color]="getColor(ev) + '40'">
+            {{ ev.title }}
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Focus / busy banner -->
     @if (focusSlots().length > 0) {
       <div class="focus-banner">
         <span class="focus-icon">🧠</span>
-        <span>Фокус-время сегодня: <strong>{{ totalFocus() | fmtDur }}</strong></span>
+        <span>Фокус-время: <strong>{{ totalFocus() | fmtDur }}</strong></span>
         <div class="focus-slots">
           @for (slot of focusSlots(); track slot.start) {
             <span class="focus-slot">{{ calSvc.formatTime(slot.start) }}–{{ calSvc.formatTime(slot.end) }}</span>
           }
         </div>
+        @if (minutesUntilNext() !== null) {
+          <span class="countdown">До следующей: {{ minutesUntilNext() }} мин</span>
+        }
       </div>
     } @else if ((regularEvents() || []).length > 0) {
       <div class="focus-banner focus-banner--busy">
         <span class="focus-icon">📅</span>
         <span>День полностью занят встречами — свободного времени нет</span>
+        @if (minutesUntilNext() !== null) {
+          <span class="countdown">До следующей: {{ minutesUntilNext() }} мин</span>
+        }
       </div>
     }
 
     <div class="card">
       <div class="card-header">
-        <div class="card-title"><div class="dot" style="background: var(--green)"></div>Сегодня</div>
+        <div class="card-title">
+          <div class="dot" style="background: var(--green)"></div>
+          {{ todayLabel() }}
+        </div>
         <div class="card-count">{{ (regularEvents() || []).length }} событий</div>
       </div>
       <div class="card-body">
@@ -29,7 +55,7 @@
           <div class="empty">Нет событий на сегодня 🎉</div>
         } @else {
           @for (ev of regularEvents(); track ev.id) {
-            <div class="event-row">
+            <div class="event-row" [ngClass]="'status-' + eventStatus(ev)">
               <div class="event-time">{{ formatRange(ev.start, ev.end) }}</div>
               <div class="event-bar" [style.background]="getColor(ev)"></div>
               <div class="event-info">
@@ -39,6 +65,11 @@
                   @if (ev.attendeesCount) { · {{ ev.attendeesCount }} участников }
                   @if (ev.location) { · 📍 {{ ev.location }} }
                 </div>
+              </div>
+              <div class="status-badge" [ngClass]="'badge-' + eventStatus(ev)">
+                @if (eventStatus(ev) === 'live') { Сейчас }
+                @else if (eventStatus(ev) === 'upcoming') { Скоро }
+                @else { Завершено }
               </div>
               @if (ev.hangoutLink) {
                 <a [href]="ev.hangoutLink" target="_blank" class="meet-btn">Meet →</a>
