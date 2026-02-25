@@ -2,14 +2,19 @@
 // Sends a daily digest report to Telegram
 
 import { getAccessToken } from '../_auth.js';
+import { setCorsHeaders, parseConfigCookie } from '../_utils.js';
 
 export default async function handler(req, res) {
+  setCorsHeaders(req, res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { tgToken, tgChatId, jiraDomain, jiraEmail, jiraToken } = req.body || {};
+  // Read credentials from the httpOnly cookie (set by /api/config/save)
+  const cfg = parseConfigCookie(req.headers.cookie);
+  const { tgToken, tgChatId, jiraDomain, jiraEmail, jiraToken } = cfg;
 
   if (!tgToken || !tgChatId) {
-    return res.status(400).json({ error: 'Missing Telegram credentials' });
+    return res.status(400).json({ error: 'Missing Telegram credentials — configure them in Settings' });
   }
 
   const accessToken = await getAccessToken(req, res);

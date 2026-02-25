@@ -5,6 +5,8 @@ import {
   JiraIssue, SlackData, SlackError, LoadingState
 } from '../models';
 
+export type DataKey = 'gmail' | 'calendar' | 'tasks' | 'sheets' | 'jira' | 'slack';
+
 export interface AppState {
   currentUser: User | null;
   gmailMessages: LoadingState<Email[]>;
@@ -13,6 +15,7 @@ export interface AppState {
   sheetTasks: LoadingState<Task[]>;
   jiraIssues: LoadingState<JiraIssue[]>;
   slackData: LoadingState<SlackData | SlackError | {}>;
+  dataErrors: Partial<Record<DataKey, string>>;
   currentDate: Date;
   isLight: boolean;
   lastSync: Date | null;
@@ -27,6 +30,7 @@ const initialState: AppState = {
   sheetTasks:    null,
   jiraIssues:    null,
   slackData:     null,
+  dataErrors:    {},
   currentDate:   new Date(),
   isLight:       false,
   lastSync:      null,
@@ -125,6 +129,16 @@ export const AppStore = signalStore(
       });
     },
 
+    // ── ERROR TRACKING ────────────────────────────────────────────
+    setDataError(key: DataKey, msg: string) {
+      patchState(store, { dataErrors: { ...store.dataErrors(), [key]: msg } });
+    },
+    clearDataError(key: DataKey) {
+      const errs = { ...store.dataErrors() };
+      delete errs[key];
+      patchState(store, { dataErrors: errs });
+    },
+
     // ── OPTIMISTIC TASK UPDATES ───────────────────────────────────
     toggleTaskOptimistic(taskId: string) {
       const tasks = store.realTasks();
@@ -137,6 +151,16 @@ export const AppStore = signalStore(
       const tasks = store.realTasks();
       if (!Array.isArray(tasks)) return;
       patchState(store, { realTasks: [task, ...tasks] });
+    },
+    removeTask(taskId: string) {
+      const tasks = store.realTasks();
+      if (!Array.isArray(tasks)) return;
+      patchState(store, { realTasks: tasks.filter(t => t.id !== taskId) });
+    },
+    removeSheetTask(taskId: string) {
+      const tasks = store.sheetTasks();
+      if (!Array.isArray(tasks)) return;
+      patchState(store, { sheetTasks: tasks.filter(t => t.id !== taskId) });
     },
 
     // ── DATE NAV ──────────────────────────────────────────────────

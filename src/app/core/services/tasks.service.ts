@@ -14,9 +14,10 @@ export class TasksService {
   load(): Observable<Task[]> {
     return this.http.get<Task[]>('/api/tasks/list').pipe(
       retry({ count: 2, delay: 1000 }),
-      tap(tasks => this.store.setTasks(tasks)),
+      tap(tasks => { this.store.setTasks(tasks); this.store.clearDataError('tasks'); }),
       catchError(() => {
         this.store.setTasks([]);
+        this.store.setDataError('tasks', 'Не удалось загрузить задачи');
         return of([]);
       })
     );
@@ -38,17 +39,18 @@ export class TasksService {
     );
   }
 
-  create(title: string): Observable<Task> {
+  create(title: string, due?: string): Observable<Task> {
     // Optimistic add
     const tempTask: Task = {
       id: `temp-${crypto.randomUUID()}`,
       listId: '',
       title,
       done: false,
+      due: due || '',
     };
     this.store.addTask(tempTask);
 
-    return this.http.post<Task>('/api/tasks/create', { title }).pipe(
+    return this.http.post<Task>('/api/tasks/create', { title, due }).pipe(
       tap(created => {
         // Replace temp task with real one
         const tasks = this.store.realTasks();
@@ -63,6 +65,17 @@ export class TasksService {
         }
         this.notif.showToast('Не удалось создать задачу', '✗');
         return of(tempTask);
+      })
+    );
+  }
+
+  delete(task: Task): Observable<void> {
+    this.store.removeTask(task.id);
+    return this.http.post<void>('/api/tasks/delete', { taskId: task.id, listId: task.listId }).pipe(
+      catchError(() => {
+        this.store.addTask(task);
+        this.notif.showToast('Не удалось удалить задачу', '✗');
+        return of(void 0);
       })
     );
   }

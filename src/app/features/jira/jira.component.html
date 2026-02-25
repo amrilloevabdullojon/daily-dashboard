@@ -19,12 +19,12 @@
     </div>
   }
 
-  <div class="tabs">
-    <div class="tab" [class.active]="tab() === 'all'" (click)="setTab('all')">Все ({{ tabCounts().all || 0 }})</div>
-    <div class="tab" [class.active]="tab() === 'in_progress'" (click)="setTab('in_progress')">В работе</div>
-    <div class="tab" [class.active]="tab() === 'review'" (click)="setTab('review')">Ревью</div>
-    <div class="tab" [class.active]="tab() === 'todo'" (click)="setTab('todo')">Бэклог</div>
-    <div class="tab" [class.active]="tab() === 'done'" (click)="setTab('done')">Готово</div>
+  <div class="tabs" role="tablist">
+    <div class="tab" role="tab" tabindex="0" [class.active]="tab() === 'all'" [attr.aria-selected]="tab() === 'all'" (click)="setTab('all')" (keydown.enter)="setTab('all')" (keydown.space)="setTab('all')">Все ({{ tabCounts().all || 0 }})</div>
+    <div class="tab" role="tab" tabindex="0" [class.active]="tab() === 'in_progress'" [attr.aria-selected]="tab() === 'in_progress'" (click)="setTab('in_progress')" (keydown.enter)="setTab('in_progress')" (keydown.space)="setTab('in_progress')">В работе</div>
+    <div class="tab" role="tab" tabindex="0" [class.active]="tab() === 'review'" [attr.aria-selected]="tab() === 'review'" (click)="setTab('review')" (keydown.enter)="setTab('review')" (keydown.space)="setTab('review')">Ревью</div>
+    <div class="tab" role="tab" tabindex="0" [class.active]="tab() === 'todo'" [attr.aria-selected]="tab() === 'todo'" (click)="setTab('todo')" (keydown.enter)="setTab('todo')" (keydown.space)="setTab('todo')">Бэклог</div>
+    <div class="tab" role="tab" tabindex="0" [class.active]="tab() === 'done'" [attr.aria-selected]="tab() === 'done'" (click)="setTab('done')" (keydown.enter)="setTab('done')" (keydown.space)="setTab('done')">Готово</div>
   </div>
 
   <div class="card-body">

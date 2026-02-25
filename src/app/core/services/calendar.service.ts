@@ -64,13 +64,6 @@ export class CalendarService {
     return `${h}:${m}`;
   }
 
-  formatDuration(mins: number): string {
-    if (mins < 60) return `${mins}м`;
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    return m > 0 ? `${h}ч ${m}м` : `${h}ч`;
-  }
-
   private toMinutes(dateStr: string): number {
     const d = new Date(dateStr);
     return d.getHours() * 60 + d.getMinutes();

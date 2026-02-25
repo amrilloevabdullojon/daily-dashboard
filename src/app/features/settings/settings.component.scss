@@ -209,6 +209,20 @@
   }
 }
 
+// ── TELEGRAM SEND ROW ────────────────────────────────────────────
+.tg-send-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+
+  .form-hint {
+    margin: 0;
+  }
+}
+
 // ── THEME ─────────────────────────────────────────────────────────
 .theme-row {
   display: flex;

@@ -11,7 +11,9 @@
         class="nav-item"
         [routerLink]="item.route"
         routerLinkActive="active"
+        #rla="routerLinkActive"
         [routerLinkActiveOptions]="{ exact: false }"
+        [attr.aria-current]="rla.isActive ? 'page' : null"
       >
         <span class="nav-icon">{{ item.icon }}</span>
         <span class="nav-label">{{ item.label }}</span>
@@ -27,7 +29,9 @@
       class="nav-item"
       routerLink="/settings"
       routerLinkActive="active"
+      #rlaSettings="routerLinkActive"
       [routerLinkActiveOptions]="{ exact: false }"
+      [attr.aria-current]="rlaSettings.isActive ? 'page' : null"
     >
       <span class="nav-icon">⚙</span>
       <span class="nav-label">Настройки</span>

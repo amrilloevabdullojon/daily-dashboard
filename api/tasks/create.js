@@ -1,17 +1,17 @@
 // api/tasks/create.js — Create a new Google Task
 import { getAccessToken } from '../_auth.js';
+import { setCorsHeaders } from '../_utils.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  setCorsHeaders(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
 
   const accessToken = await getAccessToken(req, res);
   if (!accessToken) return res.status(401).json({ error: 'Not authenticated' });
 
-  const { text, due, listId } = req.body || {};
-  if (!text) return res.status(400).json({ error: 'text is required' });
+  const { title, due, listId } = req.body || {};
+  if (!title?.trim()) return res.status(400).json({ error: 'title is required' });
 
   try {
     // If no listId provided, use the first task list
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
       targetListId = listsData.items[0].id;
     }
 
-    const body = { title: text, status: 'needsAction' };
+    const body = { title: title.trim(), status: 'needsAction' };
     if (due) body.due = new Date(due).toISOString();
 
     const createRes  = await fetch(
@@ -43,15 +43,12 @@ export default async function handler(req, res) {
     if (created.error) return res.status(400).json({ error: created.error.message });
 
     res.json({
-      ok: true,
-      task: {
-        id:     created.id,
-        listId: targetListId,
-        title:  created.title,
-        done:   false,
-        due:    due || '',
-        notes:  ''
-      }
+      id:     created.id,
+      listId: targetListId,
+      title:  created.title,
+      done:   false,
+      due:    due || '',
+      notes:  ''
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

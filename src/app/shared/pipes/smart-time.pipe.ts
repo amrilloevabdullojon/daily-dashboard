@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({ name: 'smartTime', standalone: true, pure: false })
+@Pipe({ name: 'smartTime', standalone: true, pure: true })
 export class SmartTimePipe implements PipeTransform {
   transform(dateStr: string | null | undefined): string {
     if (!dateStr) return '';

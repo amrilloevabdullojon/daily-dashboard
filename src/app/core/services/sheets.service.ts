@@ -4,12 +4,14 @@ import { Observable, tap, catchError, of } from 'rxjs';
 import { Task } from '../models';
 import { AppStore } from '../store/app.store';
 import { ConfigService } from './config.service';
+import { NotificationService } from './notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class SheetsService {
   private http      = inject(HttpClient);
   private store     = inject(AppStore);
   private configSvc = inject(ConfigService);
+  private notif     = inject(NotificationService);
 
   private get spreadsheetId(): string | undefined {
     return this.configSvc.get().sheetsSpreadsheetId?.trim() || undefined;
@@ -28,9 +30,10 @@ export class SheetsService {
     return this.http
       .get<Task[]>('/api/sheets/tasks', { params: { spreadsheetId: id } })
       .pipe(
-        tap(tasks => this.store.setSheetTasks(tasks)),
+        tap(tasks => { this.store.setSheetTasks(tasks); this.store.clearDataError('sheets'); }),
         catchError(() => {
           this.store.setSheetTasks([]);
+          this.store.setDataError('sheets', 'Не удалось загрузить задачи из Sheets');
           return of([]);
         }),
       );
@@ -62,6 +65,19 @@ export class SheetsService {
       .pipe(
         tap(task => { if (task) this.store.addSheetTask(task); }),
         catchError(() => of(null)),
+      );
+  }
+
+  delete(task: Task): Observable<void> {
+    this.store.removeSheetTask(task.id);
+    return this.http
+      .post<void>('/api/sheets/delete', { spreadsheetId: task.listId, rowIndex: task.rowIndex })
+      .pipe(
+        catchError(() => {
+          this.store.addSheetTask(task);
+          this.notif.showToast('Не удалось удалить задачу', '✗');
+          return of(void 0);
+        }),
       );
   }
 }

@@ -21,11 +21,11 @@
       <div style="color: var(--muted); font-size: 11px">{{ errorHint() }}</div>
     </div>
   } @else if (hasData()) {
-    <div class="tabs">
-      <div class="tab" [class.active]="filter() === 'all'" (click)="setFilter('all')">Все</div>
-      <div class="tab" [class.active]="filter() === 'dms'" (click)="setFilter('dms')">DMs</div>
-      <div class="tab" [class.active]="filter() === 'mentions'" (click)="setFilter('mentions')">Упоминания</div>
-      <div class="tab" [class.active]="filter() === 'unreads'" (click)="setFilter('unreads')">Непрочитанные</div>
+    <div class="tabs" role="tablist">
+      <div class="tab" role="tab" tabindex="0" [class.active]="filter() === 'all'" [attr.aria-selected]="filter() === 'all'" (click)="setFilter('all')" (keydown.enter)="setFilter('all')" (keydown.space)="setFilter('all')">Все</div>
+      <div class="tab" role="tab" tabindex="0" [class.active]="filter() === 'dms'" [attr.aria-selected]="filter() === 'dms'" (click)="setFilter('dms')" (keydown.enter)="setFilter('dms')" (keydown.space)="setFilter('dms')">DMs</div>
+      <div class="tab" role="tab" tabindex="0" [class.active]="filter() === 'mentions'" [attr.aria-selected]="filter() === 'mentions'" (click)="setFilter('mentions')" (keydown.enter)="setFilter('mentions')" (keydown.space)="setFilter('mentions')">Упоминания</div>
+      <div class="tab" role="tab" tabindex="0" [class.active]="filter() === 'unreads'" [attr.aria-selected]="filter() === 'unreads'" (click)="setFilter('unreads')" (keydown.enter)="setFilter('unreads')" (keydown.space)="setFilter('unreads')">Непрочитанные</div>
     </div>
     <div class="card-body">
       @if (messages().length === 0) {

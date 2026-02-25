@@ -19,6 +19,7 @@ export class TasksComponent {
   protected sheetsSvc = inject(SheetsService);
 
   newTaskTitle      = signal('');
+  newTaskDue        = signal('');
   newSheetTaskTitle = signal('');
 
   // ── Google Tasks ───────────────────────────────────────────────
@@ -34,14 +35,20 @@ export class TasksComponent {
   sheetTotal        = computed(() => { const t = this.sheetTasks(); return Array.isArray(t) ? t.length : 0; });
   sheetProgress     = computed(() => this.sheetTotal() > 0 ? Math.round((this.sheetDone() / this.sheetTotal()) * 100) : 0);
 
+  tasksError = computed(() => this.store.dataErrors()['tasks']);
+  sheetsError = computed(() => this.store.dataErrors()['sheets']);
+
   // ── Google Tasks actions ───────────────────────────────────────
   toggle(task: Task): void { this.tasksSvc.toggle(task).subscribe(); }
+  deleteTask(task: Task): void { this.tasksSvc.delete(task).subscribe(); }
 
   createTask(): void {
     const title = this.newTaskTitle().trim();
     if (!title) return;
+    const due = this.newTaskDue();
     this.newTaskTitle.set('');
-    this.tasksSvc.create(title).subscribe({
+    this.newTaskDue.set('');
+    this.tasksSvc.create(title, due || undefined).subscribe({
       next: (task) => {
         if (task.id.startsWith('temp-')) this.newTaskTitle.set(title);
       },
@@ -50,9 +57,11 @@ export class TasksComponent {
 
   onKeydown(event: KeyboardEvent): void { if (event.key === 'Enter') this.createTask(); }
   onInput(event: Event): void { this.newTaskTitle.set((event.target as HTMLInputElement).value); }
+  onDueInput(event: Event): void { this.newTaskDue.set((event.target as HTMLInputElement).value); }
 
   // ── Google Sheets Tasks actions ────────────────────────────────
   toggleSheet(task: Task): void { this.sheetsSvc.toggle(task).subscribe(); }
+  deleteSheetTask(task: Task): void { this.sheetsSvc.delete(task).subscribe(); }
 
   createSheetTask(): void {
     const title = this.newSheetTaskTitle().trim();

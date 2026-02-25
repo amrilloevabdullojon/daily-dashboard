@@ -2,9 +2,11 @@
 // Returns Google Tasks from all task lists
 
 import { getAccessToken } from '../_auth.js';
+import { setCorsHeaders } from '../_utils.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  setCorsHeaders(req, res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
   const accessToken = await getAccessToken(req, res);
   if (!accessToken) {

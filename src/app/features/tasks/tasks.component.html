@@ -15,6 +15,7 @@
 
     <div class="create-row">
       <input class="create-input" placeholder="Новая задача..." [value]="newTaskTitle()" (input)="onInput($event)" (keydown)="onKeydown($event)" />
+      <input class="create-due" type="date" [value]="newTaskDue()" (input)="onDueInput($event)" title="Срок выполнения" aria-label="Срок выполнения" />
       <button class="create-btn" (click)="createTask()" aria-label="Добавить задачу">＋</button>
     </div>
 
@@ -22,7 +23,11 @@
       @if (tasks() === null) {
         <app-skeleton-loader [count]="4" />
       } @else if (tasks()!.length === 0) {
-        <div class="empty">Нет задач</div>
+        @if (tasksError()) {
+          <div class="error-state">⚠ {{ tasksError() }}</div>
+        } @else {
+          <div class="empty">Нет задач</div>
+        }
       } @else {
         @for (task of tasks(); track task.id) {
           <div class="task-row" [class.done]="task.done">
@@ -33,6 +38,7 @@
                 {{ task.due | smartTime }}
               </div>
             }
+            <button class="delete-btn" (click)="deleteTask(task)" aria-label="Удалить задачу" title="Удалить">✕</button>
           </div>
         }
       }
@@ -66,7 +72,11 @@
         @if (sheetTasks() === null) {
           <app-skeleton-loader [count]="3" />
         } @else if (sheetTasks()!.length === 0) {
-          <div class="empty">Нет задач в таблице</div>
+          @if (sheetsError()) {
+            <div class="error-state">⚠ {{ sheetsError() }}</div>
+          } @else {
+            <div class="empty">Нет задач в таблице</div>
+          }
         } @else {
           @for (task of sheetTasks(); track task.id) {
             <div class="task-row" [class.done]="task.done">
@@ -78,6 +88,7 @@
               @if (task.due) {
                 <div class="task-due">{{ task.due }}</div>
               }
+              <button class="delete-btn" (click)="deleteSheetTask(task)" aria-label="Удалить задачу" title="Удалить">✕</button>
             </div>
           }
         }

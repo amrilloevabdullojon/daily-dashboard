@@ -5,9 +5,11 @@
 //   A: id | B: title | C: done (TRUE/FALSE) | D: due | E: notes
 
 import { getAccessToken } from '../_auth.js';
+import { setCorsHeaders } from '../_utils.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  setCorsHeaders(req, res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).end();
 
   const accessToken = await getAccessToken(req, res);

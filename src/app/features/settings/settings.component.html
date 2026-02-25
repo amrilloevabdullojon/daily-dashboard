@@ -52,8 +52,8 @@
     </div>
     <div class="card">
       <div class="form-group">
-        <label class="form-label">Jira Domain</label>
-        <input
+        <label class="form-label" for="jiraDomain">Jira Domain</label>
+        <input id="jiraDomain"
           class="form-input"
           type="text"
           placeholder="your-company.atlassian.net"
@@ -63,8 +63,8 @@
         <span class="form-hint">Без https://, например: mycompany.atlassian.net</span>
       </div>
       <div class="form-group">
-        <label class="form-label">Email</label>
-        <input
+        <label class="form-label" for="jiraEmail">Email</label>
+        <input id="jiraEmail"
           class="form-input"
           type="email"
           placeholder="your@email.com"
@@ -73,8 +73,8 @@
         />
       </div>
       <div class="form-group">
-        <label class="form-label">API Token</label>
-        <input
+        <label class="form-label" for="jiraToken">API Token</label>
+        <input id="jiraToken"
           class="form-input"
           type="password"
           [placeholder]="jiraConfigured ? '••••••••  (оставьте пустым, чтобы не менять)' : 'Jira API token'"
@@ -86,8 +86,8 @@
         </span>
       </div>
       <div class="form-group">
-        <label class="form-label">Project Key</label>
-        <input
+        <label class="form-label" for="jiraProjectKey">Project Key</label>
+        <input id="jiraProjectKey"
           class="form-input"
           type="text"
           placeholder="MYPROJECT"
@@ -108,8 +108,8 @@
     </div>
     <div class="card">
       <div class="form-group">
-        <label class="form-label">Slack Bot Token</label>
-        <input
+        <label class="form-label" for="slackToken">Slack Bot Token</label>
+        <input id="slackToken"
           class="form-input"
           type="password"
           [placeholder]="slackConfigured ? '••••••••  (оставьте пустым, чтобы не менять)' : 'xoxb-...'"
@@ -132,8 +132,8 @@
     </div>
     <div class="card">
       <div class="form-group">
-        <label class="form-label">Spreadsheet ID</label>
-        <input
+        <label class="form-label" for="sheetsId">Spreadsheet ID</label>
+        <input id="sheetsId"
           class="form-input"
           type="text"
           placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"
@@ -145,6 +145,49 @@
           Заголовки в строке 1: id · title · done · due · notes
         </span>
       </div>
+    </div>
+  </section>
+
+  <!-- Telegram -->
+  <section class="section">
+    <div class="section-title">
+      <span class="section-icon">✈</span>
+      Telegram — Daily Report
+      @if (tgConfigured()) { <span class="configured-badge">✓ Настроено</span> }
+    </div>
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label" for="tgToken">Bot Token</label>
+        <input id="tgToken"
+          class="form-input"
+          type="password"
+          [placeholder]="tgConfigured() ? '••••••••  (оставьте пустым, чтобы не менять)' : '123456789:AABBccdd...'"
+          [value]="tgTokenNew()"
+          (input)="tgTokenNew.set($any($event.target).value)"
+        />
+        <span class="form-hint">
+          Создать бота: <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a> → /newbot
+        </span>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="tgChatId">Chat ID</label>
+        <input id="tgChatId"
+          class="form-input"
+          type="text"
+          placeholder="-1001234567890"
+          [value]="tgChatId()"
+          (input)="tgChatId.set($any($event.target).value)"
+        />
+        <span class="form-hint">Ваш личный chat ID или ID группового чата. Узнать: @userinfobot</span>
+      </div>
+      @if (tgConfigured()) {
+        <div class="tg-send-row">
+          <button class="btn btn-secondary" (click)="sendTelegramReport()" [disabled]="tgSending()">
+            {{ tgSending() ? '⏳ Отправка...' : '📨 Отправить отчёт сейчас' }}
+          </button>
+          <span class="form-hint">Отправит дайджест (Встречи, Задачи, Jira, Gmail) в Telegram</span>
+        </div>
+      }
     </div>
   </section>
 

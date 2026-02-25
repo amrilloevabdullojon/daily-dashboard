@@ -1,6 +1,6 @@
 import { Injectable, inject, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { timer, switchMap, forkJoin, tap } from 'rxjs';
+import { timer, switchMap, forkJoin, tap, catchError, of } from 'rxjs';
 import { GmailService } from './gmail.service';
 import { CalendarService } from './calendar.service';
 import { TasksService } from './tasks.service';
@@ -51,11 +51,12 @@ export class SyncService {
         jira:    this.jira.load(),
         slack:   this.slack.load(),
         sheets:  this.sheets.load(),
-      })),
+      }).pipe(
+        catchError(() => { this.store.setSyncing(false); return of(null); })
+      )),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
-      next:  () => this.store.setSynced(),
-      error: () => this.store.setSyncing(false),
+      next: (result) => { if (result !== null) this.store.setSynced(); },
     });
   }
 }

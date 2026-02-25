@@ -47,6 +47,12 @@ export class HotkeysService {
 
     if (isInput) return;
 
+    // ? → Show hotkeys help
+    if (e.key === '?') {
+      document.dispatchEvent(new CustomEvent('hotkeys:show'));
+      return;
+    }
+
     // R → Sync
     if (e.key === 'r' || e.key === 'R') {
       this.sync.syncAll();

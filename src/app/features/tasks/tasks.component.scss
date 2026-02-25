@@ -11,7 +11,11 @@
 
 .create-row { display: flex; gap: 8px; padding: 10px 20px; border-bottom: 1px solid var(--border); }
 .create-input { flex: 1; background: var(--bg3); border: 1px solid var(--border2); color: var(--text); padding: 7px 12px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12px; outline: none; &:focus { border-color: var(--accent); } &::placeholder { color: var(--muted); } }
+.create-due { background: var(--bg3); border: 1px solid var(--border2); color: var(--muted); padding: 7px 8px; border-radius: 6px; font-size: 11px; outline: none; width: 120px; cursor: pointer; &:focus { border-color: var(--accent); color: var(--text); } &::-webkit-calendar-picker-indicator { filter: invert(1) opacity(.4); cursor: pointer; } }
 .create-btn { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.2); color: var(--accent2); width: 30px; height: 30px; border-radius: 6px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all .15s; &:hover { background: rgba(59,130,246,.2); } }
+.delete-btn { opacity: 0; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 11px; padding: 2px 5px; border-radius: 4px; transition: all .15s; flex-shrink: 0; &:hover { background: rgba(239,68,68,.15); color: var(--red); } }
+.task-row:hover .delete-btn { opacity: 1; }
+.error-state { padding: 20px; text-align: center; font-size: 12px; color: var(--yellow); }
 
 .task-row {
   display: flex; align-items: center;

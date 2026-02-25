@@ -10,10 +10,10 @@
     <input class="search-input" placeholder="Поиск..." (input)="onSearch($event)" />
   </div>
 
-  <div class="tabs">
-    <div class="tab" [class.active]="filter() === 'all'" (click)="setFilter('all')">Все</div>
-    <div class="tab" [class.active]="filter() === 'unread'" (click)="setFilter('unread')">Непрочитанные</div>
-    <div class="tab" [class.active]="filter() === 'starred'" (click)="setFilter('starred')">Избранные ⭐</div>
+  <div class="tabs" role="tablist">
+    <div class="tab" role="tab" tabindex="0" [class.active]="filter() === 'all'" [attr.aria-selected]="filter() === 'all'" (click)="setFilter('all')" (keydown.enter)="setFilter('all')" (keydown.space)="setFilter('all')">Все</div>
+    <div class="tab" role="tab" tabindex="0" [class.active]="filter() === 'unread'" [attr.aria-selected]="filter() === 'unread'" (click)="setFilter('unread')" (keydown.enter)="setFilter('unread')" (keydown.space)="setFilter('unread')">Непрочитанные</div>
+    <div class="tab" role="tab" tabindex="0" [class.active]="filter() === 'starred'" [attr.aria-selected]="filter() === 'starred'" (click)="setFilter('starred')" (keydown.enter)="setFilter('starred')" (keydown.space)="setFilter('starred')">Избранные ⭐</div>
   </div>
 
   <div class="card-body">
