@@ -1,5 +1,4 @@
 import { Component, inject, computed, signal } from '@angular/core';
-import { NgClass } from '@angular/common';
 import { AppStore } from '../../core/store/app.store';
 import { TasksService } from '../../core/services/tasks.service';
 import { SheetsService } from '../../core/services/sheets.service';
@@ -10,7 +9,7 @@ import { SmartTimePipe } from '../../shared/pipes/smart-time.pipe';
 @Component({
   selector: 'app-tasks',
   standalone: true,
-  imports: [NgClass, SkeletonLoaderComponent, SmartTimePipe],
+  imports: [SkeletonLoaderComponent, SmartTimePipe],
   templateUrl: './tasks.component.html',
   styleUrl: './tasks.component.scss',
 })

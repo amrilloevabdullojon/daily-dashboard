@@ -1,5 +1,4 @@
 import { Component, inject, computed, signal } from '@angular/core';
-import { NgClass } from '@angular/common';
 import { AppStore } from '../../core/store/app.store';
 import { SlackService } from '../../core/services/slack.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -13,7 +12,7 @@ type SlackFilter = 'all' | 'dms' | 'mentions' | 'unreads';
 @Component({
   selector: 'app-slack',
   standalone: true,
-  imports: [NgClass, SkeletonLoaderComponent, SmartTimePipe],
+  imports: [SkeletonLoaderComponent, SmartTimePipe],
   templateUrl: './slack.component.html',
   styleUrl: './slack.component.scss',
 })

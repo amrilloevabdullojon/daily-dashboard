@@ -1,5 +1,4 @@
 import { Component, inject, computed, signal } from '@angular/core';
-import { NgClass, NgFor, NgIf } from '@angular/common';
 import { AppStore } from '../../core/store/app.store';
 import { GmailService } from '../../core/services/gmail.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -11,7 +10,7 @@ type EmailFilter = 'all' | 'unread' | 'starred';
 @Component({
   selector: 'app-email',
   standalone: true,
-  imports: [NgClass, NgFor, NgIf, SkeletonLoaderComponent, SmartTimePipe],
+  imports: [SkeletonLoaderComponent, SmartTimePipe],
   templateUrl: './email.component.html',
   styleUrl: './email.component.scss',
 })

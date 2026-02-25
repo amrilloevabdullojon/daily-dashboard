@@ -2,7 +2,7 @@ import { Component, inject, computed } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { AsyncPipe, DatePipe, NgClass } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { AppStore } from '../../core/store/app.store';
 
 const PAGE_TITLES: Record<string, string> = {
@@ -17,7 +17,7 @@ const PAGE_TITLES: Record<string, string> = {
 @Component({
   selector: 'app-topbar',
   standalone: true,
-  imports: [NgClass, DatePipe],
+  imports: [DatePipe],
   templateUrl: './topbar.component.html',
   styleUrl: './topbar.component.scss',
 })

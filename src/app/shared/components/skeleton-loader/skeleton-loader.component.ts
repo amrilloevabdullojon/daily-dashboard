@@ -1,10 +1,8 @@
 import { Component, Input } from '@angular/core';
-import { NgFor } from '@angular/common';
-
 @Component({
   selector: 'app-skeleton-loader',
   standalone: true,
-  imports: [NgFor],
+  imports: [],
   template: `
     @for (i of rows; track i) {
       <div class="skeleton-row">

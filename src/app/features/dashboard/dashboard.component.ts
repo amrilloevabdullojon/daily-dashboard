@@ -1,5 +1,4 @@
 import { Component, inject, computed, effect, untracked } from '@angular/core';
-import { NgClass, NgFor, NgIf, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AppStore } from '../../core/store/app.store';
 import { CalendarService } from '../../core/services/calendar.service';
@@ -16,7 +15,7 @@ import { SheetsService } from '../../core/services/sheets.service';
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    NgClass, NgFor, NgIf, DatePipe, RouterLink,
+    RouterLink,
     StatCardComponent, SkeletonLoaderComponent, StatusPillComponent,
     SmartTimePipe, StatusTypePipe, FmtDurPipe,
   ],

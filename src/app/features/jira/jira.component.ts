@@ -1,13 +1,11 @@
 import { Component, inject, computed, signal, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NgClass } from '@angular/common';
 import { AppStore } from '../../core/store/app.store';
 import { JiraService } from '../../core/services/jira.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader/skeleton-loader.component';
 import { StatusPillComponent } from '../../shared/components/status-pill/status-pill.component';
 import { StatusTypePipe } from '../../shared/pipes/status-label.pipe';
-import { SmartTimePipe } from '../../shared/pipes/smart-time.pipe';
 import { ConfigService } from '../../core/services/config.service';
 
 type JiraTab = 'all' | 'in_progress' | 'review' | 'todo' | 'done';
@@ -15,7 +13,7 @@ type JiraTab = 'all' | 'in_progress' | 'review' | 'todo' | 'done';
 @Component({
   selector: 'app-jira',
   standalone: true,
-  imports: [NgClass, SkeletonLoaderComponent, StatusPillComponent, StatusTypePipe, SmartTimePipe],
+  imports: [SkeletonLoaderComponent, StatusPillComponent, StatusTypePipe],
   templateUrl: './jira.component.html',
   styleUrl: './jira.component.scss',
 })

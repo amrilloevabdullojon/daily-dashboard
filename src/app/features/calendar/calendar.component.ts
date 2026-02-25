@@ -1,5 +1,5 @@
 import { Component, inject, computed, effect, untracked } from '@angular/core';
-import { NgClass, NgFor, NgIf } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { AppStore } from '../../core/store/app.store';
 import { CalendarService } from '../../core/services/calendar.service';
 import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader/skeleton-loader.component';
@@ -8,7 +8,7 @@ import { FmtDurPipe } from '../../shared/pipes/fmt-dur.pipe';
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [NgClass, NgFor, NgIf, SkeletonLoaderComponent, FmtDurPipe],
+  imports: [NgClass, SkeletonLoaderComponent, FmtDurPipe],
   templateUrl: './calendar.component.html',
   styleUrl: './calendar.component.scss',
 })
