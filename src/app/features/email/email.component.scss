@@ -2,11 +2,55 @@
 @use '../../../styles/mixins' as *;
 @use '../../../styles/animations';
 
-.card-header { @include card-header; }
-.card-title { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; .dot { width: 8px; height: 8px; border-radius: 50%; } }
-.card-count { font-size: 11px; color: var(--muted); background: var(--bg3); border: 1px solid var(--border); padding: 2px 8px; border-radius: 12px; }
-.search-input { background: var(--bg3); border: 1px solid var(--border2); color: var(--text); padding: 6px 12px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px; outline: none; &:focus { border-color: var(--accent); } &::placeholder { color: var(--muted); } }
+// ── CARD HEADER ───────────────────────────────────────────────────
+.card-header {
+  @include card-header;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-shrink: 1;
+
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+}
+
+.card-count {
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.search-input {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  outline: none;
+  // Constrain width so it doesn't overflow the header
+  width: 180px;
+  min-width: 80px;
+  flex-shrink: 1;
+
+  &:focus { border-color: var(--accent); }
+  &::placeholder { color: var(--muted); }
+}
+
+// ── SEARCH HINT ───────────────────────────────────────────────────
 .search-hint {
   font-size: 11px;
   color: var(--muted);
@@ -15,25 +59,129 @@
   font-family: 'JetBrains Mono', monospace;
 }
 
+// ── EMAIL ROWS ────────────────────────────────────────────────────
 .email-row {
-  display: flex; align-items: flex-start; gap: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   padding: 12px 20px;
   border-bottom: 1px solid var(--border);
   animation: rowIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  // Prevent the row itself from exceeding the card width
+  min-width: 0;
+  overflow: hidden;
   @include hover-lift(var(--cyan));
+
   &:last-child { border-bottom: none; }
-  &.unread .email-from { font-weight: 600; color: var(--text); }
+  &.unread .from-text { font-weight: 600; color: var(--text); }
+
   @for $i from 1 through 10 {
     &:nth-child(#{$i}) { animation-delay: #{($i - 1) * 0.04}s; }
   }
 }
-.email-avatar { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px; flex-shrink: 0; margin-top: 1px; }
-.email-body { flex: 1; min-width: 0; overflow: hidden; }
-.email-from { font-size: 11px; color: var(--muted2); display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.unread-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
-.email-subject { font-size: 11px; color: var(--muted2); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.email-snippet { font-size: 10px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.email-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
-.email-time { font-size: 10px; color: var(--muted); }
-.email-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; .email-row:hover & { opacity: 1; } }
-.action-btn { background: var(--bg3); border: 1px solid var(--border); color: var(--muted2); padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 10px; transition: all 0.15s; &:hover { border-color: var(--accent); color: var(--accent2); } }
+
+.email-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+// The text column — must have min-width:0 to shrink in flexbox
+.email-body {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+// Flex container for sender name + badges
+.email-from {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+// The actual sender text — needs its own truncation since parent is flex
+.from-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--muted2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.unread-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.star { flex-shrink: 0; font-size: 11px; }
+
+.email-subject {
+  font-size: 11px;
+  color: var(--muted2);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.email-snippet {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Meta column (time + actions) — fixed width, never grows
+.email-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.email-time {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.email-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+
+  .email-row:hover & { opacity: 1; }
+}
+
+.action-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--muted2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  transition: all 0.15s;
+
+  &:hover { border-color: var(--accent); color: var(--accent2); }
+}
