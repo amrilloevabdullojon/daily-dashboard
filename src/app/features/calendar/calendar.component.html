@@ -61,7 +61,15 @@
           <div class="dot" style="background: var(--green)"></div>
           Календарь
         </div>
-        <div class="card-count">{{ (regularEvents() || []).length }} событий</div>
+        <div class="header-actions">
+          <button class="view-toggle"
+                  [class.active]="viewMode === 'timeline'"
+                  (click)="toggleView()"
+                  [title]="viewMode === 'list' ? 'Таймлайн' : 'Список'">
+            {{ viewMode === 'list' ? '⏱' : '≡' }}
+          </button>
+          <div class="card-count">{{ (regularEvents() || []).length }} событий</div>
+        </div>
       </div>
 
       <!-- Date navigation bar -->
@@ -77,34 +85,107 @@
         }
       </div>
 
-      <div class="card-body">
+      <!-- ── LIST VIEW ──────────────────────────────────────────── -->
+      @if (viewMode === 'list') {
+        <div class="card-body">
+          @if ((regularEvents() || []).length === 0) {
+            <div class="empty">Нет событий на этот день 🎉</div>
+          } @else {
+            @for (ev of regularEvents(); track ev.id) {
+              <div class="event-row" [ngClass]="'status-' + eventStatus(ev)">
+                <div class="event-time">{{ formatRange(ev.start, ev.end) }}</div>
+                <div class="event-bar" [style.background]="getColor(ev)"></div>
+                <div class="event-info">
+                  <div class="event-title">{{ ev.title }}</div>
+                  <div class="event-meta">
+                    <span>{{ formatDur(ev.start, ev.end) | fmtDur }}</span>
+                    @if (ev.attendeesCount) {
+                      <span class="attendee-stack">
+                        @for (c of attendeeColors(ev); track $index) {
+                          <span class="attendee-dot" [style.background]="c"></span>
+                        }
+                        @if (attendeeExtra(ev) > 0) {
+                          <span class="attendee-extra">+{{ attendeeExtra(ev) }}</span>
+                        }
+                      </span>
+                    }
+                    @if (ev.location) {
+                      <span class="event-location">📍 {{ ev.location }}</span>
+                    }
+                  </div>
+                </div>
+                <div class="status-badge" [ngClass]="'badge-' + eventStatus(ev)">
+                  @if (eventStatus(ev) === 'live') { Сейчас }
+                  @else if (eventStatus(ev) === 'upcoming') { Скоро }
+                  @else { Завершено }
+                </div>
+                @if (ev.hangoutLink) {
+                  <a [href]="ev.hangoutLink" target="_blank" class="meet-btn">Meet →</a>
+                }
+              </div>
+            }
+          }
+        </div>
+
+      <!-- ── TIMELINE VIEW ──────────────────────────────────────── -->
+      } @else {
         @if ((regularEvents() || []).length === 0) {
           <div class="empty">Нет событий на этот день 🎉</div>
         } @else {
-          @for (ev of regularEvents(); track ev.id) {
-            <div class="event-row" [ngClass]="'status-' + eventStatus(ev)">
-              <div class="event-time">{{ formatRange(ev.start, ev.end) }}</div>
-              <div class="event-bar" [style.background]="getColor(ev)"></div>
-              <div class="event-info">
-                <div class="event-title">{{ ev.title }}</div>
-                <div class="event-meta">
-                  {{ formatDur(ev.start, ev.end) | fmtDur }}
-                  @if (ev.attendeesCount) { · {{ ev.attendeesCount }} участников }
-                  @if (ev.location) { · 📍 {{ ev.location }} }
+          <div class="tl-scroll">
+            <div class="tl-grid" [style.height.px]="timelineHeight">
+
+              <!-- Hour gridlines -->
+              @for (h of timelineHours; track h) {
+                <div class="tl-row" [style.top.px]="(h - HOUR_START) * SLOT_H">
+                  <span class="tl-hour">{{ h }}:00</span>
+                  <div class="tl-line"></div>
                 </div>
-              </div>
-              <div class="status-badge" [ngClass]="'badge-' + eventStatus(ev)">
-                @if (eventStatus(ev) === 'live') { Сейчас }
-                @else if (eventStatus(ev) === 'upcoming') { Скоро }
-                @else { Завершено }
-              </div>
-              @if (ev.hangoutLink) {
-                <a [href]="ev.hangoutLink" target="_blank" class="meet-btn">Meet →</a>
               }
+
+              <!-- Now indicator (today only) -->
+              @if (nowTop() >= 0) {
+                <div class="tl-now" [style.top.px]="nowTop()">
+                  <div class="tl-now-dot"></div>
+                  <div class="tl-now-line"></div>
+                </div>
+              }
+
+              <!-- Events column -->
+              <div class="tl-events">
+                @for (ev of regularEvents(); track ev.id) {
+                  <div class="tl-event"
+                       [ngClass]="'status-' + eventStatus(ev)"
+                       [style.top.px]="eventTop(ev)"
+                       [style.height.px]="eventHeight(ev)"
+                       [style.border-left-color]="getColor(ev)"
+                       [style.background]="getColor(ev) + '18'">
+                    <div class="tl-event-title">{{ ev.title }}</div>
+                    @if (eventHeight(ev) >= 38) {
+                      <div class="tl-event-time">{{ formatRange(ev.start, ev.end) }}</div>
+                    }
+                    @if (ev.attendeesCount && eventHeight(ev) >= 48) {
+                      <span class="attendee-stack tl-attendees">
+                        @for (c of attendeeColors(ev); track $index) {
+                          <span class="attendee-dot" [style.background]="c"></span>
+                        }
+                        @if (attendeeExtra(ev) > 0) {
+                          <span class="attendee-extra">+{{ attendeeExtra(ev) }}</span>
+                        }
+                      </span>
+                    }
+                    @if (ev.hangoutLink && eventHeight(ev) >= 56) {
+                      <a [href]="ev.hangoutLink" target="_blank" class="tl-meet-btn"
+                         (click)="$event.stopPropagation()">Meet →</a>
+                    }
+                  </div>
+                }
+              </div>
+
             </div>
-          }
+          </div>
         }
-      </div>
+      }
     </div>
   }
 </div>

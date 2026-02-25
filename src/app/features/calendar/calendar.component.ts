@@ -17,7 +17,6 @@ export class CalendarComponent {
   protected calSvc = inject(CalendarService);
 
   constructor() {
-    // Auto-reload whenever the selected date changes
     effect(() => {
       const date = this.store.currentDate();
       untracked(() => {
@@ -30,7 +29,10 @@ export class CalendarComponent {
   events        = computed(() => this.store.calEvents());
   regularEvents = computed(() => {
     const e = this.events();
-    return Array.isArray(e) ? e.filter(ev => !ev.allDay) : null;
+    if (!Array.isArray(e)) return null;
+    return e
+      .filter(ev => !ev.allDay)
+      .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   });
   allDayEvents  = computed(() => {
     const e = this.events();
@@ -81,6 +83,62 @@ export class CalendarComponent {
   pickDate(input: Event) {
     const val = (input.target as HTMLInputElement).value;
     if (val) this.store.setDate(new Date(val + 'T00:00:00'));
+  }
+
+  // ── VIEW TOGGLE ───────────────────────────────────────────────
+  viewMode: 'list' | 'timeline' = 'list';
+  toggleView() { this.viewMode = this.viewMode === 'list' ? 'timeline' : 'list'; }
+
+  // ── TIMELINE CONSTANTS & HELPERS ──────────────────────────────
+  readonly HOUR_START = 8;
+  readonly HOUR_END   = 20;
+  readonly SLOT_H     = 60; // px per hour
+
+  get timelineHours(): number[] {
+    return Array.from(
+      { length: this.HOUR_END - this.HOUR_START + 1 },
+      (_, i) => i + this.HOUR_START
+    );
+  }
+
+  get timelineHeight(): number {
+    return (this.HOUR_END - this.HOUR_START) * this.SLOT_H;
+  }
+
+  nowTop = computed(() => {
+    if (!this.isToday()) return -1;
+    const now = new Date();
+    const mins = now.getHours() * 60 + now.getMinutes() - this.HOUR_START * 60;
+    if (mins < 0 || mins > (this.HOUR_END - this.HOUR_START) * 60) return -1;
+    return (mins / 60) * this.SLOT_H;
+  });
+
+  eventTop(ev: { start: string }): number {
+    const d = new Date(ev.start);
+    const mins = d.getHours() * 60 + d.getMinutes() - this.HOUR_START * 60;
+    return Math.max(0, (mins / 60) * this.SLOT_H);
+  }
+
+  eventHeight(ev: { start: string; end: string }): number {
+    const dur = this.formatDur(ev.start, ev.end);
+    return Math.max((dur / 60) * this.SLOT_H, 24);
+  }
+
+  // ── ATTENDEE AVATARS ──────────────────────────────────────────
+  private readonly AVATAR_PALETTE = [
+    '#3b82f6', '#22c55e', '#a855f7', '#f97316', '#06b6d4', '#ef4444',
+  ];
+
+  attendeeColors(ev: { color?: string; attendeesCount?: number }): string[] {
+    if (!ev.attendeesCount) return [];
+    const base = ev.color || this.AVATAR_PALETTE[0];
+    // first avatar uses event color, others cycle through palette
+    const colors = [base, ...this.AVATAR_PALETTE.filter(c => c !== base)];
+    return Array.from({ length: Math.min(ev.attendeesCount, 3) }, (_, i) => colors[i]);
+  }
+
+  attendeeExtra(ev: { attendeesCount?: number }): number {
+    return Math.max(0, (ev.attendeesCount ?? 0) - 3);
   }
 
   // ── EVENT STATUS ──────────────────────────────────────────────
