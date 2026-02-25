@@ -76,6 +76,9 @@ export const AppStore = signalStore(
     setCalEvents(events: CalEvent[]) {
       patchState(store, { calEvents: events });
     },
+    resetCalEvents() {
+      patchState(store, { calEvents: null });
+    },
     setTasks(tasks: Task[]) {
       patchState(store, { realTasks: tasks });
     },

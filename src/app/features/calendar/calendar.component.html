@@ -1,6 +1,19 @@
 <div class="fade-in">
   @if (events() === null) {
-    <div class="card"><app-skeleton-loader [count]="5" /></div>
+    <div class="card">
+      <div class="date-nav">
+        <button class="nav-btn" (click)="prevDay()">&#8249;</button>
+        <label class="date-display-wrap">
+          <span class="date-display">{{ dateLabel() }}</span>
+          <input type="date" class="date-input-hidden" [value]="pickerValue()" (change)="pickDate($event)" />
+        </label>
+        <button class="nav-btn" (click)="nextDay()">&#8250;</button>
+        @if (!isToday()) {
+          <button class="today-btn" (click)="goToday()">Сегодня</button>
+        }
+      </div>
+      <app-skeleton-loader [count]="5" />
+    </div>
   } @else {
 
     <!-- All-day events -->
@@ -46,13 +59,27 @@
       <div class="card-header">
         <div class="card-title">
           <div class="dot" style="background: var(--green)"></div>
-          {{ todayLabel() }}
+          Календарь
         </div>
         <div class="card-count">{{ (regularEvents() || []).length }} событий</div>
       </div>
+
+      <!-- Date navigation bar -->
+      <div class="date-nav">
+        <button class="nav-btn" (click)="prevDay()">&#8249;</button>
+        <label class="date-display-wrap">
+          <span class="date-display">{{ dateLabel() }}</span>
+          <input type="date" class="date-input-hidden" [value]="pickerValue()" (change)="pickDate($event)" />
+        </label>
+        <button class="nav-btn" (click)="nextDay()">&#8250;</button>
+        @if (!isToday()) {
+          <button class="today-btn" (click)="goToday()">Сегодня</button>
+        }
+      </div>
+
       <div class="card-body">
         @if ((regularEvents() || []).length === 0) {
-          <div class="empty">Нет событий на сегодня 🎉</div>
+          <div class="empty">Нет событий на этот день 🎉</div>
         } @else {
           @for (ev of regularEvents(); track ev.id) {
             <div class="event-row" [ngClass]="'status-' + eventStatus(ev)">

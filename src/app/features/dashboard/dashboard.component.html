@@ -1,10 +1,20 @@
 <div class="fade-in">
 
-  <!-- Header -->
+  <!-- Header: greeting + date nav + next event -->
   <div class="dash-header">
-    <div>
+    <div class="dash-header-left">
       <div class="greeting">{{ greeting() }}</div>
-      <div class="today-date">{{ todayDate() }}</div>
+      <div class="date-nav">
+        <button class="nav-btn" (click)="prevDay()">&#8249;</button>
+        <label class="date-display-wrap">
+          <span class="date-label">{{ dateLabel() }}</span>
+          <input type="date" class="date-input-hidden" [value]="pickerValue()" (change)="pickDate($event)" />
+        </label>
+        <button class="nav-btn" (click)="nextDay()">&#8250;</button>
+        @if (!isToday()) {
+          <button class="today-btn" (click)="goToday()">Сегодня</button>
+        }
+      </div>
     </div>
     @if (nextEvent()) {
       <div class="next-event">
@@ -82,7 +92,8 @@
                 {{ (email.from || '?').charAt(0).toUpperCase() }}
               </div>
               <div class="email-body">
-                <div class="email-from">{{ email.from }}
+                <div class="email-from">
+                  <span class="from-text">{{ email.from }}</span>
                   @if (email.unread) { <span class="unread-dot"></span> }
                 </div>
                 <div class="email-subject">{{ email.subject }}</div>
@@ -110,7 +121,7 @@
           <div class="empty">Нет событий</div>
         } @else {
           @for (ev of previewEvents(); track ev.id) {
-            <div class="event-row">
+            <div class="event-row" [class.past]="isEventPast(ev)">
               <div class="event-time">{{ formatEventTime(ev.start, ev.end) }}</div>
               <div class="event-bar" [style.background]="getEventColor(ev)"></div>
               <div class="event-info">
@@ -169,6 +180,14 @@
         </div>
         <a routerLink="/tasks" class="card-link">Все →</a>
       </div>
+      @if (taskProgress()) {
+        <div class="task-progress-wrap">
+          <div class="task-progress-bar">
+            <div class="task-progress-fill" [style.width.%]="taskProgress()!.pct"></div>
+          </div>
+          <span class="task-progress-label">{{ taskProgress()!.done }}/{{ taskProgress()!.total }} выполнено</span>
+        </div>
+      }
       <div class="card-body">
         @if (previewTasks() === null) {
           <app-skeleton-loader [count]="3" />

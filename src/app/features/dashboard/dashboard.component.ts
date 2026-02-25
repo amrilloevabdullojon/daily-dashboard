@@ -1,4 +1,4 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, effect, untracked } from '@angular/core';
 import { NgClass, NgFor, NgIf, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AppStore } from '../../core/store/app.store';
@@ -23,9 +23,20 @@ import { JiraService } from '../../core/services/jira.service';
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent {
-  protected store    = inject(AppStore);
-  protected calSvc   = inject(CalendarService);
-  protected jiraSvc  = inject(JiraService);
+  protected store   = inject(AppStore);
+  protected calSvc  = inject(CalendarService);
+  protected jiraSvc = inject(JiraService);
+
+  constructor() {
+    // Reload calendar whenever the selected date changes
+    effect(() => {
+      const date = this.store.currentDate();
+      untracked(() => {
+        this.store.resetCalEvents();
+        this.calSvc.load(date).subscribe();
+      });
+    });
+  }
 
   // ── GREETING ──────────────────────────────────────────────────
   greeting = computed(() => {
@@ -39,11 +50,28 @@ export class DashboardComponent {
     return name ? `${greet}, ${name}` : greet;
   });
 
-  todayDate = computed(() => {
-    return new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+  // ── DATE STATE ────────────────────────────────────────────────
+  isToday = computed(() => {
+    const d = this.store.currentDate();
+    return d.toDateString() === new Date().toDateString();
   });
 
+  dateLabel   = computed(() =>
+    this.store.currentDate().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })
+  );
+  pickerValue = computed(() => this.store.currentDate().toISOString().split('T')[0]);
+
+  prevDay() { this.store.shiftDate(-1); }
+  nextDay() { this.store.shiftDate(1); }
+  goToday() { this.store.setDate(new Date()); }
+  pickDate(input: Event) {
+    const val = (input.target as HTMLInputElement).value;
+    if (val) this.store.setDate(new Date(val + 'T00:00:00'));
+  }
+
+  // ── NEXT EVENT (today only) ───────────────────────────────────
   nextEvent = computed(() => {
+    if (!this.isToday()) return null;
     const events = this.store.calEvents();
     if (!Array.isArray(events)) return null;
     const now = new Date();
@@ -75,6 +103,15 @@ export class DashboardComponent {
     }).length;
   });
 
+  // ── TASK PROGRESS ─────────────────────────────────────────────
+  taskProgress = computed(() => {
+    const tasks = this.store.realTasks();
+    if (!Array.isArray(tasks) || tasks.length === 0) return null;
+    const done  = tasks.filter(t => t.done).length;
+    const total = tasks.length;
+    return { done, total, pct: Math.round((done / total) * 100) };
+  });
+
   // ── FOCUS TIME ────────────────────────────────────────────────
   totalFocusMinutes = computed(() => {
     const events = this.store.calEvents();
@@ -89,12 +126,13 @@ export class DashboardComponent {
     return Array.isArray(msgs) ? msgs.slice(0, 5) : null;
   });
 
+  // Show all events for selected date, sorted by start time
   previewEvents = computed(() => {
     const events = this.store.calEvents();
     if (!Array.isArray(events)) return null;
-    const now = new Date();
     return events
-      .filter(e => !e.allDay && new Date(e.start) >= now)
+      .filter(e => !e.allDay)
+      .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
       .slice(0, 5);
   });
 
@@ -110,15 +148,16 @@ export class DashboardComponent {
 
   // ── HELPERS ───────────────────────────────────────────────────
   formatEventTime(start: string, end: string): string {
-    const s = new Date(start);
-    const e = new Date(end);
+    const s = new Date(start), e = new Date(end);
     const fmt = (d: Date) => d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
     return `${fmt(s)} – ${fmt(e)}`;
   }
 
-  getEventColor(ev: { color?: string }): string {
-    return ev.color || '#3b82f6';
+  isEventPast(ev: { end: string }): boolean {
+    return new Date(ev.end).getTime() < Date.now();
   }
+
+  getEventColor(ev: { color?: string }): string { return ev.color || '#3b82f6'; }
 
   jiraStatusType(status: string) {
     return this.jiraSvc.statusClass(status).replace('status-', '') as any;
