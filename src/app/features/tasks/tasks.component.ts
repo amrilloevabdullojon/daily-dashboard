@@ -2,6 +2,7 @@ import { Component, inject, computed, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { AppStore } from '../../core/store/app.store';
 import { TasksService } from '../../core/services/tasks.service';
+import { SheetsService } from '../../core/services/sheets.service';
 import { Task } from '../../core/models';
 import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader/skeleton-loader.component';
 import { SmartTimePipe } from '../../shared/pipes/smart-time.pipe';
@@ -14,39 +15,59 @@ import { SmartTimePipe } from '../../shared/pipes/smart-time.pipe';
   styleUrl: './tasks.component.scss',
 })
 export class TasksComponent {
-  protected store    = inject(AppStore);
-  protected tasksSvc = inject(TasksService);
+  protected store     = inject(AppStore);
+  protected tasksSvc  = inject(TasksService);
+  protected sheetsSvc = inject(SheetsService);
 
-  newTaskTitle = signal('');
+  newTaskTitle      = signal('');
+  newSheetTaskTitle = signal('');
 
-  tasks = computed(() => this.store.realTasks());
-  done  = computed(() => { const t = this.tasks(); return Array.isArray(t) ? t.filter(x => x.done).length : 0; });
-  total = computed(() => { const t = this.tasks(); return Array.isArray(t) ? t.length : 0; });
+  // ── Google Tasks ───────────────────────────────────────────────
+  tasks    = computed(() => this.store.realTasks());
+  done     = computed(() => { const t = this.tasks(); return Array.isArray(t) ? t.filter(x => x.done).length : 0; });
+  total    = computed(() => { const t = this.tasks(); return Array.isArray(t) ? t.length : 0; });
   progress = computed(() => this.total() > 0 ? Math.round((this.done() / this.total()) * 100) : 0);
 
+  // ── Google Sheets Tasks ────────────────────────────────────────
+  sheetsConfigured  = computed(() => this.sheetsSvc.isConfigured());
+  sheetTasks        = computed(() => this.store.sheetTasks());
+  sheetDone         = computed(() => { const t = this.sheetTasks(); return Array.isArray(t) ? t.filter(x => x.done).length : 0; });
+  sheetTotal        = computed(() => { const t = this.sheetTasks(); return Array.isArray(t) ? t.length : 0; });
+  sheetProgress     = computed(() => this.sheetTotal() > 0 ? Math.round((this.sheetDone() / this.sheetTotal()) * 100) : 0);
+
+  // ── Google Tasks actions ───────────────────────────────────────
   toggle(task: Task): void { this.tasksSvc.toggle(task).subscribe(); }
 
   createTask(): void {
     const title = this.newTaskTitle().trim();
     if (!title) return;
-    // Clear input immediately for optimistic UX; restore if the API call failed
     this.newTaskTitle.set('');
     this.tasksSvc.create(title).subscribe({
       next: (task) => {
-        // If the returned task is still the temp placeholder, the API failed — restore the input
         if (task.id.startsWith('temp-')) this.newTaskTitle.set(title);
       },
     });
   }
 
-  onKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Enter') this.createTask();
+  onKeydown(event: KeyboardEvent): void { if (event.key === 'Enter') this.createTask(); }
+  onInput(event: Event): void { this.newTaskTitle.set((event.target as HTMLInputElement).value); }
+
+  // ── Google Sheets Tasks actions ────────────────────────────────
+  toggleSheet(task: Task): void { this.sheetsSvc.toggle(task).subscribe(); }
+
+  createSheetTask(): void {
+    const title = this.newSheetTaskTitle().trim();
+    if (!title) return;
+    this.newSheetTaskTitle.set('');
+    this.sheetsSvc.create(title).subscribe({
+      next: (task) => { if (!task) this.newSheetTaskTitle.set(title); },
+    });
   }
 
-  onInput(event: Event): void {
-    this.newTaskTitle.set((event.target as HTMLInputElement).value);
-  }
+  onSheetKeydown(event: KeyboardEvent): void { if (event.key === 'Enter') this.createSheetTask(); }
+  onSheetInput(event: Event): void { this.newSheetTaskTitle.set((event.target as HTMLInputElement).value); }
 
+  // ── Helpers ────────────────────────────────────────────────────
   isDueSoon(due?: string): boolean {
     if (!due) return false;
     const diff = new Date(due).getTime() - Date.now();

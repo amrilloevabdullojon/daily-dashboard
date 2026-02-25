@@ -1,37 +1,88 @@
-<div class="card fade-in">
-  <div class="card-header">
-    <div class="card-title"><div class="dot" style="background: var(--purple)"></div>Google Tasks</div>
-    <div class="card-count">{{ done() }}/{{ total() }} выполнено</div>
+<div class="fade-in">
+
+  <!-- ── Google Tasks card ──────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><div class="dot" style="background: var(--purple)"></div>Google Tasks</div>
+      <div class="card-count">{{ done() }}/{{ total() }} выполнено</div>
+    </div>
+
+    @if (total() > 0) {
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" [style.width.%]="progress()"></div>
+      </div>
+    }
+
+    <div class="create-row">
+      <input class="create-input" placeholder="Новая задача..." [value]="newTaskTitle()" (input)="onInput($event)" (keydown)="onKeydown($event)" />
+      <button class="create-btn" (click)="createTask()" aria-label="Добавить задачу">＋</button>
+    </div>
+
+    <div class="card-body">
+      @if (tasks() === null) {
+        <app-skeleton-loader [count]="4" />
+      } @else if (tasks()!.length === 0) {
+        <div class="empty">Нет задач</div>
+      } @else {
+        @for (task of tasks(); track task.id) {
+          <div class="task-row" [class.done]="task.done">
+            <div class="task-check" [class.done]="task.done" (click)="toggle(task)" role="checkbox" [attr.aria-checked]="task.done" [attr.aria-label]="'Отметить: ' + task.title" tabindex="0"></div>
+            <div class="task-text" [class.done]="task.done">{{ task.title }}</div>
+            @if (task.due) {
+              <div class="task-due" [class.overdue]="isOverdue(task.due)" [class.soon]="isDueSoon(task.due)">
+                {{ task.due | smartTime }}
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
   </div>
 
-  @if (total() > 0) {
-    <div class="progress-bar-wrap">
-      <div class="progress-bar" [style.width.%]="progress()"></div>
+  <!-- ── Google Sheets Tasks card (only when configured) ───────── -->
+  @if (sheetsConfigured()) {
+    <div class="card sheets-card">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="dot" style="background: var(--green)"></div>
+          Sheets Tasks
+          <span class="sheets-badge">Google Sheets</span>
+        </div>
+        <div class="card-count">{{ sheetDone() }}/{{ sheetTotal() }} выполнено</div>
+      </div>
+
+      @if (sheetTotal() > 0) {
+        <div class="progress-bar-wrap">
+          <div class="progress-bar sheets-bar" [style.width.%]="sheetProgress()"></div>
+        </div>
+      }
+
+      <div class="create-row">
+        <input class="create-input" placeholder="Новая задача в Sheets..." [value]="newSheetTaskTitle()" (input)="onSheetInput($event)" (keydown)="onSheetKeydown($event)" />
+        <button class="create-btn sheets-btn" (click)="createSheetTask()" aria-label="Добавить задачу в Sheets">＋</button>
+      </div>
+
+      <div class="card-body">
+        @if (sheetTasks() === null) {
+          <app-skeleton-loader [count]="3" />
+        } @else if (sheetTasks()!.length === 0) {
+          <div class="empty">Нет задач в таблице</div>
+        } @else {
+          @for (task of sheetTasks(); track task.id) {
+            <div class="task-row" [class.done]="task.done">
+              <div class="task-check" [class.done]="task.done" (click)="toggleSheet(task)" role="checkbox" [attr.aria-checked]="task.done" [attr.aria-label]="'Отметить: ' + task.title" tabindex="0"></div>
+              <div class="task-text" [class.done]="task.done">{{ task.title }}</div>
+              @if (task.notes) {
+                <div class="task-notes">{{ task.notes }}</div>
+              }
+              @if (task.due) {
+                <div class="task-due">{{ task.due }}</div>
+              }
+            </div>
+          }
+        }
+      </div>
     </div>
   }
 
-  <div class="create-row">
-    <input class="create-input" placeholder="Новая задача..." [value]="newTaskTitle()" (input)="onInput($event)" (keydown)="onKeydown($event)" />
-    <button class="create-btn" (click)="createTask()" aria-label="Добавить задачу">＋</button>
-  </div>
-
-  <div class="card-body">
-    @if (tasks() === null) {
-      <app-skeleton-loader [count]="4" />
-    } @else if (tasks()!.length === 0) {
-      <div class="empty">Нет задач</div>
-    } @else {
-      @for (task of tasks(); track task.id) {
-        <div class="task-row" [class.done]="task.done">
-          <div class="task-check" [class.done]="task.done" (click)="toggle(task)" role="checkbox" [attr.aria-checked]="task.done" [attr.aria-label]="'Отметить: ' + task.title" tabindex="0"></div>
-          <div class="task-text" [class.done]="task.done">{{ task.title }}</div>
-          @if (task.due) {
-            <div class="task-due" [class.overdue]="isOverdue(task.due)" [class.soon]="isDueSoon(task.due)">
-              {{ task.due | smartTime }}
-            </div>
-          }
-        </div>
-      }
-    }
-  </div>
 </div>

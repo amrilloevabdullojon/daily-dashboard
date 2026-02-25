@@ -6,6 +6,7 @@ import { CalendarService } from './calendar.service';
 import { TasksService } from './tasks.service';
 import { JiraService } from './jira.service';
 import { SlackService } from './slack.service';
+import { SheetsService } from './sheets.service';
 import { AppStore } from '../store/app.store';
 
 const AUTO_REFRESH_MS = 5 * 60 * 1000; // 5 minutes
@@ -17,6 +18,7 @@ export class SyncService {
   private tasks    = inject(TasksService);
   private jira     = inject(JiraService);
   private slack    = inject(SlackService);
+  private sheets   = inject(SheetsService);
   private store    = inject(AppStore);
   private destroyRef = inject(DestroyRef);
 
@@ -26,11 +28,12 @@ export class SyncService {
     this.store.setSyncing(true);
 
     forkJoin({
-      emails: this.gmail.load(),
-      events: this.calendar.load(),
-      tasks:  this.tasks.load(),
-      jira:   this.jira.load(),
-      slack:  this.slack.load(),
+      emails:  this.gmail.load(),
+      events:  this.calendar.load(),
+      tasks:   this.tasks.load(),
+      jira:    this.jira.load(),
+      slack:   this.slack.load(),
+      sheets:  this.sheets.load(),
     }).subscribe({
       next:  () => this.store.setSynced(),
       error: () => this.store.setSyncing(false),
@@ -42,11 +45,12 @@ export class SyncService {
     timer(0, AUTO_REFRESH_MS).pipe(
       tap(() => this.store.setSyncing(true)),
       switchMap(() => forkJoin({
-        emails: this.gmail.load(),
-        events: this.calendar.load(),
-        tasks:  this.tasks.load(),
-        jira:   this.jira.load(),
-        slack:  this.slack.load(),
+        emails:  this.gmail.load(),
+        events:  this.calendar.load(),
+        tasks:   this.tasks.load(),
+        jira:    this.jira.load(),
+        slack:   this.slack.load(),
+        sheets:  this.sheets.load(),
       })),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({

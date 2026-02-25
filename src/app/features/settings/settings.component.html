@@ -123,6 +123,31 @@
     </div>
   </section>
 
+  <!-- Google Sheets -->
+  <section class="section">
+    <div class="section-title">
+      <span class="section-icon">◫</span>
+      Google Sheets — Tasks Sync
+      @if (sheetsConfigured) { <span class="configured-badge">✓ Настроено</span> }
+    </div>
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">Spreadsheet ID</label>
+        <input
+          class="form-input"
+          type="text"
+          placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"
+          [value]="sheetsId()"
+          (input)="sheetsId.set($any($event.target).value)"
+        />
+        <span class="form-hint">
+          ID из URL таблицы: docs.google.com/spreadsheets/d/<strong>ID</strong>/edit.
+          Заголовки в строке 1: id · title · done · due · notes
+        </span>
+      </div>
+    </div>
+  </section>
+
   <!-- Theme -->
   <section class="section">
     <div class="section-title">

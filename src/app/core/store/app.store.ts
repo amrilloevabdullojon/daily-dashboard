@@ -10,6 +10,7 @@ export interface AppState {
   gmailMessages: LoadingState<Email[]>;
   calEvents: LoadingState<CalEvent[]>;
   realTasks: LoadingState<Task[]>;
+  sheetTasks: LoadingState<Task[]>;
   jiraIssues: LoadingState<JiraIssue[]>;
   slackData: LoadingState<SlackData | SlackError | {}>;
   currentDate: Date;
@@ -23,6 +24,7 @@ const initialState: AppState = {
   gmailMessages: null,
   calEvents:     null,
   realTasks:     null,
+  sheetTasks:    null,
   jiraIssues:    null,
   slackData:     null,
   currentDate:   new Date(),
@@ -81,6 +83,24 @@ export const AppStore = signalStore(
     },
     setTasks(tasks: Task[]) {
       patchState(store, { realTasks: tasks });
+    },
+    setSheetTasks(tasks: Task[]) {
+      patchState(store, { sheetTasks: tasks });
+    },
+    resetSheetTasks() {
+      patchState(store, { sheetTasks: null });
+    },
+    toggleSheetTaskOptimistic(taskId: string) {
+      const tasks = store.sheetTasks();
+      if (!Array.isArray(tasks)) return;
+      patchState(store, {
+        sheetTasks: tasks.map(t => t.id === taskId ? { ...t, done: !t.done } : t)
+      });
+    },
+    addSheetTask(task: Task) {
+      const tasks = store.sheetTasks();
+      if (!Array.isArray(tasks)) return;
+      patchState(store, { sheetTasks: [...tasks, task] });
     },
     setJiraIssues(issues: JiraIssue[]) {
       patchState(store, { jiraIssues: issues });

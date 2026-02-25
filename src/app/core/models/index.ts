@@ -46,6 +46,8 @@ export interface Task {
   done: boolean;
   due?: string;
   notes?: string;
+  source?: 'tasks' | 'sheets'; // origin of the task
+  rowIndex?: number;            // Google Sheets row (1-based), sheets source only
 }
 
 // ── JIRA ─────────────────────────────────────────────────────────
@@ -108,6 +110,7 @@ export interface AppConfig {
   tgToken?: string;
   tgChatId?: string;
   slackToken?: string;
+  sheetsSpreadsheetId?: string; // Google Sheets spreadsheet ID for tasks sync
 }
 
 // ── LOADING STATE ─────────────────────────────────────────────────
