@@ -35,7 +35,7 @@ export class ConfigService {
       const flagKey = FLAG_MAP[key];
       if (flagKey) {
         // If a new token was supplied, mark flag as true; otherwise preserve existing flag
-        localSafe[flagKey as keyof AppConfig] = !!(config[key] || current[flagKey as keyof AppConfig]) as any;
+        (localSafe as any)[flagKey] = !!(config[key] || current[flagKey as keyof AppConfig]);
       }
       delete localSafe[key]; // never store the token itself
     }
