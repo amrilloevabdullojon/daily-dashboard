@@ -28,6 +28,8 @@ export class SlackComponent {
 
   isConfigured = computed(() => this.config.isSlackConfigured());
   isLoading    = computed(() => this.store.slackData().status === 'loading' && this.isConfigured());
+  isError      = computed(() => !!this.slackError());
+  hasData      = computed(() => !!this.slackData());
 
   slackData = computed((): SlackData | null => {
     const rd = this.store.slackData();
