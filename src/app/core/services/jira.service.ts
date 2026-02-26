@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, catchError, of, retry } from 'rxjs';
+import { Observable, tap, catchError, of, retry, map } from 'rxjs';
 import { JiraIssue } from '../models';
 import { AppStore } from '../store/app.store';
 import { ConfigService } from './config.service';
