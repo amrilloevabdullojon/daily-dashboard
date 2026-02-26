@@ -28,7 +28,7 @@ export class SheetsService {
       return of([]);
     }
     return this.http
-      .get<Task[]>('/api/sheets/tasks', { params: { spreadsheetId: id } })
+      .get<Task[]>('/api/sheets/tasks', { params: { spreadsheetId: id }, withCredentials: true })
       .pipe(
         tap(tasks => { this.store.setSheetTasks(tasks); this.store.clearDataError('sheets'); }),
         catchError(() => {
@@ -47,7 +47,7 @@ export class SheetsService {
         spreadsheetId: task.listId,
         rowIndex:      task.rowIndex,
         done:          newDone,
-      })
+      }, { withCredentials: true })
       .pipe(
         catchError(() => {
           // Revert optimistic update on failure
@@ -61,7 +61,7 @@ export class SheetsService {
     const id = this.spreadsheetId;
     if (!id) return of(null);
     return this.http
-      .post<Task>('/api/sheets/create', { spreadsheetId: id, title })
+      .post<Task>('/api/sheets/create', { spreadsheetId: id, title }, { withCredentials: true })
       .pipe(
         tap(task => { if (task) this.store.addSheetTask(task); }),
         catchError(() => of(null)),
@@ -71,7 +71,7 @@ export class SheetsService {
   delete(task: Task): Observable<void> {
     this.store.removeSheetTask(task.id);
     return this.http
-      .post<void>('/api/sheets/delete', { spreadsheetId: task.listId, rowIndex: task.rowIndex })
+      .post<void>('/api/sheets/delete', { spreadsheetId: task.listId, rowIndex: task.rowIndex }, { withCredentials: true })
       .pipe(
         catchError(() => {
           this.store.addSheetTask(task);

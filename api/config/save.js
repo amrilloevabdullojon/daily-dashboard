@@ -2,7 +2,7 @@
 // Stores Jira/Slack credentials in an httpOnly cookie so they never appear
 // in browser request headers or DevTools network logs.
 
-import { setCorsHeaders } from '../_utils.js';
+import { parseConfigCookie, setCorsHeaders } from '../_utils.js';
 
 export default async function handler(req, res) {
   setCorsHeaders(req, res);
@@ -20,8 +20,10 @@ export default async function handler(req, res) {
     }
   }
 
-  // Build a minimal object — only store the fields we actually need server-side
-  const cfg = {};
+  // Start from the existing cookie so tokens are preserved when not re-entered
+  const cfg = { ...parseConfigCookie(req.headers.cookie) };
+
+  // Only overwrite fields that were explicitly provided in this request
   if (jiraDomain?.trim())     cfg.jiraDomain     = jiraDomain.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
   if (jiraEmail?.trim())      cfg.jiraEmail      = jiraEmail.trim();
   if (jiraToken?.trim())      cfg.jiraToken      = jiraToken.trim();
