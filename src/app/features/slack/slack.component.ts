@@ -22,19 +22,26 @@ export class SlackComponent {
   private config     = inject(ConfigService);
   private notif      = inject(NotificationService);
 
-  filter = signal<SlackFilter>('all');
+  filter       = signal<SlackFilter>('all');
   replyChannel = signal<string | null>(null);
-  messageText = signal('');
-
-  slackRaw = computed(() => this.store.slackData());
+  messageText  = signal('');
 
   isConfigured = computed(() => this.config.isSlackConfigured());
-  isLoading    = computed(() => this.slackRaw() === null && this.isConfigured());
-  isError      = computed(() => { const d = this.slackRaw(); return d !== null && (d as SlackError).ok === false; });
-  hasData      = computed(() => { const d = this.slackRaw(); return d !== null && (d as SlackData).ok === true; });
+  isLoading    = computed(() => this.store.slackData().status === 'loading' && this.isConfigured());
 
-  slackData  = computed(() => this.hasData() ? this.slackRaw() as SlackData : null);
-  slackError = computed(() => this.isError() ? this.slackRaw() as SlackError : null);
+  slackData = computed((): SlackData | null => {
+    const rd = this.store.slackData();
+    if (rd.status !== 'ok') return null;
+    const d = rd.data as any;
+    return d?.ok === true ? (d as SlackData) : null;
+  });
+
+  slackError = computed((): SlackError | null => {
+    const rd = this.store.slackData();
+    if (rd.status !== 'ok') return null;
+    const d = rd.data as any;
+    return d?.ok === false ? (d as SlackError) : null;
+  });
 
   messages = computed(() => {
     const d = this.slackData();

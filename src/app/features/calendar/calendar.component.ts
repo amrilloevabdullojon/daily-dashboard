@@ -1,7 +1,8 @@
-import { Component, inject, computed, effect, untracked } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { AppStore } from '../../core/store/app.store';
 import { CalendarService } from '../../core/services/calendar.service';
+import { CalEvent } from '../../core/models';
 import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader/skeleton-loader.component';
 import { FmtDurPipe } from '../../shared/pipes/fmt-dur.pipe';
 
@@ -16,31 +17,32 @@ export class CalendarComponent {
   protected store  = inject(AppStore);
   protected calSvc = inject(CalendarService);
 
-  constructor() {
-    effect(() => {
-      const date = this.store.currentDate();
-      untracked(() => {
-        this.store.resetCalEvents();
-        this.calSvc.load(date).subscribe();
-      });
-    });
-  }
+  // CalendarService reacts to date changes in its own constructor effect —
+  // no need to duplicate the effect here.
 
-  events        = computed(() => this.store.calEvents());
+  selectedEvent = signal<CalEvent | null>(null);
+
+  selectEvent(ev: CalEvent): void  { this.selectedEvent.set(ev); }
+  closeDetail():           void    { this.selectedEvent.set(null); }
+
+  events        = computed(() => {
+    const rd = this.store.calEvents();
+    return rd.status === 'ok' ? rd.data : null;
+  });
   regularEvents = computed(() => {
     const e = this.events();
-    if (!Array.isArray(e)) return null;
+    if (!e) return null;
     return e
       .filter(ev => !ev.allDay)
       .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   });
   allDayEvents  = computed(() => {
     const e = this.events();
-    return Array.isArray(e) ? e.filter(ev => ev.allDay) : [];
+    return e ? e.filter(ev => ev.allDay) : [];
   });
   focusSlots    = computed(() => {
     const e = this.events();
-    if (!Array.isArray(e)) return [];
+    if (!e) return [];
     return this.calSvc.calcFocusSlots(e);
   });
   totalFocus    = computed(() => this.focusSlots().reduce((s, sl) => s + sl.duration, 0));

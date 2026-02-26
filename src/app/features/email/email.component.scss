@@ -185,3 +185,25 @@
 
   &:hover { border-color: var(--accent); color: var(--accent2); }
 }
+
+// ── LOAD MORE ─────────────────────────────────────────────────────
+.load-more-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 12px 20px;
+}
+
+.load-more-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--muted2);
+  padding: 6px 20px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover:not(:disabled) { border-color: var(--accent); color: var(--accent2); }
+  &:disabled { opacity: 0.5; cursor: default; }
+}

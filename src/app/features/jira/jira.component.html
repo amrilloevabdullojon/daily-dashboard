@@ -46,6 +46,13 @@
           <app-status-pill [label]="issue.status" [type]="issue.status | statusType" />
         </div>
       }
+      @if (hasMore()) {
+        <div class="load-more-wrap">
+          <button class="load-more-btn" (click)="loadMore()" [disabled]="isLoading()">
+            {{ isLoading() ? 'Загружаем...' : 'Загрузить ещё задачи' }}
+          </button>
+        </div>
+      }
     }
   </div>
 </div>

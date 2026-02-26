@@ -3,7 +3,7 @@
 // Token is passed from frontend via x-slack-token header (same pattern as Jira)
 // Uses parallel fetch to stay well within Vercel's 10s serverless timeout
 
-import { formatRelativeTime, parseConfigCookie, setCorsHeaders } from '../_utils.js';
+import { formatRelativeTime, parseConfigCookie, setCorsHeaders, fetchWithTimeout } from '../_utils.js';
 
 export default async function handler(req, res) {
   setCorsHeaders(req, res);
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
   try {
     // 1. Validate token and get bot user ID
-    const authRes  = await fetch('https://slack.com/api/auth.test', { headers: authHeader });
+    const authRes  = await fetchWithTimeout('https://slack.com/api/auth.test', { headers: authHeader });
     const authData = await authRes.json();
     if (!authData.ok) {
       return res.status(401).json({ ok: false, error: authData.error || 'invalid_auth' });
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
 
     // 2. Fetch all conversations the bot is member of
     // Note: private_channel requires groups:read scope — use only im, mpim, public_channel
-    const convRes  = await fetch(
+    const convRes  = await fetchWithTimeout(
       'https://slack.com/api/conversations.list?types=im,mpim,public_channel&limit=200&exclude_archived=true',
       { headers: authHeader }
     );
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     // Helper: fetch history for one channel, returns [] on any error
     const fetchHistory = async (channelId, limit = 3) => {
       try {
-        const r = await fetch(
+        const r = await fetchWithTimeout(
           `https://slack.com/api/conversations.history?channel=${channelId}&limit=${limit}`,
           { headers: authHeader }
         );
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
       if (!userId) return { name: 'Unknown', avatar: '' };
       if (userCache[userId]) return userCache[userId];
       try {
-        const r = await fetch(`https://slack.com/api/users.info?user=${userId}`, { headers: authHeader });
+        const r = await fetchWithTimeout(`https://slack.com/api/users.info?user=${userId}`, { headers: authHeader });
         const d = await r.json();
         const profile = d.user?.profile || {};
         const info = {

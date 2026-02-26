@@ -1,4 +1,4 @@
-import { Component, inject, computed, effect, untracked } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AppStore } from '../../core/store/app.store';
 import { CalendarService } from '../../core/services/calendar.service';
@@ -27,17 +27,6 @@ export class DashboardComponent {
   protected calSvc    = inject(CalendarService);
   protected jiraSvc   = inject(JiraService);
   protected sheetsSvc = inject(SheetsService);
-
-  constructor() {
-    // Reload calendar whenever the selected date changes
-    effect(() => {
-      const date = this.store.currentDate();
-      untracked(() => {
-        this.store.resetCalEvents();
-        this.calSvc.load(date).subscribe();
-      });
-    });
-  }
 
   // ── GREETING ──────────────────────────────────────────────────
   greeting = computed(() => {
@@ -73,36 +62,36 @@ export class DashboardComponent {
   // ── NEXT EVENT (today only) ───────────────────────────────────
   nextEvent = computed(() => {
     if (!this.isToday()) return null;
-    const events = this.store.calEvents();
-    if (!Array.isArray(events)) return null;
+    const rd = this.store.calEvents();
+    if (rd.status !== 'ok') return null;
     const now = new Date();
-    return events.find(e => !e.allDay && new Date(e.start) > now) ?? null;
+    return rd.data.find(e => !e.allDay && new Date(e.start) > now) ?? null;
   });
 
   // ── COMPUTED STATS ────────────────────────────────────────────
   unreadCount = computed(() => {
-    const msgs = this.store.gmailMessages();
-    return Array.isArray(msgs) ? msgs.filter(m => m.unread).length : null;
+    const rd = this.store.gmailMessages();
+    return rd.status === 'ok' ? rd.data.filter(m => m.unread).length : null;
   });
 
   todayEventsCount = computed(() => {
-    const events = this.store.calEvents();
-    return Array.isArray(events) ? events.filter(e => !e.allDay).length : null;
+    const rd = this.store.calEvents();
+    return rd.status === 'ok' ? rd.data.filter(e => !e.allDay).length : null;
   });
 
   activeTasks = computed(() => {
-    const tasks = this.store.realTasks();
-    if (!Array.isArray(tasks)) return null;
-    const gtCount = tasks.filter(t => !t.done).length;
-    const sheetList = this.store.sheetTasks();
-    const stCount = Array.isArray(sheetList) ? sheetList.filter(t => !t.done).length : 0;
+    const rd = this.store.realTasks();
+    if (rd.status !== 'ok') return null;
+    const gtCount = rd.data.filter(t => !t.done).length;
+    const srd = this.store.sheetTasks();
+    const stCount = srd.status === 'ok' ? srd.data.filter(t => !t.done).length : 0;
     return gtCount + stCount;
   });
 
   activeJira = computed(() => {
-    const issues = this.store.jiraIssues();
-    if (!Array.isArray(issues)) return null;
-    return issues.filter(i => {
+    const rd = this.store.jiraIssues();
+    if (rd.status !== 'ok') return null;
+    return rd.data.filter(i => {
       const s = i.status?.toLowerCase() || '';
       return s.includes('progress') || s.includes('review');
     }).length;
@@ -110,51 +99,50 @@ export class DashboardComponent {
 
   // ── TASK PROGRESS ─────────────────────────────────────────────
   taskProgress = computed(() => {
-    const tasks = this.store.realTasks();
-    if (!Array.isArray(tasks) || tasks.length === 0) return null;
-    const done  = tasks.filter(t => t.done).length;
-    const total = tasks.length;
+    const rd = this.store.realTasks();
+    if (rd.status !== 'ok' || rd.data.length === 0) return null;
+    const done  = rd.data.filter(t => t.done).length;
+    const total = rd.data.length;
     return { done, total, pct: Math.round((done / total) * 100) };
   });
 
   // ── FOCUS TIME ────────────────────────────────────────────────
   totalFocusMinutes = computed(() => {
-    const events = this.store.calEvents();
-    if (!Array.isArray(events)) return null;
-    const slots = this.calSvc.calcFocusSlots(events);
+    const rd = this.store.calEvents();
+    if (rd.status !== 'ok') return null;
+    const slots = this.calSvc.calcFocusSlots(rd.data);
     return slots.reduce((sum, s) => sum + s.duration, 0);
   });
 
   // ── PREVIEW DATA ──────────────────────────────────────────────
   previewEmails = computed(() => {
-    const msgs = this.store.gmailMessages();
-    return Array.isArray(msgs) ? msgs.slice(0, 5) : null;
+    const rd = this.store.gmailMessages();
+    return rd.status === 'ok' ? rd.data.slice(0, 5) : null;
   });
 
-  // Show all events for selected date, sorted by start time
   previewEvents = computed(() => {
-    const events = this.store.calEvents();
-    if (!Array.isArray(events)) return null;
-    return events
+    const rd = this.store.calEvents();
+    if (rd.status !== 'ok') return null;
+    return rd.data
       .filter(e => !e.allDay)
       .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
       .slice(0, 5);
   });
 
   previewIssues = computed(() => {
-    const issues = this.store.jiraIssues();
-    return Array.isArray(issues) ? issues.slice(0, 5) : null;
+    const rd = this.store.jiraIssues();
+    return rd.status === 'ok' ? rd.data.slice(0, 5) : null;
   });
 
   previewTasks = computed(() => {
-    const tasks = this.store.realTasks();
-    return Array.isArray(tasks) ? tasks.filter(t => !t.done).slice(0, 5) : null;
+    const rd = this.store.realTasks();
+    return rd.status === 'ok' ? rd.data.filter(t => !t.done).slice(0, 5) : null;
   });
 
   sheetsConfigured  = computed(() => this.sheetsSvc.isConfigured());
   previewSheetTasks = computed(() => {
-    const tasks = this.store.sheetTasks();
-    return Array.isArray(tasks) ? tasks.filter(t => !t.done).slice(0, 3) : null;
+    const rd = this.store.sheetTasks();
+    return rd.status === 'ok' ? rd.data.filter(t => !t.done).slice(0, 3) : null;
   });
 
   // ── HELPERS ───────────────────────────────────────────────────

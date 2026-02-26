@@ -1,0 +1,49 @@
+@if (open()) {
+  <div class="qs-overlay" (click)="close()">
+    <div class="qs-panel" (click)="$event.stopPropagation()" (keydown)="onKeydown($event)">
+      <div class="qs-input-wrap">
+        <span class="qs-icon">⌕</span>
+        <input
+          #searchInput
+          class="qs-input"
+          type="text"
+          placeholder="Поиск по письмам, задачам, Jira, событиям..."
+          [value]="query()"
+          (input)="onInput($event)"
+          autocomplete="off"
+        />
+        <span class="qs-kbd" (click)="close()">Esc</span>
+      </div>
+
+      @if (query() && results().length === 0) {
+        <div class="qs-empty">Ничего не найдено</div>
+      }
+
+      @if (results().length > 0) {
+        <div class="qs-results">
+          @for (r of results(); track $index) {
+            <div
+              class="qs-row"
+              [class.active]="cursor() === $index"
+              (click)="select(r)"
+              (mouseenter)="cursor.set($index)"
+            >
+              <span class="qs-row-icon">{{ r.icon }}</span>
+              <div class="qs-row-body">
+                <div class="qs-row-title">{{ r.title }}</div>
+                <div class="qs-row-sub">{{ r.sub }}</div>
+              </div>
+              <span class="qs-row-type">{{ r.type }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="qs-footer">
+        <span><kbd>↑↓</kbd> навигация</span>
+        <span><kbd>Enter</kbd> выбрать</span>
+        <span><kbd>Esc</kbd> закрыть</span>
+      </div>
+    </div>
+  </div>
+}

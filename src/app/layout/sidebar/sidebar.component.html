@@ -17,6 +17,10 @@
       >
         <span class="nav-icon">{{ item.icon }}</span>
         <span class="nav-label">{{ item.label }}</span>
+        @if (getStatus(item); as st) {
+          <span class="nav-status" [class]="'ns-' + st"
+                [title]="st === 'error' ? 'Ошибка загрузки' : st === 'loading' ? 'Загрузка...' : 'Данные загружены'"></span>
+        }
         @if (getBadge(item); as badge) {
           <span class="nav-badge" [class.red]="isUnreadBadge(item)">{{ badge }}</span>
         }

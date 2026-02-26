@@ -23,9 +23,9 @@ export class EmailComponent {
   search = signal('');
 
   emails = computed(() => {
-    const msgs = this.store.gmailMessages();
-    if (!Array.isArray(msgs)) return null;
-    let result = msgs;
+    const rd = this.store.gmailMessages();
+    if (rd.status !== 'ok') return null;
+    let result = rd.data;
     const f = this.filter();
     if (f === 'unread')  result = result.filter(m => m.unread);
     if (f === 'starred') result = result.filter(m => m.starred);
@@ -38,9 +38,12 @@ export class EmailComponent {
   });
 
   unreadCount = computed(() => {
-    const msgs = this.store.gmailMessages();
-    return Array.isArray(msgs) ? msgs.filter(m => m.unread).length : 0;
+    const rd = this.store.gmailMessages();
+    return rd.status === 'ok' ? rd.data.filter(m => m.unread).length : 0;
   });
+
+  hasMore  = computed(() => !!this.gmailSvc._nextPageToken);
+  loading  = computed(() => this.store.gmailMessages().status === 'loading');
 
   searchHint = computed(() => {
     const q = this.search();
@@ -67,6 +70,11 @@ export class EmailComponent {
     this.gmailSvc.archive(id).subscribe({
       error: () => this.notif.showToast('Не удалось архивировать письмо', '✗'),
     });
+  }
+
+  loadMore(): void {
+    const token = this.gmailSvc._nextPageToken;
+    if (token) this.gmailSvc.load(token).subscribe();
   }
 
   getInitial(from: string): string {

@@ -52,16 +52,14 @@ export class TasksService {
 
     return this.http.post<Task>('/api/tasks/create', { title, due }).pipe(
       tap(created => {
-        // Replace temp task with real one
-        const tasks = this.store.realTasks();
-        if (!Array.isArray(tasks)) return;
-        const updated = tasks.map(t => t.id === tempTask.id ? created : t);
-        this.store.setTasks(updated);
+        const rd = this.store.realTasks();
+        if (rd.status !== 'ok') return;
+        this.store.setTasks(rd.data.map(t => t.id === tempTask.id ? created : t));
       }),
       catchError(() => {
-        const tasks = this.store.realTasks();
-        if (Array.isArray(tasks)) {
-          this.store.setTasks(tasks.filter(t => t.id !== tempTask.id));
+        const rd = this.store.realTasks();
+        if (rd.status === 'ok') {
+          this.store.setTasks(rd.data.filter(t => t.id !== tempTask.id));
         }
         this.notif.showToast('Не удалось создать задачу', '✗');
         return of(tempTask);

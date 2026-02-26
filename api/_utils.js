@@ -2,7 +2,26 @@
 // Note: this file is ESM, imported with a relative path + .js extension
 
 /**
+ * fetch() wrapper that aborts after timeoutMs milliseconds (default 10 s).
+ * Prevents serverless functions from hanging indefinitely on slow external APIs.
+ * @param {string} url
+ * @param {RequestInit} [options]
+ * @param {number} [timeoutMs=10000]
+ * @returns {Promise<Response>}
+ */
+export async function fetchWithTimeout(url, options = {}, timeoutMs = 10000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
+/**
  * Format a date/timestamp as a Russian relative-time string.
+ * Matches the output of the Angular SmartTimePipe for consistency.
  * @param {string|number|Date} input  ISO datetime string, Unix seconds (number), or Date
  * @returns {string}
  */
@@ -22,11 +41,11 @@ export function formatRelativeTime(input) {
   const now  = new Date();
   const diff = Math.floor((now - d) / 1000); // seconds
 
-  if (diff < 60)           return 'только что';
-  if (diff < 3600)         return Math.floor(diff / 60) + ' мин назад';
-  if (diff < 86400)        return Math.floor(diff / 3600) + ' ч назад';
-  if (diff < 86400 * 2)    return 'вчера';
-  if (diff < 86400 * 7)    return Math.floor(diff / 86400) + ' дн. назад';
+  if (diff < 60)        return 'только что';
+  if (diff < 3600)      return Math.floor(diff / 60) + ' мин';
+  if (diff < 86400)     return Math.floor(diff / 3600) + ' ч';
+  if (diff < 86400 * 2) return 'вчера';
+  if (diff < 86400 * 7) return Math.floor(diff / 86400) + ' дн';
 
   const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
   return `${d.getDate()} ${months[d.getMonth()]}`;

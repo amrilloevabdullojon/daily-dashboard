@@ -2,7 +2,7 @@
 // Returns today's Google Calendar events
 
 import { getAccessToken } from '../_auth.js';
-import { setCorsHeaders } from '../_utils.js';
+import { setCorsHeaders, fetchWithTimeout } from '../_utils.js';
 
 // Google Calendar color IDs → hex
 const GOOGLE_COLORS = {
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
         maxResults:   '20'
       });
 
-    const evRes  = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+    const evRes  = await fetchWithTimeout(url, { headers: { Authorization: `Bearer ${accessToken}` } });
     const evData = await evRes.json();
 
     if (evData.error) {

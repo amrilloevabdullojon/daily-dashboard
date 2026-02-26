@@ -1,13 +1,28 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, effect, untracked } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of, retry } from 'rxjs';
 import { CalEvent, FocusSlot } from '../models';
 import { AppStore } from '../store/app.store';
+import { ConfigService } from './config.service';
 
 @Injectable({ providedIn: 'root' })
 export class CalendarService {
-  private http = inject(HttpClient);
-  private store = inject(AppStore);
+  private http   = inject(HttpClient);
+  private store  = inject(AppStore);
+  private config = inject(ConfigService);
+
+  constructor() {
+    // Single source of truth: reload whenever the selected date changes.
+    // Running in the root service means exactly one subscription fires
+    // regardless of how many components read calendar data.
+    effect(() => {
+      const date = this.store.currentDate();
+      untracked(() => {
+        this.store.resetCalEvents();
+        this.load(date).subscribe();
+      });
+    });
+  }
 
   load(date?: Date): Observable<CalEvent[]> {
     const d = date || this.store.currentDate();
@@ -27,20 +42,20 @@ export class CalendarService {
 
   /** Calculate focus time slots between meetings */
   calcFocusSlots(events: CalEvent[]): FocusSlot[] {
+    const cfg = this.config.get();
+    const DAY_START = (cfg.workdayStart ?? 9) * 60;
+    const DAY_END   = (cfg.workdayEnd   ?? 18) * 60;
+
     const work = events
       .filter(e => !e.allDay)
       .map(e => ({
         start: this.toMinutes(e.start),
         end:   this.toMinutes(e.end),
       }))
-      // Skip events with unparseable dates or end before start (malformed API response)
       .filter(e => !isNaN(e.start) && !isNaN(e.end) && e.end >= e.start)
       .sort((a, b) => a.start - b.start);
 
     const slots: FocusSlot[] = [];
-    const DAY_START = 9 * 60;  // 09:00
-    const DAY_END   = 18 * 60; // 18:00
-
     let cursor = DAY_START;
     for (const ev of work) {
       if (ev.start > cursor) {
@@ -70,11 +85,11 @@ export class CalendarService {
   }
 
   search(query: string): Observable<CalEvent[]> {
-    const events = this.store.calEvents();
-    if (!Array.isArray(events) || !query) return of([]);
+    const rd = this.store.calEvents();
+    if (rd.status !== 'ok' || !query) return of([]);
     const q = query.toLowerCase();
     return of(
-      events.filter(e => e.title.toLowerCase().includes(q)).slice(0, 3)
+      rd.data.filter(e => e.title.toLowerCase().includes(q)).slice(0, 3)
     );
   }
 }

@@ -465,3 +465,91 @@
 
   &:hover { text-decoration: underline; }
 }
+
+// ── EVENT DETAIL PANEL ─────────────────────────────────────────────
+.ev-detail-overlay {
+  position: fixed; inset: 0;
+  z-index: 500;
+  background: rgba(0,0,0,.45);
+  backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+  animation: fadeIn .15s ease;
+}
+
+.ev-detail {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  width: 480px; max-width: 94vw;
+  box-shadow: 0 16px 48px rgba(0,0,0,.5);
+  overflow: hidden;
+  display: flex;
+}
+
+.ev-detail-bar {
+  width: 5px;
+  flex-shrink: 0;
+}
+
+.ev-detail-body {
+  flex: 1;
+  padding: 20px;
+}
+
+.ev-detail-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ev-detail-title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.ev-detail-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  &:hover { color: var(--text); background: var(--bg3); }
+}
+
+.ev-detail-time {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.ev-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text2);
+  margin-bottom: 8px;
+}
+
+.ev-detail-icon { flex-shrink: 0; }
+
+.ev-detail-meet {
+  display: inline-block;
+  margin-top: 12px;
+  background: var(--green, #22c55e);
+  color: #fff;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity .15s;
+  &:hover { opacity: .85; }
+}

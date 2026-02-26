@@ -23,19 +23,25 @@ export class TasksComponent {
   newSheetTaskTitle = signal('');
 
   // ── Google Tasks ───────────────────────────────────────────────
-  tasks    = computed(() => this.store.realTasks());
-  done     = computed(() => { const t = this.tasks(); return Array.isArray(t) ? t.filter(x => x.done).length : 0; });
-  total    = computed(() => { const t = this.tasks(); return Array.isArray(t) ? t.length : 0; });
+  tasks    = computed(() => {
+    const rd = this.store.realTasks();
+    return rd.status === 'ok' ? rd.data : null;
+  });
+  done     = computed(() => { const t = this.tasks(); return t ? t.filter(x => x.done).length : 0; });
+  total    = computed(() => { const t = this.tasks(); return t ? t.length : 0; });
   progress = computed(() => this.total() > 0 ? Math.round((this.done() / this.total()) * 100) : 0);
 
   // ── Google Sheets Tasks ────────────────────────────────────────
   sheetsConfigured  = computed(() => this.sheetsSvc.isConfigured());
-  sheetTasks        = computed(() => this.store.sheetTasks());
-  sheetDone         = computed(() => { const t = this.sheetTasks(); return Array.isArray(t) ? t.filter(x => x.done).length : 0; });
-  sheetTotal        = computed(() => { const t = this.sheetTasks(); return Array.isArray(t) ? t.length : 0; });
+  sheetTasks        = computed(() => {
+    const rd = this.store.sheetTasks();
+    return rd.status === 'ok' ? rd.data : null;
+  });
+  sheetDone         = computed(() => { const t = this.sheetTasks(); return t ? t.filter(x => x.done).length : 0; });
+  sheetTotal        = computed(() => { const t = this.sheetTasks(); return t ? t.length : 0; });
   sheetProgress     = computed(() => this.sheetTotal() > 0 ? Math.round((this.sheetDone() / this.sheetTotal()) * 100) : 0);
 
-  tasksError = computed(() => this.store.dataErrors()['tasks']);
+  tasksError  = computed(() => this.store.dataErrors()['tasks']);
   sheetsError = computed(() => this.store.dataErrors()['sheets']);
 
   // ── Google Tasks actions ───────────────────────────────────────

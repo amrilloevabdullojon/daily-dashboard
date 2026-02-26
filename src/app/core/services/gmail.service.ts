@@ -11,23 +11,34 @@ export class GmailService {
   private store = inject(AppStore);
   private notif = inject(NotificationService);
 
-  load(): Observable<Email[]> {
-    return this.http.get<Email[]>('/api/gmail/messages').pipe(
+  load(pageToken?: string): Observable<{ messages: Email[]; nextPageToken: string | null }> {
+    const params: Record<string, string> = {};
+    if (pageToken) params['pageToken'] = pageToken;
+    return this.http.get<{ messages: Email[]; nextPageToken: string | null }>(
+      '/api/gmail/messages', { params }
+    ).pipe(
       retry({ count: 2, delay: 1000 }),
-      tap(msgs => this.store.setEmails(msgs)),
+      tap(res => {
+        if (pageToken) {
+          this.store.appendEmails(res.messages, res.nextPageToken);
+        } else {
+          this.store.setEmails(res.messages);
+        }
+        this._nextPageToken = res.nextPageToken;
+      }),
       catchError(() => {
-        this.store.setEmails([]);
-        return of([]);
+        if (!pageToken) this.store.setEmails([]);
+        return of({ messages: [], nextPageToken: null });
       })
     );
   }
 
+  _nextPageToken: string | null = null;
+
   markRead(id: string): Observable<void> {
-    // Optimistic update first
     this.store.markEmailRead(id);
     return this.http.post<void>('/api/gmail/markread', { messageId: id }).pipe(
       catchError(() => {
-        // Chain reload in the observable instead of calling subscribe() to avoid dangling subscriptions
         this.notif.showToast('Не удалось пометить как прочитанное', '✗');
         return this.load().pipe(map(() => void 0 as void));
       })
@@ -35,7 +46,6 @@ export class GmailService {
   }
 
   archive(id: string): Observable<void> {
-    // Optimistic remove
     this.store.removeEmail(id);
     return this.http.post<void>('/api/gmail/archive', { messageId: id }).pipe(
       catchError(() => {
@@ -46,11 +56,11 @@ export class GmailService {
   }
 
   search(query: string): Observable<Email[]> {
-    const msgs = this.store.gmailMessages();
-    if (!Array.isArray(msgs) || !query) return of([]);
+    const rd = this.store.gmailMessages();
+    if (rd.status !== 'ok' || !query) return of([]);
     const q = query.toLowerCase();
     return of(
-      msgs.filter(m =>
+      rd.data.filter(m =>
         m.from.toLowerCase().includes(q) ||
         m.subject.toLowerCase().includes(q) ||
         (m.snippet || '').toLowerCase().includes(q)

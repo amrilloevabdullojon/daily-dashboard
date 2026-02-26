@@ -52,6 +52,13 @@
           </div>
         </div>
       }
+      @if (hasMore()) {
+        <div class="load-more-wrap">
+          <button class="load-more-btn" (click)="loadMore()" [disabled]="loading()">
+            {{ loading() ? 'Загружаем...' : 'Загрузить ещё письма' }}
+          </button>
+        </div>
+      }
     }
   </div>
 </div>

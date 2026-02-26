@@ -6,6 +6,7 @@ export class SmartTimePipe implements PipeTransform {
     if (!dateStr) return '';
     try {
       const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '';
       const now = new Date();
       const diffMs = now.getTime() - d.getTime();
       const diffMins = Math.round(diffMs / 60000);

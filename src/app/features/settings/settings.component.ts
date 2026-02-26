@@ -24,7 +24,7 @@ export class SettingsComponent {
 
   saved         = signal(false);
   tgSending     = signal(false);
-  tgConfigured  = signal(!!this.configSvc.get().tgToken);
+  tgConfigured  = signal(this.configSvc.isTgConfigured());
 
   // Pre-populate non-sensitive fields only; tokens are never loaded into component state
   jiraDomain     = signal(this.configSvc.get().jiraDomain     || '');
@@ -32,6 +32,8 @@ export class SettingsComponent {
   jiraProjectKey = signal(this.configSvc.get().jiraProjectKey || '');
   sheetsId       = signal(this.configSvc.get().sheetsSpreadsheetId || '');
   tgChatId       = signal(this.configSvc.get().tgChatId       || '');
+  workdayStart   = signal(this.configSvc.get().workdayStart ?? 9);
+  workdayEnd     = signal(this.configSvc.get().workdayEnd   ?? 18);
 
   // Token inputs start empty; non-empty value = user wants to change the token
   jiraTokenNew  = signal('');
@@ -41,6 +43,8 @@ export class SettingsComponent {
   jiraConfigured   = this.configSvc.isJiraConfigured();
   slackConfigured  = this.configSvc.isSlackConfigured();
   sheetsConfigured = this.sheetsSvc.isConfigured();
+
+  readonly HOURS = Array.from({ length: 24 }, (_, i) => i);
 
   login(): void  { this.authSvc.login(); }
   logout(): void { this.authSvc.logout(); }
@@ -53,15 +57,17 @@ export class SettingsComponent {
       jiraProjectKey:      this.jiraProjectKey() || current.jiraProjectKey,
       sheetsSpreadsheetId: this.sheetsId().trim() || current.sheetsSpreadsheetId,
       tgChatId:            this.tgChatId().trim() || current.tgChatId,
+      workdayStart:        this.workdayStart(),
+      workdayEnd:          this.workdayEnd(),
       // Only update tokens when user entered a new value; otherwise keep existing
-      jiraToken:  this.jiraTokenNew().trim()  || current.jiraToken,
-      slackToken: this.slackTokenNew().trim() || current.slackToken,
-      tgToken:    this.tgTokenNew().trim()    || current.tgToken,
+      jiraToken:  this.jiraTokenNew().trim()  || undefined,
+      slackToken: this.slackTokenNew().trim() || undefined,
+      tgToken:    this.tgTokenNew().trim()    || undefined,
     });
     this.jiraConfigured   = this.configSvc.isJiraConfigured();
     this.slackConfigured  = this.configSvc.isSlackConfigured();
     this.sheetsConfigured = this.sheetsSvc.isConfigured();
-    this.tgConfigured.set(!!this.configSvc.get().tgToken);
+    this.tgConfigured.set(this.configSvc.isTgConfigured());
     this.saved.set(true);
     setTimeout(() => this.saved.set(false), 2000);
   }

@@ -2,7 +2,7 @@
 // Returns list of recent Gmail messages for the authenticated user
 
 import { getAccessToken } from '../_auth.js';
-import { setCorsHeaders }  from '../_utils.js';
+import { setCorsHeaders, fetchWithTimeout }  from '../_utils.js';
 
 const AVATAR_COLORS = ['#3b82f6','#ef4444','#22c55e','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316'];
 
@@ -22,22 +22,22 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Fetch list of message IDs (all mail, max 15)
-    const listRes = await fetch(
-      'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=15',
-      { headers: { Authorization: `Bearer ${accessToken}` } }
-    );
+    // Fetch list of message IDs
+    const pageToken = req.query.pageToken || '';
+    const listUrl = 'https://gmail.googleapis.com/gmail/v1/users/me/messages?' +
+      new URLSearchParams({ maxResults: '20', ...(pageToken ? { pageToken } : {}) });
+    const listRes = await fetchWithTimeout(listUrl, { headers: { Authorization: `Bearer ${accessToken}` } });
     const listData = await listRes.json();
 
     if (!listData.messages) {
-      return res.json([]);
+      return res.json({ messages: [], nextPageToken: null });
     }
 
     // Fetch each message in parallel (metadata only — fast)
     // Use allSettled so one inaccessible message doesn't block the entire inbox
     const results = await Promise.allSettled(
       listData.messages.map(async ({ id }) => {
-        const msgRes = await fetch(
+        const msgRes = await fetchWithTimeout(
           `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
@@ -72,7 +72,7 @@ export default async function handler(req, res) {
       .filter(r => r.status === 'fulfilled')
       .map(r => r.value);
 
-    res.json(messages);
+    res.json({ messages, nextPageToken: listData.nextPageToken || null });
   } catch (err) {
     console.error('Gmail API error:', err);
     res.status(500).json({ error: 'Failed to fetch Gmail messages' });

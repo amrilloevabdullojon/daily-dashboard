@@ -9,11 +9,12 @@ import { NotificationService } from './core/services/notification.service';
 import { ConfigService } from './core/services/config.service';
 import { AppStore } from './core/store/app.store';
 import { NgClass, DatePipe } from '@angular/common';
+import { QuickSearchComponent } from './shared/components/quick-search/quick-search.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent, TopbarComponent, NgClass, DatePipe],
+  imports: [RouterOutlet, SidebarComponent, TopbarComponent, NgClass, DatePipe, QuickSearchComponent],
   template: `
     @if (authChecked()) {
       <div class="app" [ngClass]="{ 'light': store.isLight() }">
@@ -69,6 +70,9 @@ import { NgClass, DatePipe } from '@angular/common';
         </div>
       </div>
     }
+
+    <!-- Quick Search overlay -->
+    <app-quick-search />
 
     <!-- Meeting alert -->
     @if (notif.meetingAlert(); as alert) {

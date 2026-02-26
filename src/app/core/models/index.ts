@@ -103,15 +103,38 @@ export interface SlackError {
 
 // ── APP CONFIG ────────────────────────────────────────────────────
 export interface AppConfig {
-  jiraDomain?: string;
-  jiraEmail?: string;
-  jiraToken?: string;
-  jiraProjectKey?: string;
-  tgToken?: string;
-  tgChatId?: string;
-  slackToken?: string;
-  sheetsSpreadsheetId?: string; // Google Sheets spreadsheet ID for tasks sync
+  // Non-sensitive fields stored in localStorage
+  jiraDomain?:          string;
+  jiraEmail?:           string;
+  jiraProjectKey?:      string;
+  tgChatId?:            string;
+  sheetsSpreadsheetId?: string;
+  workdayStart?:        number; // hour 0-23, default 9
+  workdayEnd?:          number; // hour 0-23, default 18
+
+  // Boolean flags (localStorage): true when token exists in httpOnly cookie
+  jiraTokenSet?:        boolean;
+  slackTokenSet?:       boolean;
+  tgTokenSet?:          boolean;
+
+  // Sensitive tokens — sent to API only, never stored in localStorage
+  jiraToken?:           string;
+  slackToken?:          string;
+  tgToken?:             string;
 }
 
-// ── LOADING STATE ─────────────────────────────────────────────────
+// ── REMOTE DATA (three-state loading) ─────────────────────────────
+export type RemoteData<T> =
+  | { readonly status: 'loading' }
+  | { readonly status: 'ok';    readonly data: T }
+  | { readonly status: 'error'; readonly message: string };
+
+export const remoteLoading: RemoteData<never> = { status: 'loading' };
+export function remoteOk<T>(data: T): RemoteData<T>         { return { status: 'ok', data }; }
+export function remoteError<T>(message: string): RemoteData<T> { return { status: 'error', message }; }
+export function remoteData<T>(rd: RemoteData<T>): T | null  {
+  return rd.status === 'ok' ? rd.data : null;
+}
+
+/** @deprecated Use RemoteData<T> for new code */
 export type LoadingState<T> = null | T; // null = loading, T = data

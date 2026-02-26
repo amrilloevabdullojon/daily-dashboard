@@ -2,7 +2,7 @@
 // Proxies requests to Jira Cloud REST API v3
 // Credentials are read from the httpOnly drConfig cookie set by /api/config/save
 
-import { formatRelativeTime, parseConfigCookie, setCorsHeaders } from '../_utils.js';
+import { formatRelativeTime, parseConfigCookie, setCorsHeaders, fetchWithTimeout } from '../_utils.js';
 
 export default async function handler(req, res) {
   setCorsHeaders(req, res);
@@ -21,10 +21,11 @@ export default async function handler(req, res) {
 
   try {
     // JQL: issues where user is assignee OR reporter, ordered by updated
-    const jql = '(assignee = currentUser() OR reporter = currentUser()) ORDER BY updated DESC';
-    const url  = `https://${domain}/rest/api/3/search/jql`;
+    const jql     = '(assignee = currentUser() OR reporter = currentUser()) ORDER BY updated DESC';
+    const url     = `https://${domain}/rest/api/3/search/jql`;
+    const startAt = parseInt(req.query.startAt || '0', 10);
 
-    const jiraRes  = await fetch(url, {
+    const jiraRes  = await fetchWithTimeout(url, {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${basicAuth}`,
@@ -33,6 +34,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         jql,
+        startAt,
         maxResults: 25,
         fields:     ['summary','status','priority','project','updated','assignee','reporter','issuetype']
       })
@@ -65,7 +67,7 @@ export default async function handler(req, res) {
       url:        `https://${domain}/browse/${issue.key}`
     }));
 
-    res.json(issues);
+    res.json({ issues, total: jiraData.total, startAt: jiraData.startAt, maxResults: jiraData.maxResults });
   } catch (err) {
     console.error('Jira API error:', err);
     res.status(500).json({ error: 'Failed to fetch Jira issues', message: err.message });

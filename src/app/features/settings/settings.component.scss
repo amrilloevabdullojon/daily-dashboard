@@ -296,3 +296,9 @@
     font-size: 0.9rem;
   }
 }
+
+.workday-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+}

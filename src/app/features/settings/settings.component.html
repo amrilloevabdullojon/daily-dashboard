@@ -191,6 +191,37 @@
     </div>
   </section>
 
+  <!-- Working Hours -->
+  <section class="section">
+    <div class="section-title">
+      <span class="section-icon">⏰</span>
+      Рабочее время
+    </div>
+    <div class="card">
+      <div class="workday-row">
+        <div class="form-group" style="flex:1">
+          <label class="form-label" for="workdayStart">Начало рабочего дня</label>
+          <select id="workdayStart" class="form-input"
+                  (change)="workdayStart.set(+$any($event.target).value)">
+            @for (h of HOURS; track h) {
+              <option [value]="h" [selected]="workdayStart() === h">{{ h }}:00</option>
+            }
+          </select>
+        </div>
+        <div class="form-group" style="flex:1">
+          <label class="form-label" for="workdayEnd">Конец рабочего дня</label>
+          <select id="workdayEnd" class="form-input"
+                  (change)="workdayEnd.set(+$any($event.target).value)">
+            @for (h of HOURS; track h) {
+              <option [value]="h" [selected]="workdayEnd() === h">{{ h }}:00</option>
+            }
+          </select>
+        </div>
+      </div>
+      <span class="form-hint">Используется для расчёта фокус-времени в Календаре</span>
+    </div>
+  </section>
+
   <!-- Theme -->
   <section class="section">
     <div class="section-title">

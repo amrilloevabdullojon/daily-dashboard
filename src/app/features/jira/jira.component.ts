@@ -30,21 +30,30 @@ export class JiraComponent {
   createPriority = signal('Medium');
   creating = signal(false);
 
-  issues = computed(() => this.store.jiraIssues());
+  issues = computed(() => {
+    const rd = this.store.jiraIssues();
+    return rd.status === 'ok' ? rd.data : null;
+  });
 
   filtered = computed(() => {
     const all = this.issues();
-    if (!Array.isArray(all)) return null;
+    if (!all) return null;
     const t = this.tab();
     if (t === 'all') return all;
     return all.filter(i => this.jiraSvc.statusGroup(i.status) === t);
   });
 
   isConfigured = computed(() => this.config.isJiraConfigured());
+  isLoading    = computed(() => this.store.jiraIssues().status === 'loading');
+  hasMore      = computed(() => {
+    const rd = this.store.jiraIssues();
+    const loaded = rd.status === 'ok' ? rd.data.length : 0;
+    return loaded > 0 && loaded < this.jiraSvc._jiraTotal;
+  });
 
   tabCounts = computed(() => {
     const all = this.issues();
-    if (!Array.isArray(all)) return {} as Record<JiraTab, number>;
+    if (!all) return {} as Record<JiraTab, number>;
     return {
       all:         all.length,
       in_progress: all.filter(i => this.jiraSvc.statusGroup(i.status) === 'in_progress').length,
@@ -55,8 +64,13 @@ export class JiraComponent {
   });
 
   setTab(t: JiraTab): void { this.tab.set(t); }
-
   openIssue(url: string): void { window.open(url, '_blank'); }
+
+  loadMore(): void {
+    const rd = this.store.jiraIssues();
+    const startAt = rd.status === 'ok' ? rd.data.length : 0;
+    this.jiraSvc.load(startAt).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+  }
 
   submitCreate(): void {
     const summary = this.createSummary().trim();

@@ -11,21 +11,34 @@ export class JiraService {
   private store = inject(AppStore);
   private config = inject(ConfigService);
 
-  load(): Observable<JiraIssue[]> {
+  load(startAt = 0): Observable<JiraIssue[]> {
     if (!this.config.isJiraConfigured()) {
       this.store.setJiraIssues([]);
       return of([]);
     }
 
-    return this.http.get<JiraIssue[]>('/api/jira/issues', { withCredentials: true }).pipe(
+    const params: Record<string, string> = startAt > 0 ? { startAt: String(startAt) } : {};
+    return this.http.get<{ issues: JiraIssue[]; total: number; startAt: number; maxResults: number }>(
+      '/api/jira/issues', { withCredentials: true, params }
+    ).pipe(
       retry({ count: 2, delay: 1000 }),
-      tap(issues => this.store.setJiraIssues(issues)),
+      tap(res => {
+        this._jiraTotal = res.total;
+        if (startAt > 0) {
+          this.store.appendJiraIssues(res.issues);
+        } else {
+          this.store.setJiraIssues(res.issues);
+        }
+      }),
+      map(res => res.issues),
       catchError(() => {
-        this.store.setJiraIssues([]);
+        if (startAt === 0) this.store.setJiraIssues([]);
         return of([]);
       })
     );
   }
+
+  _jiraTotal = 0;
 
   createIssue(data: {
     summary: string;
@@ -38,11 +51,11 @@ export class JiraService {
   }
 
   search(query: string): Observable<JiraIssue[]> {
-    const issues = this.store.jiraIssues();
-    if (!Array.isArray(issues) || !query) return of([]);
+    const rd = this.store.jiraIssues();
+    if (rd.status !== 'ok' || !query) return of([]);
     const q = query.toLowerCase();
     return of(
-      issues.filter(i =>
+      rd.data.filter(i =>
         i.key.toLowerCase().includes(q) ||
         i.summary.toLowerCase().includes(q)
       ).slice(0, 5)

@@ -2,7 +2,7 @@
 // Returns Google Tasks from all task lists
 
 import { getAccessToken } from '../_auth.js';
-import { setCorsHeaders } from '../_utils.js';
+import { setCorsHeaders, fetchWithTimeout } from '../_utils.js';
 
 export default async function handler(req, res) {
   setCorsHeaders(req, res);
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
   try {
     // Get all task lists
-    const listsRes  = await fetch(
+    const listsRes  = await fetchWithTimeout(
       'https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=10',
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     // Fetch tasks from all lists in parallel
     const allTasks = await Promise.all(
       taskLists.map(async list => {
-        const tasksRes  = await fetch(
+        const tasksRes  = await fetchWithTimeout(
           `https://tasks.googleapis.com/tasks/v1/lists/${list.id}/tasks?` +
           new URLSearchParams({
             maxResults:  '20',
